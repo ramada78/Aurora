@@ -5,11 +5,23 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Backendurl } from '../../App';
 
+const VISIT_TYPES = [
+  { value: "property", label: "At Property" },
+  { value: "online", label: "Online Meeting" },
+  { value: "office_vr", label: "Office VR Tour" },
+];
+
+const VR_CITIES = [
+  "Damascus", "Aleppo", "Homs", "Hama", "Latakia", "Tartus", "Daraa", "Sweida", "Quneitra", "Idlib", "Raqqa", "Deir ez-Zor", "Hasakah", "Rif Dimashq"
+];
+
 const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, propertyImage, onClose }) => {
   const [formData, setFormData] = useState({
     date: '',
     time: '',
-    notes: ''
+    notes: '',
+    visitType: 'property',
+    vrCity: ''
   });
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // Add step-based UI (1: date/time, 2: notes, 3: confirmation)
@@ -70,6 +82,14 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
       return;
     }
     setFormData(prev => ({ ...prev, time: selectedTime }));
+  };
+
+  const handleVisitTypeChange = (e) => {
+    const value = e.target.value;
+    setFormData(prev => ({ ...prev, visitType: value, vrCity: value === 'office_vr' ? prev.vrCity : '' }));
+  };
+  const handleVrCityChange = (e) => {
+    setFormData(prev => ({ ...prev, vrCity: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
@@ -257,6 +277,38 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
                         Available from 9:00 AM to 6:00 PM
                       </p>
                     </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Visit Type</label>
+                      <select
+                        value={formData.visitType}
+                        onChange={handleVisitTypeChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                        required
+                        disabled={loading}
+                      >
+                        {VISIT_TYPES.map((type) => (
+                          <option key={type.value} value={type.value}>{type.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {formData.visitType === 'office_vr' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Select VR City</label>
+                        <select
+                          value={formData.vrCity}
+                          onChange={handleVrCityChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                          required
+                          disabled={loading}
+                        >
+                          <option value="">Select City</option>
+                          {VR_CITIES.map((city) => (
+                            <option key={city} value={city}>{city}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
 
                     <div className="pt-4">
                       <button

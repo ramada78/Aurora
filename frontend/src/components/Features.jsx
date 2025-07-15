@@ -282,7 +282,7 @@ const Features = () => {
             >
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="font-medium">10,000+ Happy Families</span>
+                <span className="font-medium">100% Happy Customers</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>

@@ -40,6 +40,16 @@ export const getPropertyTypes = async () => {
   }
 };
 
+export const getPropertyTypeCounts = async () => {
+  try {
+    const response = await api.get('/api/property-types/counts');
+    return response.data.types || [];
+  } catch (error) {
+    console.error('Error fetching property type counts:', error);
+    return [];
+  }
+};
+
 export const getCities = async () => {
   try {
     const response = await api.get('/api/cities');
@@ -77,6 +87,36 @@ export const getUserRoles = async () => {
   } catch (error) {
     console.error('Error fetching user roles:', error);
     return {};
+  }
+};
+
+export const getAdminStats = async () => {
+  try {
+    const response = await api.get('/api/admin/stats');
+    return response.data.stats || {};
+  } catch (error) {
+    console.error('Error fetching admin stats:', error);
+    return {};
+  }
+};
+
+export const getTotalPropertyViews = async () => {
+  try {
+    const response = await api.get('/api/products/total-views');
+    return response.data.totalViews || 0;
+  } catch (error) {
+    console.error('Error fetching total property views:', error);
+    return 0;
+  }
+};
+
+export const getCompletedTransactions = async () => {
+  try {
+    const response = await api.get('/api/transactions/count/completed');
+    return response.data.count || 0;
+  } catch (error) {
+    console.error('Error fetching completed transactions:', error);
+    return 0;
   }
 };
 

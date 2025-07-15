@@ -13,9 +13,20 @@ import {
   Search,
   Link as LinkIcon,
   Send,
+  Pencil,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { backendurl } from "../App";
+
+const VISIT_TYPES = [
+  { value: "property", label: "At Property" },
+  { value: "online", label: "Online Meeting" },
+  { value: "office_vr", label: "Office VR Tour" },
+];
+const VR_CITIES = [
+  "Damascus", "Aleppo", "Homs", "Hama", "Latakia", "Tartus", "Daraa", "Sweida", "Quneitra", "Idlib", "Raqqa", "Deir ez-Zor", "Hasakah", "Rif Dimashq"
+];
+const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
 
 const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
@@ -24,6 +35,10 @@ const Appointments = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingMeetingLink, setEditingMeetingLink] = useState(null);
   const [meetingLink, setMeetingLink] = useState("");
+  const [editingAppointment, setEditingAppointment] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [editLoading, setEditLoading] = useState(false);
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
   const fetchAppointments = async () => {
     try {
@@ -107,6 +122,52 @@ const Appointments = () => {
     }
   };
 
+  const openEditModal = (appointment) => {
+    setEditingAppointment(appointment);
+    setEditForm({
+      appointmentId: appointment._id,
+      propertyId: appointment.propertyId?._id || appointment.propertyId,
+      date: appointment.date ? appointment.date.slice(0, 10) : "",
+      time: appointment.time || "",
+      notes: appointment.notes || "",
+      visitType: appointment.visitType || "property",
+      vrCity: appointment.vrCity || "",
+      meetingPlatform: appointment.meetingPlatform || "other",
+      meetingLink: appointment.meetingLink || "",
+      status: appointment.status || "pending",
+    });
+  };
+  const closeEditModal = () => {
+    setEditingAppointment(null);
+    setEditForm({});
+  };
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setEditLoading(true);
+    try {
+      const response = await axios.put(
+        `${backendurl}/api/appointments/update-details`,
+        editForm,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
+      if (response.data.success) {
+        toast.success("Appointment updated successfully");
+        closeEditModal();
+        fetchAppointments();
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      toast.error("Failed to update appointment");
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchAppointments();
   }, []);
@@ -134,6 +195,14 @@ const Appointments = () => {
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const isAllowedToEdit = (appointment) => {
+    return (
+      currentUser?.isAdmin ||
+      (appointment.propertyId.agent?._id === currentUser?._id) ||
+      (appointment.propertyId.seller?._id === currentUser?._id)
+    );
   };
 
   if (loading) {
@@ -203,6 +272,8 @@ const Appointments = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visit Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">VR City</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Meeting Link
                   </th>
@@ -277,6 +348,18 @@ const Appointments = () => {
                       </span>
                     </td>
 
+                    {/* Visit Type */}
+                    <td className="px-6 py-4">
+                      {appointment.visitType ? (
+                        appointment.visitType === 'property' ? 'At Property' : appointment.visitType === 'online' ? 'Online Meeting' : 'Office VR Tour'
+                      ) : 'N/A'}
+                    </td>
+
+                    {/* VR City */}
+                    <td className="px-6 py-4">
+                      {appointment.visitType === 'office_vr' ? (appointment.vrCity || 'N/A') : '-'}
+                    </td>
+
                     {/* Meeting Link */}
                     <td className="px-6 py-4">
                       {editingMeetingLink === appointment._id ? (
@@ -338,26 +421,33 @@ const Appointments = () => {
 
                     {/* Actions */}
                     <td className="px-6 py-4">
-                      {appointment.status === "pending" && (
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() =>
-                              handleStatusChange(appointment._id, "confirmed")
-                            }
-                            className="p-1 bg-green-500 text-white rounded hover:bg-green-600"
-                          >
-                            <Check className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() =>
-                              handleStatusChange(appointment._id, "cancelled")
-                            }
-                            className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {appointment.status === "pending" && (
+                          <>
+                            <button
+                              onClick={() => handleStatusChange(appointment._id, "confirmed")}
+                              className="p-2 bg-green-500 text-white rounded-full hover:bg-green-600 flex items-center justify-center"
+                              title="Confirm"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(appointment._id, "cancelled")}
+                              className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 flex items-center justify-center"
+                              title="Cancel"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => openEditModal(appointment)}
+                          className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 flex items-center justify-center"
+                          title="Edit"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </motion.tr>
                 ))}
@@ -372,6 +462,159 @@ const Appointments = () => {
           )}
         </div>
       </div>
+      {editingAppointment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Edit Appointment</h2>
+            {!isAllowedToEdit(editingAppointment) && (
+              <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded">
+                You do not have permission to edit this appointment. All fields are read-only.
+              </div>
+            )}
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              {/* Property (read-only for now) */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Property</label>
+                <input
+                  type="text"
+                  value={editingAppointment?.propertyId?.title || ''}
+                  className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-700"
+                  readOnly
+                />
+              </div>
+              {/* Date */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Date</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={editForm.date}
+                  onChange={handleEditFormChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                  readOnly={!isAllowedToEdit(editingAppointment)}
+                  disabled={!isAllowedToEdit(editingAppointment)}
+                />
+              </div>
+              {/* Time */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Time</label>
+                <input
+                  type="time"
+                  name="time"
+                  value={editForm.time}
+                  onChange={handleEditFormChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                  readOnly={!isAllowedToEdit(editingAppointment)}
+                  disabled={!isAllowedToEdit(editingAppointment)}
+                />
+              </div>
+              {/* Visit Type */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Visit Type</label>
+                <select
+                  name="visitType"
+                  value={editForm.visitType}
+                  onChange={handleEditFormChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                  disabled={!isAllowedToEdit(editingAppointment)}
+                >
+                  {VISIT_TYPES.map((type) => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
+                </select>
+              </div>
+              {/* VR City */}
+              {editForm.visitType === "office_vr" && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">VR City</label>
+                  <select
+                    name="vrCity"
+                    value={editForm.vrCity}
+                    onChange={handleEditFormChange}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    required
+                    disabled={!isAllowedToEdit(editingAppointment)}
+                  >
+                    <option value="">Select a VR City</option>
+                    {VR_CITIES.map((city) => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {/* Meeting Platform */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Meeting Platform</label>
+                <select
+                  name="meetingPlatform"
+                  value={editForm.meetingPlatform}
+                  onChange={handleEditFormChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  disabled={!isAllowedToEdit(editingAppointment)}
+                >
+                  {MEETING_PLATFORMS.map((platform) => (
+                    <option key={platform} value={platform}>{platform}</option>
+                  ))}
+                </select>
+              </div>
+              {/* Meeting Link */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Meeting Link</label>
+                <input
+                  type="url"
+                  name="meetingLink"
+                  value={editForm.meetingLink}
+                  onChange={handleEditFormChange}
+                  placeholder="Enter meeting link (if applicable)"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  readOnly={!isAllowedToEdit(editingAppointment)}
+                  disabled={!isAllowedToEdit(editingAppointment)}
+                />
+              </div>
+              {/* Notes */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Notes</label>
+                <textarea
+                  name="notes"
+                  value={editForm.notes}
+                  onChange={handleEditFormChange}
+                  rows="3"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  readOnly={!isAllowedToEdit(editingAppointment)}
+                  disabled={!isAllowedToEdit(editingAppointment)}
+                />
+              </div>
+              {/* Status */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Status</label>
+                <select
+                  name="status"
+                  value={editForm.status}
+                  onChange={handleEditFormChange}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  required
+                  disabled={!isAllowedToEdit(editingAppointment)}
+                >
+                  <option value="pending">Pending</option>
+                  <option value="confirmed">Confirmed</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="completed">Completed</option>
+                </select>
+              </div>
+              {/* Buttons */}
+              <div className="flex justify-end gap-2 mt-4">
+                <button type="button" className="px-4 py-2 bg-gray-200 rounded" onClick={closeEditModal} disabled={editLoading}>Cancel</button>
+                {isAllowedToEdit(editingAppointment) && (
+                  <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded" disabled={editLoading}>{editLoading ? "Saving..." : "Save"}</button>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

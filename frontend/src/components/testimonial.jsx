@@ -236,14 +236,6 @@ const Testimonials = () => {
   const [autoplay, setAutoplay] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Statistics for enhanced visual appeal
-  const stats = [
-    { icon: Users, value: "10K+", label: "Happy Clients", color: "from-blue-500 to-cyan-500" },
-    { icon: Star, value: "4.9", label: "Average Rating", color: "from-yellow-500 to-orange-500" },
-    { icon: Award, value: "50+", label: "Awards Won", color: "from-purple-500 to-pink-500" },
-    { icon: TrendingUp, value: "98%", label: "Success Rate", color: "from-green-500 to-emerald-500" }
-  ];
-
   // Auto-rotate testimonials
   useEffect(() => {
     if (!autoplay || isHovered) return;
@@ -278,7 +270,7 @@ const Testimonials = () => {
   };
 
   return (
-    <section className="relative py-32 bg-gradient-to-br from-slate-50 via-blue-50/50 to-indigo-50 overflow-hidden">
+    <section className="relative py-20 bg-gradient-to-br from-slate-50 via-blue-50/50 to-indigo-50 overflow-hidden">
       {/* Enhanced Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-400/10 rounded-full blur-3xl animate-pulse" />
@@ -356,40 +348,6 @@ const Testimonials = () => {
             Discover why thousands of homeowners trust Aurora to find their perfect property. 
             Our commitment to excellence speaks through their experiences.
           </motion.p>
-        </motion.div>
-
-        {/* Statistics Section */}
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-20"
-        >
-          {stats.map((stat, index) => (
-            <motion.div
-              key={index}
-              variants={cardVariants}
-              whileHover={{ 
-                scale: 1.05,
-                transition: { type: "spring", stiffness: 300 }
-              }}
-              className="text-center p-6 bg-white/70 backdrop-blur-sm rounded-2xl border border-white/20 shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <motion.div
-                animate={pulseAnimation}
-                className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${stat.color} text-white mb-4 shadow-lg`}
-              >
-                <stat.icon className="w-6 h-6" />
-              </motion.div>
-              <div className="font-bold text-2xl md:text-3xl text-gray-900 mb-1">
-                {stat.value}
-              </div>
-              <div className="text-sm text-gray-600 font-medium">
-                {stat.label}
-              </div>
-            </motion.div>
-          ))}
         </motion.div>
 
         {/* Desktop Testimonials Grid */}

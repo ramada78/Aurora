@@ -9,7 +9,8 @@ import {
   updateAppointmentMeetingLink,
   getAppointmentStats,
   submitAppointmentFeedback,
-  getUpcomingAppointments
+  getUpcomingAppointments,
+  updateAppointmentDetails
 } from "../controller/appointmentController.js";
 
 
@@ -27,5 +28,6 @@ router.get("/all", rolesOrAdmin(['agent']), getAllAppointments);
 router.get("/stats", rolesOrAdmin(['agent']), getAppointmentStats);
 router.put("/status", rolesOrAdmin(['agent']), updateAppointmentStatus);
 router.put("/update-meeting", rolesOrAdmin(['agent']), updateAppointmentMeetingLink);
+router.put("/update-details", rolesOrAdmin(['agent']), updateAppointmentDetails);
 
 export default router;

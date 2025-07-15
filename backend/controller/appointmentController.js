@@ -168,7 +168,13 @@ const calculateRevenue = async () => {
 export const getAllAppointments = async (req, res) => {
   try {
     const appointments = await Appointment.find()
-      .populate('propertyId', 'title location')
+      .populate({
+        path: 'propertyId',
+        populate: [
+          { path: 'agent', model: 'User' },
+          { path: 'seller', model: 'Seller' }
+        ]
+      })
       .populate('userId', 'name email')
       .sort({ createdAt: -1 });
 
@@ -189,18 +195,41 @@ export const updateAppointmentStatus = async (req, res) => {
   try {
     const { appointmentId, status } = req.body;
     
-    const appointment = await Appointment.findByIdAndUpdate(
-      appointmentId,
-      { status },
-      { new: true }
-    ).populate('propertyId userId');
-
+    // Restrict: Only admin, agent of property, or seller can change status
+    const appointment = await Appointment.findById(appointmentId).populate({
+      path: 'propertyId',
+      populate: [
+        { path: 'agent', model: 'User' },
+        { path: 'seller', model: 'Seller' }
+      ]
+    }).populate('userId');
     if (!appointment) {
       return res.status(404).json({
         success: false,
         message: 'Appointment not found'
       });
     }
+    let allowed = false;
+    if (req.admin) {
+      allowed = true;
+    } else if (appointment.propertyId.agent && appointment.propertyId.agent._id.toString() === req.user._id.toString()) {
+      allowed = true;
+    } else if (
+      appointment.propertyId.seller &&
+      req.user.email &&
+      appointment.propertyId.seller.email === req.user.email
+    ) {
+      allowed = true;
+    }
+    if (!allowed) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to change the status of this appointment.'
+      });
+    }
+    appointment.status = status;
+    await appointment.save();
+    await appointment.populate('propertyId userId');
 
     // Send email notification
     /*
@@ -230,7 +259,7 @@ export const updateAppointmentStatus = async (req, res) => {
 // Add scheduling functionality
 export const scheduleViewing = async (req, res) => {
   try {
-    const { propertyId, date, time, notes } = req.body;
+    const { propertyId, date, time, notes, visitType, vrCity } = req.body;
     
     // req.user is set by the protect middleware
     
@@ -243,6 +272,22 @@ export const scheduleViewing = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Property not found'
+      });
+    }
+
+    // Validate visitType
+    const validVisitTypes = ['property', 'online', 'office_vr'];
+    if (!visitType || !validVisitTypes.includes(visitType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or missing visit type.'
+      });
+    }
+    // If office_vr, vrCity must be provided
+    if (visitType === 'office_vr' && (!vrCity || vrCity.trim() === '')) {
+      return res.status(400).json({
+        success: false,
+        message: 'City is required for office VR tour.'
       });
     }
 
@@ -267,7 +312,9 @@ export const scheduleViewing = async (req, res) => {
       date,
       time,
       notes,
-      status: 'pending'
+      status: 'pending',
+      visitType,
+      vrCity: visitType === 'office_vr' ? vrCity : undefined
     });
 
     await appointment.save();
@@ -438,8 +485,90 @@ export const updateAppointmentMeetingLink = async (req, res) => {
   }
 };
 
+// Update all appointment details
+export const updateAppointmentDetails = async (req, res) => {
+  try {
+    const { appointmentId, propertyId, date, time, notes, visitType, vrCity, meetingPlatform, meetingLink, status } = req.body;
 
-// Add at the end of the file
+    // Validate visitType
+    const validVisitTypes = ['property', 'online', 'office_vr'];
+    if (!visitType || !validVisitTypes.includes(visitType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or missing visit type.'
+      });
+    }
+    if (visitType === 'office_vr' && (!vrCity || vrCity.trim() === '')) {
+      return res.status(400).json({
+        success: false,
+        message: 'City is required for office VR tour.'
+      });
+    }
+
+    const updateFields = {
+      propertyId,
+      date,
+      time,
+      notes,
+      visitType,
+      vrCity: visitType === 'office_vr' ? vrCity : undefined,
+      meetingPlatform,
+      meetingLink,
+      status
+    };
+
+    // Remove undefined fields
+    Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+
+    const appointment = await Appointment.findByIdAndUpdate(
+      appointmentId,
+      updateFields,
+      { new: true }
+    ).populate(['propertyId', 'userId']);
+
+    if (!appointment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Appointment not found'
+      });
+    }
+
+    // Restrict: Only admin, agent of property, or seller can change status
+    if (typeof status !== 'undefined' && appointment.status !== status) {
+      let allowed = false;
+      if (req.admin) {
+        allowed = true;
+      } else if (appointment.propertyId.agent && appointment.propertyId.agent._id.toString() === req.user._id.toString()) {
+        allowed = true;
+      } else if (
+        appointment.propertyId.seller &&
+        req.user.email &&
+        appointment.propertyId.seller.email === req.user.email
+      ) {
+        allowed = true;
+      }
+      if (!allowed) {
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have permission to change the status of this appointment.'
+        });
+      }
+      appointment.status = status;
+    }
+
+    res.json({
+      success: true,
+      message: 'Appointment updated successfully',
+      appointment
+    });
+  } catch (error) {
+    console.error('Error updating appointment details:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating appointment details'
+    });
+  }
+};
 
 export const getAppointmentStats = async (req, res) => {
   try {

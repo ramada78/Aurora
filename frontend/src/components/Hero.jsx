@@ -1,23 +1,17 @@
-import { useState } from "react";
-import { Search, MapPin, ArrowRight, Star, Users, Home, Shield, Sparkles, TrendingUp, Filter } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, MapPin, ArrowRight, Star, Users, Home, Shield, Sparkles, TrendingUp, Filter, Eye, HandshakeIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import heroimage from "../assets/images/heroimage.png";
 import { RadialGradient } from "react-text-gradients";
+import { getPropertyTypeCounts, getAdminStats, getTotalPropertyViews, getCompletedTransactions } from "../services/api";
+import { useRef } from "react";
 
 const popularLocations = [
-  "Mumbai",
-  "Delhi", 
-  "Bangalore",
-  "Hyderabad",
-  "Chennai"
-];
-
-const quickFilters = [
-  { label: "Apartments", icon: Home, count: "2.5k+" },
-  { label: "Houses", icon: Home, count: "1.8k+" },
-  { label: "Villas", icon: Home, count: "750+" },
-  { label: "Studios", icon: Home, count: "1.2k+" }
+  "Aleppo",
+  "Damascus", 
+  "Latakia",
+  "Tartus"
 ];
 
 const stats = [
@@ -79,17 +73,75 @@ const Hero = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [propertyType, setPropertyType] = useState("All");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [quickFilters, setQuickFilters] = useState([]);
+  const [stats, setStats] = useState([
+    { icon: Home, value: "-", label: "Total Properties", color: "from-blue-500 to-cyan-500" },
+    { icon: HandshakeIcon, value: "-", label: "Completed Deals", color: "from-green-500 to-emerald-500" },
+    { icon: Eye, value: "-", label: "Total Properties Views", color: "from-purple-500 to-pink-500"},
+    { icon: Star, value: "4.9", label: "Average Rating", color: "from-yellow-500 to-orange-500"}
+  ]);
+  const searchRef = useRef(null);
 
-  const handleSubmit = (location = searchQuery) => {
-    if (location.trim()) {
-      navigate(`/properties?location=${encodeURIComponent(location)}&type=${propertyType}`);
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    }
+    if (showSuggestions) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showSuggestions]);
+
+  useEffect(() => {
+    getPropertyTypeCounts().then((types) => {
+      setQuickFilters(
+        types.map((type) => ({
+          label: type.type_name,
+          icon: Home,
+          count: type.count
+        }))
+      );
+    });
+    // Fetch stats for the first three cards
+    Promise.all([
+      getAdminStats(),
+      getCompletedTransactions(),
+      getTotalPropertyViews()
+    ]).then(([adminStats, completedTransactions, totalViews]) => {
+      setStats((prev) => [
+        {
+          ...prev[0],
+          value: adminStats.totalProperties !== undefined ? adminStats.totalProperties : "-"
+        },
+        {
+          ...prev[1],
+          value: completedTransactions !== undefined ? completedTransactions : "-"
+        },
+        {
+          ...prev[2],
+          value: totalViews !== undefined ? totalViews : "-"
+        },
+        prev[3] // static average rating
+      ]);
+    });
+  }, []);
+
+  const handleSubmit = (city = searchQuery) => {
+    if (city.trim()) {
+      navigate(`/properties?city=${encodeURIComponent(city)}`);
     }
   };
 
-  const handleLocationClick = (location) => {
-    setSearchQuery(location);
+  const handleLocationClick = (city) => {
+    setSearchQuery(city);
     setShowSuggestions(false);
-    handleSubmit(location);
+    handleSubmit(city);
   };
 
   return (
@@ -212,7 +264,8 @@ const Hero = () => {
               {/* Enhanced Search Section */}
               <motion.div
                 variants={itemVariants}
-                className="relative max-w-4xl mx-auto mb-16"
+                className="relative max-w-4xl mx-auto mb-16 z-50"
+                ref={searchRef}
               >
                 <div className="bg-white/95 backdrop-blur-md rounded-3xl p-6 shadow-2xl border border-white/50">
                   {/* Property Type Filters */}
@@ -222,7 +275,7 @@ const Hero = () => {
                         key={filter.label}
                         whileHover={{ scale: 1.05, y: -2 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => setPropertyType(filter.label)}
+                        onClick={() => navigate(`/properties?propertyType=${encodeURIComponent(filter.label)}`)}
                         className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-300 flex items-center gap-2 ${
                           propertyType === filter.label
                             ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
@@ -251,31 +304,21 @@ const Hero = () => {
                           setIsSearchFocused(true);
                         }}
                         onBlur={() => setIsSearchFocused(false)}
-                        placeholder="Enter city, locality, or landmark..."
+                        placeholder="Enter desired city..."
                         className="w-full pl-12 pr-6 py-4 rounded-2xl border-2 border-gray-200 bg-white/90 
                           focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 
                           text-lg placeholder-gray-500 font-medium"
                       />
                     </div>
                     
-                    <div className="flex gap-3">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="px-6 py-4 bg-gray-100 text-gray-700 rounded-2xl hover:bg-gray-200 
-                          transition-all flex items-center gap-2 font-medium"
-                      >
-                        <Filter className="w-5 h-5" />
-                        <span className="hidden sm:inline">Filters</span>
-                      </motion.button>
-                      
+                    <div className="flex gap-0 lg:gap-3">
                       <motion.button
                         onClick={() => handleSubmit()}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className="px-8 py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 
                           text-white rounded-2xl hover:shadow-2xl transition-all flex items-center gap-3 
-                          font-bold text-lg shadow-xl"
+                          font-bold text-lg shadow-xl w-full lg:w-auto"
                       >
                         <Search className="w-5 h-5" />
                         <span>Search Properties</span>
@@ -292,7 +335,7 @@ const Hero = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.98 }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
-                        className="absolute left-6 right-6 top-full mt-4 bg-white/98 backdrop-blur-md 
+                        className="absolute left-6 right-6 top-full mt-4 bg-white backdrop-blur-md 
                           rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50"
                       >
                         <div className="p-6">
@@ -324,9 +367,6 @@ const Hero = () => {
                                   <div>
                                     <span className="font-semibold text-gray-900 group-hover:text-blue-600 
                                       transition-colors">{location}</span>
-                                    <div className="text-xs text-gray-500">
-                                      {Math.floor(Math.random() * 500) + 100}+ properties
-                                    </div>
                                   </div>
                                 </div>
                                 <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 

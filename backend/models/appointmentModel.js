@@ -33,6 +33,19 @@ const appointmentSchema = new mongoose.Schema({
     enum: ['zoom', 'google-meet', 'teams', 'other'],
     default: 'other'
   },
+  // New field: visitType
+  visitType: {
+    type: String,
+    enum: ['property', 'online', 'office_vr'],
+    required: true,
+    default: 'property'
+  },
+  // New field: vrCity (only required if visitType is 'office_vr')
+  vrCity: {
+    type: String,
+    required: function() { return this.visitType === 'office_vr'; },
+    trim: true
+  },
   notes: {
     type: String
   },

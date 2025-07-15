@@ -1,4 +1,5 @@
 import PropertyType from '../models/PropertyType.js';
+import Property from '../models/propertymodel.js';
 
 export const listPropertyTypes = async (req, res) => {
   try {
@@ -40,5 +41,29 @@ export const deletePropertyType = async (req, res) => {
     res.json({ success: true, message: 'Deleted' });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+// New: Get property type counts
+export const getPropertyTypeCounts = async (req, res) => {
+  try {
+    // Aggregate property counts by propertyType
+    const counts = await Property.aggregate([
+      { $group: { _id: "$propertyType", count: { $sum: 1 } } }
+    ]);
+    // Join with PropertyType to get names
+    const types = await PropertyType.find();
+    const result = counts.map(c => {
+      const type = types.find(t => t._id.toString() === (c._id ? c._id.toString() : ''));
+      return type ? {
+        _id: type._id,
+        type_name: type.type_name,
+        category: type.category,
+        count: c.count
+      } : null;
+    }).filter(Boolean);
+    res.json({ success: true, types: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 }; 

@@ -7,8 +7,10 @@ import FilterSection from "./Filtersection.jsx";
 import PropertyCard from "./Propertycard.jsx";
 import { Backendurl } from "../../App.jsx";
 import { getPropertyTypes, getCities } from "../../services/api";
+import { useLocation } from "react-router-dom";
 
 const PropertiesPage = () => {
+  const location = useLocation();
   const [viewState, setViewState] = useState({
     isGridView: true,
     showFilters: false,
@@ -45,6 +47,18 @@ const PropertiesPage = () => {
     getPropertyTypes().then(setPropertyTypes);
     getCities().then(setCities);
   }, []);
+
+  useEffect(() => {
+    // Set city and propertyType filter from URL query param on mount
+    const params = new URLSearchParams(location.search);
+    const cityParam = params.get('city');
+    const propertyTypeParam = params.get('propertyType');
+    setFilters(prev => ({
+      ...prev,
+      city: cityParam || prev.city,
+      propertyType: propertyTypeParam || prev.propertyType
+    }));
+  }, [location.search]);
 
   const propertyTypeMap = useMemo(() => {
     const map = {};
@@ -115,9 +129,9 @@ const PropertiesPage = () => {
         const typeMatch = !filters.propertyType || 
           property.propertyType?.type_name?.toLowerCase() === filters.propertyType.toLowerCase();
 
-        // City filter (new)
+        // City filter (partial match)
         const cityMatch = !filters.city || 
-          property.city?.city_name?.toLowerCase() === filters.city.toLowerCase();
+          property.city?.city_name?.toLowerCase().includes(filters.city.toLowerCase());
 
         // Price filter (USD)
         const priceMatch = property.price >= filters.minPrice && property.price <= filters.maxPrice;
