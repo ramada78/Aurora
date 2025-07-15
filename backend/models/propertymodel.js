@@ -5,10 +5,6 @@ const propertySchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  location: {
-    type: String,
-    required: true,
-  },
   price: {
     type: Number,
     required: true,
@@ -29,10 +25,6 @@ const propertySchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  type: {
-    type: String,
-    required: true,
-  },
   availability: {
     type: String,
     required: true,
@@ -46,10 +38,38 @@ const propertySchema = new mongoose.Schema({
     ref: "Amenity",
     required: true
   }],
-  phone: {
-    type: String,
-    required: true,
+  agent: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false // Every property must have an agent
   },
+  seller: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Seller',
+    required: false // Will be required for new properties
+  },
+  propertyType: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PropertyType',
+    required: false // for backward compatibility
+  },
+  city: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'City',
+    required: false // for backward compatibility
+  },
+  mapUrl: {
+    type: String,
+    required: false,
+    default: ""
+  },
+  views: {
+    type: Number,
+    default: 0
+  },
+  status: { type: String, enum: ['available', 'rented', 'sold'], default: 'available' },
+}, {
+  timestamps: true
 });
 
 const Property = mongoose.model("Property", propertySchema);

@@ -15,7 +15,8 @@ import {
   ArrowRight,
   User,
   Key,
-  Home
+  Home,
+  Phone
 } from 'lucide-react';
 import { Backendurl } from '../App';
 import { toast } from 'react-toastify';
@@ -95,18 +96,29 @@ const Signup = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: ''
+    password: '',
+    phone: '',
+    roles: ['client'], // Default to client
+    primaryRole: 'client'
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fieldFocus, setFieldFocus] = useState({
     name: false,
     email: false,
-    password: false
+    password: false,
+    phone: false
   });
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [validationErrors, setValidationErrors] = useState({});
   const navigate = useNavigate();
+
+  // Available roles
+  const availableRoles = [
+    { value: 'client', label: 'Client', description: 'I want to buy properties' },
+    { value: 'seller', label: 'Seller', description: 'I want to sell properties' },
+    { value: 'agent', label: 'Agent', description: 'I want to help others buy/sell' }
+  ];
 
   // Password strength calculation
   const calculatePasswordStrength = (password) => {
@@ -137,6 +149,15 @@ const Signup = () => {
         if (!value) errors.password = 'Password is required';
         else if (value.length < 6) errors.password = 'Password must be at least 6 characters';
         break;
+      case 'phone':
+        if (value && !/^\+?[0-9]{10,15}$/.test(value)) errors.phone = 'Please enter a valid phone number (e.g., +1234567890 or 1234567890)';
+        break;
+      case 'roles':
+        if (formData.roles.length === 0) errors.roles = 'Please select at least one role';
+        break;
+      case 'primaryRole':
+        if (!formData.roles.includes(value)) errors.primaryRole = 'Primary role must be one of your selected roles';
+        break;
     }
     
     setValidationErrors(prev => ({ ...prev, ...errors }));
@@ -144,11 +165,28 @@ const Signup = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    const { name, value, type, checked } = e.target;
+    
+    if (name === 'roles') {
+      // Handle role checkbox selection
+      const updatedRoles = checked
+        ? [...formData.roles, value]
+        : formData.roles.filter(role => role !== value);
+      
+      setFormData(prev => ({
+        ...prev,
+        roles: updatedRoles,
+        // Update primary role if the current primary role is being removed
+        primaryRole: updatedRoles.includes(prev.primaryRole) 
+          ? prev.primaryRole 
+          : updatedRoles[0] || 'client'
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
 
     // Clear validation error when user starts typing
     if (validationErrors[name]) {
@@ -175,22 +213,46 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate roles before submission
+    if (formData.roles.length === 0) {
+      toast.error('Please select at least one role');
+      return;
+    }
+    
+    if (!formData.roles.includes(formData.primaryRole)) {
+      toast.error('Primary role must be one of your selected roles');
+      return;
+    }
+    
     setLoading(true);
     try {
       const response = await axios.post(
         `${Backendurl}/api/users/register`, 
         formData
       );
+      
       if (response.data.success) {
         localStorage.setItem('token', response.data.token);
-        toast.success('Account created successfully!');
+        toast.success('Account created successfully! You can now switch between your roles.');
         navigate('/');
       } else {
-        toast.error(response.data.message);
+        toast.error(response.data.message || 'Registration failed');
       }
     } catch (error) {
       console.error('Error signing up:', error);
-      toast.error('An error occurred. Please try again.');
+      
+      // More detailed error handling
+      if (error.response) {
+        // Server responded with error status
+        toast.error(error.response.data.message || 'Server error occurred');
+      } else if (error.request) {
+        // Request was made but no response received
+        toast.error('Network error. Please check your connection.');
+      } else {
+        // Something else happened
+        toast.error('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -273,7 +335,7 @@ const Signup = () => {
                     <Home className="w-6 h-6 text-white" />
                   </motion.div>
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    BuildEstate
+                    Aurora
                   </h1>
                 </motion.div>
               </Link>
@@ -425,6 +487,49 @@ const Signup = () => {
                 </AnimatePresence>
               </motion.div>
 
+              {/* Phone Field */}
+              <motion.div variants={inputVariants}>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number <span className="text-gray-400 text-xs">(Optional)</span>
+                </label>
+                <div className="relative group">
+                  <div className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
+                    fieldFocus.phone ? 'text-blue-500' : 'text-gray-400'
+                  }`}>
+                    <Phone className="h-5 w-5" />
+                  </div>
+                  <input
+                    type="tel"
+                    name="phone"
+                    id="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    onFocus={() => handleFocus('phone')}
+                    onBlur={() => handleBlur('phone')}
+                    className={`w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50/50 border-2 transition-all duration-200 placeholder-gray-400 ${
+                      validationErrors.phone
+                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
+                        : fieldFocus.phone
+                        ? 'border-blue-500 focus:border-blue-500 focus:ring-blue-500/20'
+                        : 'border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
+                    } focus:ring-4 focus:outline-none`}
+                    placeholder="Enter your phone number (optional)"
+                  />
+                </div>
+                <AnimatePresence>
+                  {validationErrors.phone && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="mt-1 text-sm text-red-600"
+                    >
+                      {validationErrors.phone}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+
               {/* Password Field */}
               <motion.div variants={inputVariants}>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
@@ -511,6 +616,75 @@ const Signup = () => {
                     </motion.p>
                   )}
                 </AnimatePresence>
+              </motion.div>
+
+              {/* Role Selection */}
+              <motion.div variants={inputVariants} className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800">Select Your Role</h3>
+                <p className="text-sm text-gray-600">Choose one or more roles that best describe your interests.</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {availableRoles.map((role) => (
+                    <label
+                      key={role.value}
+                      className={`flex items-center p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer ${
+                        formData.roles.includes(role.value)
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        name="roles"
+                        value={role.value}
+                        checked={formData.roles.includes(role.value)}
+                        onChange={handleChange}
+                        className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500/20"
+                      />
+                      <div>
+                        <p className="text-base font-medium text-gray-800">{role.label}</p>
+                        <p className="text-xs text-gray-500">{role.description}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                {formData.roles.length === 0 && (
+                  <motion.p className="mt-1 text-sm text-red-600">
+                    Please select at least one role.
+                  </motion.p>
+                )}
+              </motion.div>
+
+              {/* Primary Role Dropdown */}
+              <motion.div variants={inputVariants} className="mt-4">
+                <label htmlFor="primaryRole" className="block text-sm font-medium text-gray-700 mb-2">
+                  Primary Role
+                </label>
+                <select
+                  id="primaryRole"
+                  name="primaryRole"
+                  value={formData.primaryRole}
+                  onChange={handleChange}
+                  onFocus={() => handleFocus('primaryRole')}
+                  onBlur={() => handleBlur('primaryRole')}
+                  className={`w-full pl-3 pr-10 py-3 rounded-xl bg-gray-50/50 border-2 transition-all duration-200 placeholder-gray-400 ${
+                    validationErrors.primaryRole
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
+                      : fieldFocus.primaryRole
+                      ? 'border-blue-500 focus:border-blue-500 focus:ring-blue-500/20'
+                      : 'border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
+                  } focus:ring-4 focus:outline-none`}
+                >
+                  {formData.roles.map((role) => (
+                    <option key={role} value={role}>
+                      {role.charAt(0).toUpperCase() + role.slice(1)}
+                    </option>
+                  ))}
+                </select>
+                {validationErrors.primaryRole && (
+                  <motion.p className="mt-1 text-sm text-red-600">
+                    {validationErrors.primaryRole}
+                  </motion.p>
+                )}
               </motion.div>
 
               {/* Submit Button */}

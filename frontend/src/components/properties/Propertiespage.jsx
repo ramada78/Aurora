@@ -6,6 +6,7 @@ import SearchBar from "./Searchbar.jsx";
 import FilterSection from "./Filtersection.jsx";
 import PropertyCard from "./Propertycard.jsx";
 import { Backendurl } from "../../App.jsx";
+import { getPropertyTypes, getCities } from "../../services/api";
 
 const PropertiesPage = () => {
   const [viewState, setViewState] = useState({
@@ -22,17 +23,40 @@ const PropertiesPage = () => {
   });
 
   const [amenities, setAmenities] = useState([]);
+  const [propertyTypes, setPropertyTypes] = useState([]);
+  const [cities, setCities] = useState([]);
 
   const [filters, setFilters] = useState({
     propertyType: "",
-    priceRange: [0, Number.MAX_SAFE_INTEGER],
+    minPrice: 0,
+    maxPrice: 1000000,
     bedrooms: "0",
     bathrooms: "0",
+    area: "0",
     availability: "",
+    city: "",
     searchQuery: "",
     sortBy: "",
+    status: "",
     amenities: [], // amenity IDs
   });
+
+  useEffect(() => {
+    getPropertyTypes().then(setPropertyTypes);
+    getCities().then(setCities);
+  }, []);
+
+  const propertyTypeMap = useMemo(() => {
+    const map = {};
+    propertyTypes.forEach(pt => { map[pt._id] = pt.type_name; });
+    return map;
+  }, [propertyTypes]);
+
+  const cityMap = useMemo(() => {
+    const map = {};
+    cities.forEach(c => { map[c._id] = c.city_name; });
+    return map;
+  }, [cities]);
 
   const fetchProperties = async () => {
     try {
@@ -66,25 +90,47 @@ const PropertiesPage = () => {
     });
   }, []);
 
+  // Get logged-in user info
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const roles = JSON.parse(localStorage.getItem('roles') || '[]');
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
   const filteredProperties = useMemo(() => {
-    return propertyState.properties
+    let props = propertyState.properties;
+    // Restrict for agent/seller
+    if (!isAdmin) {
+      if (roles.includes('agent')) {
+        props = props.filter(p => p.agent && p.agent === user._id);
+      } else if (roles.includes('seller')) {
+        props = props.filter(p => p.seller && p.seller === user._id);
+      }
+    }
+    return props
       .filter((property) => {
         const searchMatch = !filters.searchQuery || 
-          [property.title, property.description, property.location]
+          [property.title, property.description, property.city?.city_name, property.propertyType?.type_name]
             .some(field => field?.toLowerCase().includes(filters.searchQuery.toLowerCase()));
 
+        // Property Type filter (new)
         const typeMatch = !filters.propertyType || 
-          property.type?.toLowerCase() === filters.propertyType.toLowerCase();
+          property.propertyType?.type_name?.toLowerCase() === filters.propertyType.toLowerCase();
 
-        const priceMatch = property.price >= filters.priceRange[0] && 
-          property.price <= filters.priceRange[1];
+        // City filter (new)
+        const cityMatch = !filters.city || 
+          property.city?.city_name?.toLowerCase() === filters.city.toLowerCase();
 
+        // Price filter (USD)
+        const priceMatch = property.price >= filters.minPrice && property.price <= filters.maxPrice;
+
+        // Bedrooms, Bathrooms, Area
         const bedroomsMatch = !filters.bedrooms || filters.bedrooms === "0" || 
           property.beds >= parseInt(filters.bedrooms);
-
         const bathroomsMatch = !filters.bathrooms || filters.bathrooms === "0" || 
           property.baths >= parseInt(filters.bathrooms);
+        const areaMatch = !filters.area || filters.area === "0" || 
+          property.sqft >= parseInt(filters.area);
 
+        // Availability
         const availabilityMatch = !filters.availability || 
           property.availability?.toLowerCase() === filters.availability.toLowerCase();
 
@@ -92,8 +138,11 @@ const PropertiesPage = () => {
         const amenitiesMatch = !filters.amenities.length ||
           filters.amenities.every(aid => property.amenities.some(a => a._id === aid));
 
-        return searchMatch && typeMatch && priceMatch && 
-          bedroomsMatch && bathroomsMatch && availabilityMatch && amenitiesMatch;
+        // Property Status filter
+        const statusMatch = !filters.status || property.status === filters.status;
+
+        return searchMatch && typeMatch && cityMatch && priceMatch && 
+          bedroomsMatch && bathroomsMatch && areaMatch && availabilityMatch && amenitiesMatch && statusMatch;
       })
       .sort((a, b) => {
         switch (filters.sortBy) {
@@ -253,6 +302,8 @@ const PropertiesPage = () => {
                   setFilters={setFilters}
                   onApplyFilters={handleFilterChange}
                   amenities={amenities}
+                  propertyTypes={propertyTypes}
+                  cities={cities}
                 />
               </motion.aside>
             )}
@@ -326,6 +377,8 @@ const PropertiesPage = () => {
                       key={property._id}
                       property={property}
                       viewType={viewState.isGridView ? "grid" : "list"}
+                      propertyTypeName={propertyTypeMap[property.propertyType] || property.type}
+                      cityName={cityMap[property.city]}
                     />
                   ))
                 ) : (

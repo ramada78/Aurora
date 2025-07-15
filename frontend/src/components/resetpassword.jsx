@@ -252,7 +252,7 @@ const ResetPassword = () => {
                   <Sparkles className="w-full h-full" />
                 </motion.div>
                 <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  BuildEstate
+                  Aurora
                 </h2>
               </motion.div>
             </Link>

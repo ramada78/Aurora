@@ -380,7 +380,7 @@ const Blog = () => {
             viewport={{ once: true, margin: "-100px" }}
           >
             {filteredPosts.map((post) => (
-              <BlogCard key={post.id} post={post} />
+              <BlogCard key={post.id} post={{...post, id: String(post.id)}} />
             ))}
           </motion.div>
         ) : (

@@ -1,7 +1,7 @@
 {
-  "name": "buildestate",
+  "name": "Aurora",
   "version": "1.0.0",
-  "description": "BuildEstate - Premium Real Estate Platform with AI-Powered Insights",
+  "description": "Aurora - Premium Real Estate Platform with AI-Powered Insights",
   "private": true,
   "scripts": {
     "setup": "npm install && cd backend && npm install && cd ../frontend && npm install && cd ../admin && npm install",

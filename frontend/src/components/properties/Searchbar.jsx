@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -7,9 +7,11 @@ const SearchBar = ({ onSearch, className }) => {
   const [recentSearches, setRecentSearches] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  const dropdownRef = useRef(null);
+
   // Popular locations suggestion
   const popularLocations = [
-   'Mumbai','Goa','Jaipur','Ahmedabad'
+   'Aleppo','Damascus'
   ];
 
   useEffect(() => {
@@ -19,6 +21,18 @@ const SearchBar = ({ onSearch, className }) => {
       setRecentSearches(JSON.parse(saved));
     }
   }, []);
+
+  // Click outside to close dropdown
+  useEffect(() => {
+    if (!showSuggestions) return;
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSuggestions]);
 
   const handleSearch = (query) => {
     if (!query.trim()) return;
@@ -53,11 +67,11 @@ const SearchBar = ({ onSearch, className }) => {
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className}`} ref={dropdownRef}>
       <form onSubmit={handleSubmit} className="relative">
         <input
           type="text"
-          placeholder="Search by location, property type..."
+          placeholder="Search by title, city, property type..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => setShowSuggestions(true)}

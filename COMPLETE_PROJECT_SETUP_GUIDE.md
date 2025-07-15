@@ -1,7 +1,7 @@
-# 🏠 BuildEstate - Complete Project Setup & Running Guide
+# 🏠 Aurora - Complete Project Setup & Running Guide
 
 <div align="center">
-  <h1>🏠 BuildEstate</h1>
+  <h1>🏠 Aurora</h1>
   <p><em>A comprehensive real estate platform with AI-powered insights, user management, and admin dashboard</em></p>
   
   ![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=flat-square&logo=react)
@@ -31,7 +31,7 @@
 
 ## 🎯 Project Overview
 
-BuildEstate is a modern, full-stack real estate platform consisting of three interconnected applications:
+Aurora is a modern, full-stack real estate platform consisting of three interconnected applications:
 
 ### 🌐 **Frontend** (User Portal)
 - **Port**: 5173
@@ -73,7 +73,7 @@ BuildEstate is a modern, full-stack real estate platform consisting of three int
 ## 🏗️ System Architecture
 
 ```
-BuildEstate Platform Architecture
+Aurora Platform Architecture
 ├── Frontend (React + Vite) 🌐
 │   ├── Port: 5173
 │   ├── Public-facing website
@@ -255,7 +255,7 @@ BACKEND_URL=http://localhost:4000
 # ===========================================
 # DATABASE CONFIGURATION
 # ===========================================
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/buildestate?retryWrites=true&w=majority
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/Aurora?retryWrites=true&w=majority
 
 # ===========================================
 # AUTHENTICATION & SECURITY
@@ -268,7 +268,7 @@ JWT_SECRET=your_super_secret_jwt_key_here_make_it_long_and_random
 SMTP_USER=your_smtp_user@smtp-brevo.com
 SMTP_PASS=your_smtp_password
 EMAIL=your_email@gmail.com
-ADMIN_EMAIL=admin@buildestate.com
+ADMIN_EMAIL=admin@Aurora.com
 ADMIN_PASSWORD=secure_admin_password_123
 
 # ===========================================
@@ -418,18 +418,18 @@ Each application includes a `Dockerfile` for containerized deployment:
 ```bash
 # Build and run backend
 cd backend
-docker build -t buildestate-backend .
-docker run -p 4000:4000 buildestate-backend
+docker build -t Aurora-backend .
+docker run -p 4000:4000 Aurora-backend
 
 # Build and run frontend
 cd frontend
-docker build -t buildestate-frontend .
-docker run -p 5173:5173 buildestate-frontend
+docker build -t Aurora-frontend .
+docker run -p 5173:5173 Aurora-frontend
 
 # Build and run admin
 cd admin
-docker build -t buildestate-admin .
-docker run -p 5174:5174 buildestate-admin
+docker build -t Aurora-admin .
+docker run -p 5174:5174 Aurora-admin
 ```
 
 ---
@@ -577,7 +577,7 @@ Use tools like Postman or Insomnia to test API endpoints:
 
 ### Project Structure
 ```
-BuildEstate/
+Aurora/
 ├── backend/                 # Express.js API server
 │   ├── config/             # Database and service configs
 │   ├── controller/         # Route handlers

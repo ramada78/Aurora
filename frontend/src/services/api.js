@@ -31,4 +31,24 @@ export const getLocationTrends = async (city) => {
   }
 };
 
+export const getPropertyTypes = async () => {
+  try {
+    const response = await api.get('/api/property-types');
+    return response.data.types || [];
+  } catch (error) {
+    console.error('Error fetching property types:', error);
+    return [];
+  }
+};
+
+export const getCities = async () => {
+  try {
+    const response = await api.get('/api/cities');
+    return response.data.cities || [];
+  } catch (error) {
+    console.error('Error fetching cities:', error);
+    return [];
+  }
+};
+
 export default api;

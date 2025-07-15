@@ -5,6 +5,7 @@ import { toast } from "react-hot-toast";
 import axios from "axios";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
+const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -18,19 +19,40 @@ const Login = () => {
     setLoading(true);
     
     try {
-      // Change the endpoint to /api/users/admin for admin login
-      const response = await axios.post(`${backendUrl}/api/users/admin`, {
-        email,
-        password
-      });
+      let response;
+      if (email === adminEmail) {
+        // Main admin login
+        response = await axios.post(`${backendUrl}/api/users/admin`, { email, password });
+      } else {
+        // Agent/seller login
+        response = await axios.post(`${backendUrl}/api/users/login`, { email, password });
+      }
 
       if (response.data.success) {
         // Store the admin token
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('isAdmin', 'true');
-        
-        toast.success("Admin login successful!");
-        navigate("/dashboard");
+        localStorage.setItem('roles', JSON.stringify(response.data.user.roles || []));
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        if (response.data.user.isAdmin) {
+          localStorage.setItem('isAdmin', 'true');
+        } else {
+          localStorage.removeItem('isAdmin');
+        }
+       // Only allow access if main admin or agent/seller
+       const roles = response.data.user.roles || [];
+       if (response.data.user.isAdmin) {
+         toast.success("Admin login successful!");
+         navigate("/dashboard");
+       } else if (roles.includes('agent') || roles.includes('seller')) {
+         toast.success("Admin login successful!");
+         navigate("/list");
+       } else {
+         toast.error("You do not have permission to access the admin panel.");
+         localStorage.removeItem('token');
+         localStorage.removeItem('roles');
+         localStorage.removeItem('isAdmin');
+         localStorage.removeItem('user');
+       }
       } else {
         toast.error(response.data.message || "Login failed");
       }

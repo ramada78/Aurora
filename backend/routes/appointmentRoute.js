@@ -1,5 +1,5 @@
 import express from "express";
-import { protect } from '../middleware/authmiddleware.js';
+import { protect, rolesOrAdmin } from '../middleware/authmiddleware.js';
 import {
   scheduleViewing,
   getAllAppointments,
@@ -23,9 +23,9 @@ router.put("/feedback/:id", submitAppointmentFeedback);
 router.get("/upcoming", getUpcomingAppointments);
 
 // Admin routes
-router.get("/all", getAllAppointments);
-router.get("/stats", getAppointmentStats);
-router.put("/status", updateAppointmentStatus);
-router.put("/update-meeting", updateAppointmentMeetingLink);
+router.get("/all", rolesOrAdmin(['agent']), getAllAppointments);
+router.get("/stats", rolesOrAdmin(['agent']), getAppointmentStats);
+router.put("/status", rolesOrAdmin(['agent']), updateAppointmentStatus);
+router.put("/update-meeting", rolesOrAdmin(['agent']), updateAppointmentMeetingLink);
 
 export default router;

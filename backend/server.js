@@ -15,6 +15,14 @@ import adminRouter from './routes/adminRoute.js';
 import propertyRoutes from './routes/propertyRoutes.js';
 import path from "path";
 import { fileURLToPath } from 'url';
+import propertyTypeRoutes from './routes/propertyTypeRoutes.js';
+import cityRoutes from './routes/cityRoutes.js';
+import agentRoutes from './routes/agentRoutes.js';
+import clientRoutes from './routes/clientRoutes.js';
+import sellerRoutes from './routes/sellerRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
+import transactionRoutes from './routes/transactionRoutes.js';
+import amenityRoutes from './routes/amenityRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -54,7 +62,7 @@ app.use(cors({
     'http://localhost:4000',
     'http://localhost:5174',
     'http://localhost:5173',
-    'https://buildestate.vercel.app',
+    'https://Aurora.vercel.app',
     'https://real-estate-website-admin.onrender.com',
     'https://real-estate-website-backend-zfu7.onrender.com',
   ],
@@ -79,6 +87,14 @@ app.use('/api/news', newsrouter);
 app.use('/api/appointments', appointmentRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api', propertyRoutes);
+app.use('/api/property-types', propertyTypeRoutes);
+app.use('/api/cities', cityRoutes);
+app.use('/api/agents', agentRoutes);
+app.use('/api/clients', clientRoutes);
+app.use('/api/sellers', sellerRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/amenities', amenityRoutes);
 
 
 app.use((err, req, res, next) => {
@@ -114,7 +130,7 @@ app.get("/", (req, res) => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>BuildEstate API Status</title>
+        <title>Aurora API Status</title>
         <style>
           body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; }
           .container { background: #f9fafb; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
@@ -126,17 +142,17 @@ app.get("/", (req, res) => {
       </head>
       <body>
         <div class="container">
-          <h1>BuildEstate API</h1>
+          <h1>Aurora API</h1>
           <p>Status: <span class="status">Online</span></p>
           <p>Server Time: ${new Date().toLocaleString()}</p>
           
           <div class="info">
-            <p>The BuildEstate API is running properly. This backend serves property listings, user authentication, 
-            and AI analysis features for the BuildEstate property platform.</p>
+            <p>The Aurora API is running properly. This backend serves property listings, user authentication, 
+            and AI analysis features for the Aurora property platform.</p>
           </div>
           
           <div class="footer">
-            <p>© ${new Date().getFullYear()} BuildEstate. All rights reserved.</p>
+            <p>© ${new Date().getFullYear()} Aurora. All rights reserved.</p>
           </div>
         </div>
       </body>

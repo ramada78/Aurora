@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://buildestate.vercel.app/sitemap.xml
+Sitemap: https://Aurora.vercel.app/sitemap.xml
 
 # Prevent access to sensitive routes
 Disallow: /reset/

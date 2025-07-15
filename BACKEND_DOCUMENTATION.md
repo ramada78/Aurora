@@ -1,11 +1,11 @@
-# BuildEstate Backend Documentation
+# Aurora Backend Documentation
 
 <div align="center">
-  <img src="./frontend/src/assets/home-regular-24.png" alt="BuildEstate Logo" width="100" />
+  <img src="./frontend/src/assets/home-regular-24.png" alt="Aurora Logo" width="100" />
   
-  <h2>🏠 BuildEstate Backend API</h2>
+  <h2>🏠 Aurora Backend API</h2>
   
-  > Complete guide to setup and run the BuildEstate backend server
+  > Complete guide to setup and run the Aurora backend server
   
   [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=nodedotjs)](https://nodejs.org/)
   [![Express](https://img.shields.io/badge/Express-4.21+-000000?style=for-the-badge&logo=express)](https://expressjs.com/)
@@ -114,7 +114,7 @@ NODE_ENV=development
 BACKEND_URL=http://localhost:4000
 
 # Database Configuration
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/buildestate?retryWrites=true&w=majority
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/Aurora?retryWrites=true&w=majority
 
 # Authentication
 JWT_SECRET=your_super_secret_jwt_key_here
@@ -123,7 +123,7 @@ JWT_SECRET=your_super_secret_jwt_key_here
 SMTP_USER=your_smtp_user@smtp-brevo.com
 SMTP_PASS=your_smtp_password
 EMAIL=your_email@gmail.com
-ADMIN_EMAIL=admin@buildestate.com
+ADMIN_EMAIL=admin@Aurora.com
 ADMIN_PASSWORD=secure_admin_password
 
 # Frontend URL
@@ -153,7 +153,7 @@ USE_AZURE=true
 #### Option B: Local MongoDB
 1. Install MongoDB locally
 2. Start MongoDB service
-3. Use: `MONGO_URI=mongodb://localhost:27017/buildestate`
+3. Use: `MONGO_URI=mongodb://localhost:27017/Aurora`
 
 ---
 
@@ -207,23 +207,23 @@ docker-compose down
 ### 2. Using Docker Directly
 ```bash
 # Build the Docker image
-docker build -t buildestate-backend .
+docker build -t Aurora-backend .
 
 # Run the container
-docker run -p 4000:4000 --env-file .env.local buildestate-backend
+docker run -p 4000:4000 --env-file .env.local Aurora-backend
 
 # Run in background
-docker run -d -p 4000:4000 --env-file .env.local buildestate-backend
+docker run -d -p 4000:4000 --env-file .env.local Aurora-backend
 ```
 
 ### 3. Docker Environment Variables
 When using Docker, ensure your `.env.local` file has the correct database URL:
 ```env
 # For Docker, use host.docker.internal for local MongoDB
-MONGO_URI=mongodb://host.docker.internal:27017/buildestate
+MONGO_URI=mongodb://host.docker.internal:27017/Aurora
 
 # OR use MongoDB Atlas (recommended)
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/buildestate
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/Aurora
 ```
 
 ---
@@ -415,10 +415,10 @@ npm run render-build
 ### Docker Deployment
 ```bash
 # Build production image
-docker build -t buildestate-backend:prod .
+docker build -t Aurora-backend:prod .
 
 # Run with production environment
-docker run -d -p 4000:4000 --env-file .env.production buildestate-backend:prod
+docker run -d -p 4000:4000 --env-file .env.production Aurora-backend:prod
 ```
 
 ### Environment-Specific Configuration
@@ -499,7 +499,7 @@ npm run dev
 docker-compose logs -f
 
 # For production (PM2)
-pm2 logs buildestate-backend
+pm2 logs Aurora-backend
 ```
 
 ---
@@ -565,10 +565,10 @@ This project is licensed under the ISC License - see the [LICENSE](../LICENSE) f
 ---
 
 <div align="center">
-  <p>Built with ❤️ by the BuildEstate Team</p>
+  <p>Built with ❤️ by the Aurora Team</p>
   <p>
     <a href="https://github.com/AAYUSH412/Real-Estate-Website">GitHub</a> •
-    <a href="https://buildestate.vercel.app">Live Demo</a> •
+    <a href="https://Aurora.vercel.app">Live Demo</a> •
     <a href="#-support">Support</a>
   </p>
 </div>

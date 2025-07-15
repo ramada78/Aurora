@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "BuildEstate real estate platform backend API",
+  "description": "Aurora real estate platform backend API",
   "type": "module",
   "main": "server.js",
   "scripts": {

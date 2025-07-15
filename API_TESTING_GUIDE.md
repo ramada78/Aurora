@@ -1,4 +1,4 @@
-# BuildEstate API Testing Guide
+# Aurora API Testing Guide
 
 This guide provides examples for testing all API endpoints using curl, Postman, or any HTTP client.
 
@@ -67,7 +67,7 @@ curl -X POST http://localhost:4000/api/users/login \
 curl -X POST http://localhost:4000/api/users/admin \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@buildestate.com",
+    "email": "admin@Aurora.com",
     "password": "your_admin_password"
   }'
 ```
@@ -384,10 +384,10 @@ You can import this collection into Postman for easier testing:
 export BASE_URL=http://localhost:4000
 
 # Staging
-export BASE_URL=https://staging-api.buildestate.com
+export BASE_URL=https://staging-api.Aurora.com
 
 # Production
-export BASE_URL=https://api.buildestate.com
+export BASE_URL=https://api.Aurora.com
 
 # Use in requests
 curl -X GET $BASE_URL/status
@@ -398,7 +398,7 @@ curl -X GET $BASE_URL/status
 #!/bin/bash
 # Quick API health check
 
-echo "Testing BuildEstate API..."
+echo "Testing Aurora API..."
 
 # Health check
 echo "1. Health check:"

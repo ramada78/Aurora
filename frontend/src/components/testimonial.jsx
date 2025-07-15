@@ -353,7 +353,7 @@ const Testimonials = () => {
             transition={{ delay: 0.5 }}
             className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed"
           >
-            Discover why thousands of homeowners trust BuildEstate to find their perfect property. 
+            Discover why thousands of homeowners trust Aurora to find their perfect property. 
             Our commitment to excellence speaks through their experiences.
           </motion.p>
         </motion.div>

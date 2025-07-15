@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="./frontend/src/assets/home-regular-24.png" alt="BuildEstate Logo" width="150" />
+  <img src="./frontend/src/assets/home-regular-24.png" alt="Aurora Logo" width="150" />
   
-  <h1>BuildEstate</h1>
+  <h1>Aurora</h1>
   
   > ### Next-Gen Real Estate Platform with AI-Powered Insights
   
@@ -11,14 +11,14 @@
   [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white&labelColor=0f172a)](https://tailwindcss.com/)
   [![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white&labelColor=0f172a)](https://www.framer.com/motion/)
   
-  <a href="https://buildestate.vercel.app" target="_blank"><img src="https://img.shields.io/badge/LIVE_DEMO-Visit_Site-3B82F6?style=for-the-badge&logoColor=white&labelColor=0f172a" alt="Live Demo" /></a>
+  <a href="https://Aurora.vercel.app" target="_blank"><img src="https://img.shields.io/badge/LIVE_DEMO-Visit_Site-3B82F6?style=for-the-badge&logoColor=white&labelColor=0f172a" alt="Live Demo" /></a>
   <a href="#%EF%B8%8F-installation"><img src="https://img.shields.io/badge/SETUP-Installation_Guide-10B981?style=for-the-badge&logoColor=white&labelColor=0f172a" alt="Installation Guide" /></a>
   <a href="https://github.com/AAYUSH412/Real-Estate-Website/issues/new"><img src="https://img.shields.io/badge/SUPPORT-Report_Bug-EF4444?style=for-the-badge&logoColor=white&labelColor=0f172a" alt="Report Bug" /></a>
   <a href="#-contributing"><img src="https://img.shields.io/badge/COMMUNITY-Contribute-F59E0B?style=for-the-badge&logoColor=white&labelColor=0f172a" alt="Contribute" /></a>
 </div>
 
 <div align="center">
-  <img src="https://ik.imagekit.io/xh3awoalr/Property/github/animated-demo.gif" alt="BuildEstate Demo" width="90%" />
+  <img src="https://ik.imagekit.io/xh3awoalr/Property/github/animated-demo.gif" alt="Aurora Demo" width="90%" />
 </div>
 
 <hr>
@@ -79,7 +79,7 @@
 <details>
   <summary><h3>🎭 Interactive Animations</h3></summary>
 
-  <p>BuildEstate features expertly crafted animations that enhance the user experience:</p>
+  <p>Aurora features expertly crafted animations that enhance the user experience:</p>
 
   <ul>
     <li><strong>Page Transitions:</strong> Smooth fade and slide transitions between routes</li>
@@ -127,7 +127,7 @@
 
 ## 📋 Project Overview
 
-BuildEstate is a modern real estate platform that combines traditional property listing features with cutting-edge AI technology. The platform helps users find their ideal properties while providing valuable investment insights through machine learning algorithms.
+Aurora is a modern real estate platform that combines traditional property listing features with cutting-edge AI technology. The platform helps users find their ideal properties while providing valuable investment insights through machine learning algorithms.
 
 The application consists of three main parts:
 - **Frontend:** User-facing website with property listings and AI analysis tools
@@ -233,7 +233,7 @@ This will launch:
 
 ### Property Search & Discovery
 
-BuildEstate offers a sophisticated property search system with multiple filtering options:
+Aurora offers a sophisticated property search system with multiple filtering options:
 
 - **Location-based search** with map integration
 - **Price range filters** with dynamic market comparison
@@ -292,7 +292,7 @@ All data visualizations feature smooth animations and interactive elements for b
 
 ## 🤝 Contributing
 
-We welcome contributions to BuildEstate! Please follow these steps:
+We welcome contributions to Aurora! Please follow these steps:
 
 1. **Fork the repository**
 2. **Create a feature branch:**
@@ -350,7 +350,7 @@ Special thanks to all contributors and the open source community.
 </div>
 
 <div align="center">
-  <img src="./frontend/src/assets/home-regular-24.png" alt="BuildEstate Logo" width="60" />
+  <img src="./frontend/src/assets/home-regular-24.png" alt="Aurora Logo" width="60" />
   <p>Built with ❤️ by Aayush Vaghela</p>
-  <p>© 2025 BuildEstate. All Rights Reserved.</p>
+  <p>© 2025 Aurora. All Rights Reserved.</p>
 </div>

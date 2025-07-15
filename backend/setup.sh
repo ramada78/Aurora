@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# BuildEstate Backend Quick Setup Script
-# This script helps you set up the BuildEstate backend quickly
+# Aurora Backend Quick Setup Script
+# This script helps you set up the Aurora backend quickly
 
-echo "🏠 BuildEstate Backend Setup"
+echo "🏠 Aurora Backend Setup"
 echo "============================"
 echo ""
 

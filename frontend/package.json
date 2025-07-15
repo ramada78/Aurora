@@ -1,10 +1,10 @@
 {
-  "name": "buildestate-frontend",
+  "name": "Aurora-frontend",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "main": "App.jsx",
-  "description": "BuildEstate - Premium Real Estate Platform User Interface",
+  "description": "Aurora - Premium Real Estate Platform User Interface",
   "author": "Aayush Vaghela",
   "license": "MIT",
   "repository": {

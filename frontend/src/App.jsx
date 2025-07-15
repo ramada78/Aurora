@@ -18,9 +18,10 @@ import { AuthProvider } from './context/AuthContext';
 import AIPropertyHub from './pages/Aiagent'
 import StructuredData from './components/SEO/StructuredData';
 import 'react-toastify/dist/ReactToastify.css';
+import UserDashboard from './components/UserDashboard';
+import TestSignup from './components/TestSignup';
 
-
-export const Backendurl = import.meta.env.VITE_API_BASE_URL;
+export const Backendurl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 
 const App = () => {
   return (
@@ -34,9 +35,11 @@ const App = () => {
       <Navbar />
       <Routes>
         <Route path="/signup" element={<Signup />} />
+        <Route path="/test-signup" element={<TestSignup />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset/:token" element={<ResetPassword />} />
+        <Route path="/dashboard" element={<UserDashboard />} />
         <Route path="/" element={<Home />} />
         <Route path="/properties" element={<Properties />} />
         <Route path="/properties/single/:id" element={<PropertyDetails />} />

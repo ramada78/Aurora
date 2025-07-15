@@ -203,7 +203,7 @@ export const updateAppointmentStatus = async (req, res) => {
       to: appointment.userId.email,
       subject: `Viewing Appointment ${
         status.charAt(0).toUpperCase() + status.slice(1)
-      } - BuildEstate`,
+      } - Aurora`,
       html: getEmailTemplate(appointment, status),
     };
 

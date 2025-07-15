@@ -1,8 +1,8 @@
-# BuildEstate Admin Panel Documentation
+# Aurora Admin Panel Documentation
 
 <div align="center">
   <h1>👨‍💼 Admin Dashboard Guide</h1>
-  <p><em>Complete guide for managing the BuildEstate platform</em></p>
+  <p><em>Complete guide for managing the Aurora platform</em></p>
 </div>
 
 ---
@@ -24,7 +24,7 @@
 
 ## 🎯 Overview
 
-The BuildEstate Admin Panel is a comprehensive management dashboard built with React 18, providing administrators with powerful tools to manage properties, users, appointments, and analytics.
+The Aurora Admin Panel is a comprehensive management dashboard built with React 18, providing administrators with powerful tools to manage properties, users, appointments, and analytics.
 
 ### Key Features
 - 📊 **Real-time Dashboard** with interactive charts
@@ -42,7 +42,7 @@ The BuildEstate Admin Panel is a comprehensive management dashboard built with R
 
 ### Prerequisites
 - Node.js v16+
-- Access to BuildEstate backend API
+- Access to Aurora backend API
 - Admin credentials
 
 ### Installation
@@ -69,8 +69,8 @@ The admin panel will be available at: **http://localhost:5174**
 ### Admin Login
 
 **Default Credentials:**
-- **Email**: `buildestate@gmail.com`
-- **Password**: `buildestate123`
+- **Email**: `Aurora@gmail.com`
+- **Password**: `Aurora123`
 
 > ⚠️ **Security Note**: Change default credentials in production!
 

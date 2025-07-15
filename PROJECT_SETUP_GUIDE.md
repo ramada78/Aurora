@@ -1,8 +1,8 @@
-# BuildEstate - Complete Project Setup Guide
+# Aurora - Complete Project Setup Guide
 
 <div align="center">
-  <img src="./frontend/src/assets/home-regular-24.png" alt="BuildEstate Logo" width="100" />
-  <h1>🏢 BuildEstate Real Estate Platform</h1>
+  <img src="./frontend/src/assets/home-regular-24.png" alt="Aurora Logo" width="100" />
+  <h1>🏢 Aurora Real Estate Platform</h1>
   <p><em>A comprehensive real estate platform with AI-powered insights, user management, and admin dashboard</em></p>
 </div>
 
@@ -27,7 +27,7 @@
 
 ## 🎯 Project Overview
 
-BuildEstate is a modern, full-stack real estate platform consisting of three main applications:
+Aurora is a modern, full-stack real estate platform consisting of three main applications:
 
 ### 🌐 **Frontend** (User Portal)
 - Property listings and search
@@ -56,7 +56,7 @@ BuildEstate is a modern, full-stack real estate platform consisting of three mai
 ## 🏗️ Architecture
 
 ```
-BuildEstate/
+Aurora/
 ├── frontend/          # React.js user interface (Port: 5173)
 ├── admin/            # React.js admin dashboard (Port: 5174)
 ├── backend/          # Express.js API server (Port: 4000)
@@ -195,7 +195,7 @@ PORT=4000
 NODE_ENV=development
 
 # Database
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/buildestate
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/Aurora
 
 # Authentication
 JWT_SECRET=your_super_secret_jwt_key_here
@@ -204,7 +204,7 @@ JWT_SECRET=your_super_secret_jwt_key_here
 SMTP_USER=your_brevo_smtp_user
 SMTP_PASS=your_brevo_smtp_password
 EMAIL=your_notification_email@gmail.com
-ADMIN_EMAIL=admin@buildestate.com
+ADMIN_EMAIL=admin@Aurora.com
 ADMIN_PASSWORD=admin123
 
 # Image Storage (Local)
@@ -322,8 +322,8 @@ DELETE /api/appointments/:id     # Delete appointment
 
 ### Admin Login
 Default admin credentials:
-- **Email**: buildestate@gmail.com
-- **Password**: buildestate123
+- **Email**: Aurora@gmail.com
+- **Password**: Aurora123
 
 ### Admin Features
 
@@ -382,13 +382,13 @@ docker-compose down
 ```bash
 # Backend
 cd backend
-docker build -t buildestate-backend .
-docker run -p 4000:4000 buildestate-backend
+docker build -t Aurora-backend .
+docker run -p 4000:4000 Aurora-backend
 
 # Admin Panel
 cd admin
-docker build -t buildestate-admin .
-docker run -p 5174:80 buildestate-admin
+docker build -t Aurora-admin .
+docker run -p 5174:80 Aurora-admin
 ```
 
 ---
@@ -428,7 +428,7 @@ curl http://localhost:4000/api/products
 # Admin login
 curl -X POST http://localhost:4000/api/users/admin \
   -H "Content-Type: application/json" \
-  -d '{"email":"buildestate@gmail.com","password":"buildestate123"}'
+  -d '{"email":"Aurora@gmail.com","password":"Aurora123"}'
 ```
 
 ---
@@ -473,7 +473,7 @@ Enable debug logging:
 ```env
 # In backend/.env.local
 NODE_ENV=development
-DEBUG=buildestate:*
+DEBUG=Aurora:*
 ```
 
 ---
@@ -481,7 +481,7 @@ DEBUG=buildestate:*
 ## 📁 Project Structure
 
 ```
-BuildEstate/
+Aurora/
 ├── backend/
 │   ├── config/           # Database and service configurations
 │   ├── controllers/      # Route handlers

@@ -11,7 +11,8 @@ import {
   Maximize,
   MapPin,
   Building,
-  Loader 
+  Loader,
+  Eye // <-- Add Eye icon
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
@@ -24,7 +25,21 @@ const PropertyListings = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [filterCity, setFilterCity] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
+  const [propertyTypes, setPropertyTypes] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [showMineOnly, setShowMineOnly] = useState(false);
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  useEffect(() => {
+    axios.get(`${backendurl}/api/property-types`).then(res => {
+      if (res.data.success) setPropertyTypes(res.data.types);
+    });
+    axios.get(`${backendurl}/api/cities`).then(res => {
+      if (res.data.success) setCities(res.data.cities);
+    });
+  }, []);
 
   const fetchProperties = async () => {
     try {
@@ -63,36 +78,55 @@ const PropertyListings = () => {
     fetchProperties();
   }, []);
 
-  const handleRemoveProperty = async (propertyId, propertyTitle) => {
-    if (window.confirm(`Are you sure you want to remove "${propertyTitle}"?`)) {
-      try {
-        const response = await axios.post(`${backendurl}/api/products/remove`, {
-          id: propertyId
-        });
+  const propertyTypeMap = propertyTypes.reduce((acc, pt) => { acc[pt._id] = pt.type_name; return acc; }, {});
+  const cityMap = cities.reduce((acc, c) => { acc[c._id] = c.city_name; return acc; }, {});
 
-        if (response.data.success) {
-          toast.success("Property removed successfully");
-          await fetchProperties();
-        } else {
-          toast.error(response.data.message);
+  // Add handleRemoveProperty function
+  const handleRemoveProperty = async (propertyId, propertyTitle) => {
+    if (!window.confirm(`Are you sure you want to delete property: ${propertyTitle}?`)) return;
+    try {
+      const deleteResponse = await axios.post(
+        `${backendurl}/api/products/remove`,
+        { id: propertyId },
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
         }
-      } catch (error) {
-        console.error("Error removing property:", error);
-        toast.error("Failed to remove property");
+      );
+      if (deleteResponse.data.success) {
+        toast.success("Property deleted successfully");
+        fetchProperties();
+      } else {
+        toast.error(deleteResponse.data.message || "Failed to delete property");
+      }
+    } catch (error) {
+      console.error("Delete error:", error, error.response);
+      if (error.response && error.response.data && error.response.data.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("Error deleting property");
       }
     }
   };
-
   const filteredProperties = properties
-    .filter(property => {
-      const matchesSearch = !searchTerm || 
-        [property.title, property.location, property.type]
-          .some(field => field.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      const matchesType = filterType === "all" || property.type.toLowerCase() === filterType.toLowerCase();
-      
-      return matchesSearch && matchesType;
-    })
+    
+  .filter(property => {
+    const matchesSearch = !searchTerm || 
+      [property.title, property.location, property.propertyType?.type_name || property.type]
+        .some(field => field && field.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesType = filterType === "all" || (property.propertyType?.type_name || property.type)?.toLowerCase() === filterType.toLowerCase();
+    const matchesCity = filterCity === "all" || (property.city?.city_name)?.toLowerCase() === filterCity.toLowerCase();
+  
+    // Agent is always a string, seller is a populated object with _id
+    const agentId = property.agent;
+    const sellerId = property.seller?._id;
+  
+    // If showMineOnly is ON, filter by agent or seller
+    const matchesMine = !showMineOnly || (agentId === user._id || sellerId === user._id);
+    console.log(agentId, ',', sellerId, ',', user._id)
+    return matchesSearch && matchesType && matchesCity && matchesMine;
+  })
     .sort((a, b) => {
       switch (sortBy) {
         case "price-low":
@@ -120,27 +154,23 @@ const PropertyListings = () => {
   return (
     <div className="min-h-screen pt-32 px-4 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">
-              Property Listings
-            </h1>
-            <p className="text-gray-600">
-              {filteredProperties.length} Properties Found
-            </p>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Property Listings</h1>
+          <div className="flex gap-4 items-center">
+            {!user.isAdmin && (
+              <button
+                onClick={() => setShowMineOnly((prev) => !prev)}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                  ${showMineOnly ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' : 'bg-white text-blue-600 border-blue-600 hover:bg-blue-50'}`}
+              >
+                {showMineOnly ? 'Show All' : 'Show My Properties Only'}
+              </button>
+            )}
+            <Link to="/add" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+              <Plus className="w-5 h-5" /> Add Property
+            </Link>
           </div>
-
-          <Link 
-            to="/add"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Add New Property
-          </Link>
         </div>
-
-        {/* Filters */}
         <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
           <div className="flex flex-col md:flex-row items-center gap-4">
             <div className="relative flex-1">
@@ -153,7 +183,6 @@ const PropertyListings = () => {
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             </div>
-
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Filter className="text-gray-400 w-4 h-4" />
@@ -163,13 +192,24 @@ const PropertyListings = () => {
                   className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Types</option>
-                  <option value="house">Houses</option>
-                  <option value="apartment">Apartments</option>
-                  <option value="villa">Villas</option>
-                  <option value="office">Offices</option>
+                  {propertyTypes.map(type => (
+                    <option key={type._id} value={type.type_name}>{type.type_name}</option>
+                  ))}
                 </select>
               </div>
-
+              <div className="flex items-center gap-2">
+                <Filter className="text-gray-400 w-4 h-4" />
+                <select
+                  value={filterCity}
+                  onChange={(e) => setFilterCity(e.target.value)}
+                  className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">All Cities</option>
+                  {cities.map(city => (
+                    <option key={city._id} value={city.city_name}>{city.city_name}</option>
+                  ))}
+                </select>
+              </div>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -182,7 +222,6 @@ const PropertyListings = () => {
             </div>
           </div>
         </div>
-
         {/* Property Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
@@ -196,48 +235,57 @@ const PropertyListings = () => {
               >
                 {/* Property Image */}
                 <div className="relative h-48">
+                  {/* Status Badge Top Left */}
+                  <div className="absolute top-2 left-4 z-10">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${property.status === 'available' ? 'bg-green-100 text-green-800' : property.status === 'rented' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                      {property.status ? property.status.charAt(0).toUpperCase() + property.status.slice(1) : 'Available'}
+                    </span>
+                  </div>
                   <img
                     src={property.image[0]?.startsWith('/uploads/') ? `${backendurl}${property.image[0]}` : property.image[0] || "/placeholder.jpg"}
                     alt={property.title}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                  <div className="absolute bottom-4 left-4">
-                    <span className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-full">
-                      {property.type}
-                    </span>
-                  </div>
-                  <div className="absolute top-4 right-4 flex space-x-2">
-                    <Link 
-                      to={`/update/${property._id}`}
-                      className="p-2 bg-white/90 backdrop-blur-sm text-blue-600 rounded-full hover:bg-blue-600 hover:text-white transition-all"
-                    >
-                      <Edit3 className="w-4 h-4" />
+                  {/* Edit/Remove icons in top right */}
+                  <div className="absolute top-2 right-2 flex gap-2 z-10">
+                    <Link to={`/update/${property._id}`} className="p-2 bg-white/80 rounded-full shadow hover:bg-blue-100 transition-colors" title="Edit">
+                      <Edit3 className="w-4 h-4 text-blue-600" />
                     </Link>
                     <button
                       onClick={() => handleRemoveProperty(property._id, property.title)}
-                      className="p-2 bg-white/90 backdrop-blur-sm text-red-600 rounded-full hover:bg-red-600 hover:text-white transition-all"
+                      className="p-2 bg-white/80 rounded-full shadow hover:bg-red-100 transition-colors"
+                      title="Remove"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4 text-red-600" />
                     </button>
                   </div>
+                  {/* Views tag in bottom right */}
+                  <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white/80 px-2 py-1 rounded-full shadow text-gray-700 text-xs font-medium">
+                    <Eye className="w-4 h-4 mr-1 text-blue-500" />
+                    {Math.floor(property.views || 0)}
+                  </div>
+                  <div className="absolute bottom-4 left-4 flex flex-col gap-2">
+                    <span className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-full flex items-center gap-1">
+                      <Home className="w-4 h-4 mr-1" />
+                      {property.propertyType?.type_name || "Unknown Type"}
+                    </span>
+                  </div>
                 </div>
-
-                {/* Property Details */}
                 <div className="p-6">
                   <div className="mb-4">
                     <h2 className="text-xl font-semibold text-gray-900 mb-2">
                       {property.title}
                     </h2>
-                    <div className="flex items-center text-gray-600">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      {property.location}
+                    <div className="flex items-center text-gray-600 gap-1">
+                      <MapPin className="w-4 h-4" />
+                      {property.city?.city_name || "Unknown City"}
                     </div>
                   </div>
-
                   <div className="flex items-center justify-between mb-6">
+                    {/* Show price in USD */}
                     <p className="text-2xl font-bold text-blue-600">
-                      ₹{property.price.toLocaleString()}
+                      ${property.price ? property.price.toLocaleString("en-US", { style: "decimal", maximumFractionDigits: 0 }) : 0}
                     </p>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                       property.availability === 'rent' 
@@ -247,7 +295,6 @@ const PropertyListings = () => {
                       For {property.availability}
                     </span>
                   </div>
-
                   <div className="grid grid-cols-3 gap-4 mb-6">
                     <div className="flex flex-col items-center p-2 bg-gray-50 rounded-lg">
                       <BedDouble className="w-5 h-5 text-gray-400 mb-1" />
@@ -262,50 +309,11 @@ const PropertyListings = () => {
                       <span className="text-sm text-gray-600">{property.sqft} sqft</span>
                     </div>
                   </div>
-
-                  {/* Amenities */}
-                  {property.amenities && property.amenities.length > 0 && (
-                    <div className="border-t pt-4">
-                      <h3 className="text-sm font-medium text-gray-900 mb-2">Amenities</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {property.amenities.slice(0, 3).map((amenity, index) => (
-                          <span
-                            key={amenity._id || index}
-                            className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
-                          >
-                            <Building className="w-3 h-3 mr-1" />
-                            {amenity.name}
-                          </span>
-                        ))}
-                        {property.amenities.length > 3 && (
-                          <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                            +{property.amenities.length - 3} more
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </motion.div>
             ))}
           </AnimatePresence>
         </div>
-
-        {filteredProperties.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12 bg-white rounded-lg shadow-sm"
-          >
-            <Home className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No properties found
-            </h3>
-            <p className="text-gray-600">
-              Try adjusting your search or filters
-            </p>
-          </motion.div>
-        )}
       </div>
     </div>
   );

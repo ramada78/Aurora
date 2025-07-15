@@ -46,6 +46,8 @@ const Dashboard = () => {
     loading: true,
     error: null,
   });
+  const [viewsOverTime, setViewsOverTime] = useState({});
+  const [completedTransactions, setCompletedTransactions] = useState(0);
 
   // Chart options
   const chartOptions = {
@@ -99,18 +101,26 @@ const Dashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${backendurl}/api/admin/stats`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      if (response.data.success) {
+      const [adminStatsRes, viewsRes] = await Promise.all([
+        axios.get(`${backendurl}/api/admin/stats`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }),
+        axios.get(`${backendurl}/api/products/total-views`)
+      ]);
+      let totalViews = 0;
+      if (viewsRes.data.success) {
+        totalViews = viewsRes.data.totalViews;
+      }
+      if (adminStatsRes.data.success) {
         setStats((prev) => ({
           ...prev,
-          ...response.data.stats,
+          ...adminStatsRes.data.stats,
+          totalViews,
           loading: false,
           error: null,
         }));
       } else {
-        throw new Error(response.data.message || "Failed to fetch stats");
+        throw new Error(adminStatsRes.data.message || "Failed to fetch stats");
       }
     } catch (error) {
       setStats((prev) => ({
@@ -122,12 +132,57 @@ const Dashboard = () => {
     }
   };
 
+  const fetchViewsOverTime = async () => {
+    try {
+      const response = await axios.get(`${backendurl}/api/products/views-over-time`);
+      if (response.data.success) {
+        setViewsOverTime(response.data.views);
+      }
+    } catch (error) {
+      console.error('Error fetching views over time:', error);
+    }
+  };
+
+  const fetchCompletedTransactions = async () => {
+    try {
+      const response = await axios.get(`${backendurl}/api/transactions/count/completed`);
+      if (response.data.success) {
+        setCompletedTransactions(response.data.count);
+      }
+    } catch (error) {
+      console.error('Error fetching completed transactions:', error);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
+    fetchViewsOverTime();
+    fetchCompletedTransactions();
     // Refresh data every 5 minutes
-    const interval = setInterval(fetchStats, 300000);
+    const interval = setInterval(() => {
+      fetchStats();
+      fetchViewsOverTime();
+      fetchCompletedTransactions();
+    }, 300000);
     return () => clearInterval(interval);
   }, []);
+
+  // Prepare chart data from viewsOverTime
+  const chartLabels = Object.keys(viewsOverTime);
+  const chartData = Object.values(viewsOverTime).map(v => Math.floor(v));
+  const propertyViewsChartData = {
+    labels: chartLabels,
+    datasets: [
+      {
+        label: 'Total Views',
+        data: chartData,
+        borderColor: '#6366f1',
+        backgroundColor: 'rgba(99,102,241,0.1)',
+        fill: true,
+        tension: 0.4,
+      },
+    ],
+  };
 
   const statCards = [
     {
@@ -138,15 +193,15 @@ const Dashboard = () => {
       description: "Total properties listed",
     },
     {
-      title: "Active Listings",
-      value: stats.activeListings,
+      title: "Completed Transactions",
+      value: completedTransactions,
       icon: Activity,
       color: "bg-green-500",
-      description: "Currently active listings",
+      description: "Total completed sales",
     },
     {
       title: "Total Views",
-      value: stats.totalViews,
+      value: Math.floor(stats.totalViews),
       icon: Eye,
       color: "bg-purple-500",
       description: "Property page views",
@@ -253,8 +308,8 @@ const Dashboard = () => {
               Property Views
             </h2>
             <div className="h-[400px]">
-              {stats.viewsData && Object.keys(stats.viewsData).length > 0 ? (
-                <Line data={stats.viewsData} options={chartOptions} />
+              {Object.keys(viewsOverTime).length > 0 ? (
+                <Line data={propertyViewsChartData} options={chartOptions} />
               ) : (
                 <div className="h-full flex items-center justify-center">
                   <p className="text-gray-500">No view data available</p>

@@ -1,16 +1,10 @@
-import { Home, IndianRupee, Filter } from "lucide-react";
+import { Home, DollarSign, Filter, MapPin, HousePlus, SparkleIcon, Check, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
-const propertyTypes = ["House", "Apartment", "Villa", "Office"];
-const availabilityTypes = ["Rent", "Buy", "Lease"];
-const priceRanges = [
-  { min: 0, max: 5000000, label: "Under ₹50L" },
-  { min: 5000000, max: 10000000, label: "₹50L - ₹1Cr" },
-  { min: 10000000, max: 20000000, label: "₹1Cr - ₹2Cr" },
-  { min: 20000000, max: Number.MAX_SAFE_INTEGER, label: "Above ₹2Cr" }
-];
+// Remove hardcoded propertyTypes and priceRanges
+// ... existing code ...
 
-const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [] }) => {
+const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [], propertyTypes = [], cities = [] }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({
@@ -38,22 +32,30 @@ const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [] }) 
   const handleReset = () => {
     setFilters({
       propertyType: "",
-      priceRange: [0, Number.MAX_SAFE_INTEGER],
+      minPrice: 0,
+      maxPrice: 1000000,
       bedrooms: "0",
       bathrooms: "0",
+      area: "0",
       availability: "",
+      city: "",
       searchQuery: "",
       sortBy: "",
-      amenities: [] // Reset amenities
+      status: "",
+      amenities: []
     });
   };
+
+  // Remove priceRanges and priceRange logic
+
+  const availabilityTypes = ["buy", "rent"];
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="bg-white p-6 rounded-xl shadow-lg"
+      className="bg-white p-6 rounded-xl shadow-lg overflow-x-auto"
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
@@ -70,56 +72,148 @@ const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [] }) 
       </div>
 
       <div className="space-y-6">
-        {/* Property Type */}
-        <div className="filter-group">
-          <label className="filter-label">
-            <Home className="w-4 h-4 mr-2" />
-            Property Type
+        {/* Property Status Filter - toggle below label */}
+        <div className="filter-group flex flex-col gap-1 items-start">
+          <label className="filter-label font-bold text-blue-700 text-lg flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Show Available Only
           </label>
-          <div className="grid grid-cols-2 gap-2">
-            {propertyTypes.map((type) => (
+          <button
+            type="button"
+            aria-pressed={filters.status === 'available'}
+            onClick={() => setFilters(prev => ({ ...prev, status: prev.status === 'available' ? '' : 'available' }))}
+            className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-200 focus:outline-none border-2 border-blue-500 mt-1 mx-auto ${filters.status === 'available' ? 'bg-blue-600' : 'bg-gray-200'}`}
+            style={{ marginLeft: '0.25rem' }}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ${filters.status === 'available' ? 'translate-x-7' : 'translate-x-1'}`}
+            />
+          </button>
+        </div>
+
+        {/* Availability Type */}
+        <div className="filter-group">
+          <label className="filter-label font-medium"> <HousePlus className="w-4 h-4 mr-2"/>Listing Type</label>
+          <div className="flex gap-2 mt-2 flex-nowrap w-full overflow-x-auto">
+            {availabilityTypes.map(type => (
               <button
                 key={type}
-                onClick={() => handleChange({
-                  target: { name: "propertyType", value: type.toLowerCase() }
-                })}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all
-                  ${filters.propertyType === type.toLowerCase()
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                onClick={() => setFilters(prev => ({ ...prev, availability: type }))}
+                className={`min-w-[110px] px-4 py-2 rounded-lg text-sm font-medium transition-all ${filters.availability === type ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
               >
-                {type}
+                {type.charAt(0).toUpperCase() + type.slice(1)}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Price Range */}
+        {/* Property Type */}
         <div className="filter-group">
-          <label className="filter-label">
-            <IndianRupee className="w-4 h-4 mr-2" />
-            Price Range
+          <label className="filter-label flex items-center font-medium">
+            <Home className="w-4 h-4 mr-2" />
+            Property Type
           </label>
-          <div className="grid grid-cols-2 gap-2">
-            {priceRanges.map(({ min, max, label }) => (
+          <div className="grid grid-cols-2 gap-2 mt-2">
+            {propertyTypes.map((type) => (
               <button
-                key={label}
-                onClick={() => handlePriceRangeChange(min, max)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all
-                  ${filters.priceRange[0] === min && filters.priceRange[1] === max
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+                key={type._id}
+                onClick={() => setFilters(prev => ({ ...prev, propertyType: type.type_name }))}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filters.propertyType === type.type_name ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
               >
-                {label}
+                {type.type_name}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* City Filter */}
+        <div className="filter-group">
+          <label className="filter-label font-medium"><MapPin className="w-4 h-4 mr-2"/>City</label>
+          <select
+            name="city"
+            value={filters.city}
+            onChange={handleChange}
+            className="w-full mt-2 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Cities</option>
+            {cities.map(city => (
+              <option key={city._id} value={city.city_name}>{city.city_name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Price Range */}
+        <div className="filter-group mt-4">
+          <label className="filter-label font-medium"><DollarSign className="w-4 h-4 mr-2"/>Price Range (USD)</label>
+          <div className="flex items-center gap-4 mt-2">
+            <input
+              type="number"
+              min={0}
+              name="minPrice"
+              value={filters.minPrice && filters.minPrice !== 0 ? filters.minPrice : ''}
+              onChange={e => setFilters(prev => ({ ...prev, minPrice: e.target.value === '' ? 0 : Number(e.target.value) }))}
+              className="w-1/2 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="Min"
+            />
+            <span className="text-gray-500">-</span>
+            <input
+              type="number"
+              min={0}
+              name="maxPrice"
+              value={filters.maxPrice && filters.maxPrice !== 1000000 ? filters.maxPrice : ''}
+              onChange={e => setFilters(prev => ({ ...prev, maxPrice: e.target.value === '' ? 1000000 : Number(e.target.value) }))}
+              className="w-1/2 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="Max"
+            />
+          </div>
+        </div>
+
+        {/* Bedrooms, Bathrooms, Area */}
+        <div className="filter-group">
+          <div className="flex flex-row gap-3 w-full">
+            <div className="flex-1 min-w-[80px]">
+              <label className="filter-label font-medium">Bedrooms</label>
+              <input
+                type="number"
+                name="bedrooms"
+                min="0"
+                value={filters.bedrooms}
+                onChange={handleChange}
+                className="w-full mt-2 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="Any"
+              />
+            </div>
+            <div className="flex-1 min-w-[80px]">
+              <label className="filter-label font-medium">Bathrooms</label>
+              <input
+                type="number"
+                name="bathrooms"
+                min="0"
+                value={filters.bathrooms}
+                onChange={handleChange}
+                className="w-full mt-2 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="Any"
+              />
+            </div>
+          </div>
+          <div className="mt-3">
+            <label className="filter-label font-medium">Area (sqft)</label>
+            <input
+              type="number"
+              name="area"
+              min="0"
+              value={filters.area || ''}
+              onChange={handleChange}
+              className="w-full mt-2 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="Any"
+            />
           </div>
         </div>
 
         {/* Amenities Filter */}
         {amenities.length > 0 && (
           <div className="filter-group">
-            <label className="filter-label">Amenities</label>
+            <label className="filter-label"><SparkleIcon className="w-4 h-4 mr-2"/>Amenities</label>
             <div className="flex flex-col gap-2 mt-2 max-h-40 overflow-y-auto pr-2">
               {amenities.map(amenity => (
                 <label key={amenity._id} className="flex items-center gap-2 cursor-pointer text-sm">
@@ -136,18 +230,6 @@ const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [] }) 
           </div>
         )}
 
-        {/* Rest of your existing filter groups */}
-        {/* ... */}
-
-        <div className="flex space-x-4 mt-8">
-          <button
-            onClick={() => onApplyFilters(filters)}
-            className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 
-              transition-colors font-medium"
-          >
-            Apply Filters
-          </button>
-        </div>
       </div>
     </motion.div>
   );

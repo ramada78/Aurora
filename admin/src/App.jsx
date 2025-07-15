@@ -15,6 +15,13 @@ import List from "./pages/List";
 import Add from "./pages/Add";
 import Update from "./pages/Update";
 import Appointments from "./pages/Appointments";
+import ManageData from './pages/ManageData';
+import Amenities from './pages/Amenities';
+import Cities from './pages/Cities';
+import PropertyTypes from './pages/PropertyTypes';
+import Reviews from './pages/Reviews';
+import Transactions from './pages/Transactions';
+import UsersPage from './pages/Users';
 
 // Config
 export const backendurl = import.meta.env.VITE_BACKEND_URL;
@@ -54,6 +61,13 @@ const App = () => {
                 <Route path="/add" element={<Add />} />
                 <Route path="/update/:id" element={<Update />} />
                 <Route path="/appointments" element={<Appointments />} />
+                <Route path="/manage-data" element={<ManageData />} />
+                <Route path="/amenities" element={<Amenities />} />
+                <Route path="/cities" element={<Cities />} />
+                <Route path="/property-types" element={<PropertyTypes />} />
+                <Route path="/reviews" element={<Reviews />} />
+                <Route path="/transactions" element={<Transactions />} />
+                <Route path="/users" element={<UsersPage />} />
               </Route>
 
               {/* 404 Route */}

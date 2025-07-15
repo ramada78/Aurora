@@ -10,16 +10,25 @@ import {
   Share2,
   ChevronLeft,
   ChevronRight,
-  Eye
+  Eye,
+  Home,
+  SparkleIcon,
+  DollarSign
 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { Backendurl } from '../../App.jsx';
 
-const PropertyCard = ({ property, viewType }) => {
+const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
   const isGrid = viewType === 'grid';
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showControls, setShowControls] = useState(false);
+
+  // Get logged-in user info
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const roles = JSON.parse(localStorage.getItem('roles') || '[]');
+  const isAdmin = localStorage.getItem('isAdmin') === 'true';
+  const canEdit = isAdmin || (roles.includes('agent') && property.agent === user._id) || (roles.includes('seller') && property.seller === user._id);
 
   const handleNavigateToDetails = () => {
     navigate(`/properties/single/${property._id}`);
@@ -84,107 +93,72 @@ const PropertyCard = ({ property, viewType }) => {
 
         {/* Image Navigation Controls */}
         {showControls && property.image.length > 1 && (
-          <div className="absolute inset-0 flex items-center justify-between px-2">
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.8 }}
-              whileHover={{ opacity: 1 }}
-              onClick={(e) => handleImageNavigation(e, 'prev')}
-              className="p-1 rounded-full bg-white/80 backdrop-blur-sm"
+          <>
+            <button
+              onClick={e => handleImageNavigation(e, 'prev')}
+              className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white"
             >
-              <ChevronLeft className="w-5 h-5 text-gray-800" />
-            </motion.button>
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.8 }}
-              whileHover={{ opacity: 1 }}
-              onClick={(e) => handleImageNavigation(e, 'next')}
-              className="p-1 rounded-full bg-white/80 backdrop-blur-sm"
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={e => handleImageNavigation(e, 'next')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white"
             >
-              <ChevronRight className="w-5 h-5 text-gray-800" />
-            </motion.button>
-          </div>
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </>
         )}
-
-        {/* Image Indicators */}
-        {property.image.length > 1 && (
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-            {property.image.map((_, index) => (
-              <div
-                key={index}
-                className={`w-1.5 h-1.5 rounded-full transition-all duration-300
-                  ${index === currentImageIndex ? 'bg-white w-3' : 'bg-white/60'}`}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="absolute top-4 right-4 flex flex-col gap-2">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            onClick={handleShare}
-            className="p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-blue-50 
-              transition-colors shadow-lg"
-          >
-            <Share2 className="w-4 h-4 text-gray-700" />
-          </motion.button>
-        </div>
-
-        {/* Property Tags */}
-        <div className="absolute top-4 left-4 flex flex-col gap-2">
+        {/* Property badges */}
+        
+        <div className="absolute top-4 left-4 z-10">
           <motion.span 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-gradient-to-r from-blue-600 to-blue-500 text-white 
-              px-3 py-1 rounded-full text-sm font-medium shadow-lg"
+            className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg flex items-center gap-1"
           >
-            {property.type}
-          </motion.span>
-          <motion.span 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-gradient-to-r from-green-600 to-green-500 text-white 
-              px-3 py-1 rounded-full text-sm font-medium shadow-lg"
-          >
-            {property.availability}
+            <Home className="w-4 h-4 mr-1" />
+            {property.propertyType?.type_name}
           </motion.span>
         </div>
+        <div className="absolute top-4 right-4 z-10">
+          <motion.span 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className={`px-3 py-1 rounded-full text-xs font-medium shadow-lg ${property.status === 'available' ? 'bg-green-500 text-white' : property.status === 'rented' ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'}`}
+          >
+            {property.status ? property.status.charAt(0).toUpperCase() + property.status.slice(1) : 'Available'}
+          </motion.span>
+        </div>
+        <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white/80 px-2 py-1 rounded-full shadow text-gray-700 text-xs font-medium">
+                    <Eye className="w-4 h-4 mr-1 text-blue-500" />
+                    {Math.floor(property.views || 0)}
+                  </div>
       </div>
 
       {/* Content Section */}
       <div className={`flex-1 p-6 ${isGrid ? '' : 'flex flex-col justify-between'}`}>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center text-gray-500 text-sm">
-              <MapPin className="w-4 h-4 mr-2 text-blue-500" />
-              {property.location}
-            </div>
-            <div className="flex items-center gap-1 text-gray-500 text-sm">
-              <Eye className="w-4 h-4" />
-              <span>{Math.floor(Math.random() * 100) + 20}</span>
-            </div>
-          </div>
-
-          <h3 className="text-xl font-semibold text-gray-900 line-clamp-2 
-            group-hover:text-blue-600 transition-colors">
-            {property.title}
-          </h3>
-
-          <div className="flex items-center gap-2">
-            <div className="flex-1">
-              <p className="text-sm text-gray-500 mb-1">Price</p>
-              <div className="flex items-center gap-1">
-                <IndianRupee className="w-5 h-5 text-blue-600" />
-                <span className="text-2xl font-bold text-blue-600">
-                  {Number(property.price).toLocaleString('en-IN')}
-                </span>
-              </div>
-            </div>
-            {/* Rest of your price-related content */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center text-gray-500 text-sm">
+            <MapPin className="w-4 h-4 mr-2 text-blue-500" />
+            {property.city?.city_name ||''}
           </div>
         </div>
-
+        <h3 className="text-xl font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+          {property.title}
+        </h3>
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <div className="flex items-center gap-1">
+              <DollarSign className="w-5 h-5 text-blue-600" />
+              <span className="text-2xl font-bold text-blue-600">
+                {Number(property.price).toLocaleString('en-US')}
+              </span>
+              <span className="ml-3 bg-gradient-to-r from-green-600 to-green-500 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
+                {property.availability}
+              </span>
+            </div>
+          </div>
+        </div>
         {/* Property Features */}
         <div className="grid grid-cols-3 gap-3 mt-6">
           <div className="flex flex-col items-center gap-1 bg-blue-50 p-2 rounded-lg">
@@ -211,7 +185,7 @@ const PropertyCard = ({ property, viewType }) => {
           <div className="flex flex-wrap gap-2 mt-4">
             {property.amenities.slice(0, 3).map((amenity, idx) => (
               <span key={amenity._id || idx} className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                <Maximize className="w-3 h-3 mr-1" />
+                <SparkleIcon className="w-3 h-3 mr-1" />
                 {amenity.name}
               </span>
             ))}
@@ -222,6 +196,13 @@ const PropertyCard = ({ property, viewType }) => {
             )}
           </div>
         )}
+        {/* Edit/Delete Buttons (only for owner or admin) */}
+        {canEdit && (
+          <div className="flex gap-2 mt-4">
+            <button className="px-3 py-1 bg-yellow-500 text-white rounded">Edit</button>
+            <button className="px-3 py-1 bg-red-500 text-white rounded">Delete</button>
+          </div>
+        )}
       </div>
     </motion.div>
   );
@@ -229,7 +210,9 @@ const PropertyCard = ({ property, viewType }) => {
 
 PropertyCard.propTypes = {
   property: PropTypes.object.isRequired,
-  viewType: PropTypes.string.isRequired
+  viewType: PropTypes.string.isRequired,
+  propertyTypeName: PropTypes.string,
+  cityName: PropTypes.string
 };
 
 export default PropertyCard;

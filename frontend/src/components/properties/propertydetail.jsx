@@ -16,10 +16,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Copy,
-  Compass
+  Compass,
+  Home,
+  SparkleIcon, 
+  DollarSign
 } from "lucide-react";
 import { Backendurl } from "../../App.jsx";
 import ScheduleViewing from "./ScheduleViewing";
+import { getPropertyTypes, getCities } from "../../services/api";
 
 const PropertyDetails = () => {
   const { id } = useParams();
@@ -29,6 +33,8 @@ const PropertyDetails = () => {
   const [showSchedule, setShowSchedule] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [propertyTypeName, setPropertyTypeName] = useState("");
+  const [cityName, setCityName] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,6 +66,32 @@ const PropertyDetails = () => {
     setActiveImage(0);
   }, [id]);
 
+  // Fetch property type and city names if only IDs are present
+  useEffect(() => {
+    if (property) {
+      if (property.propertyType && typeof property.propertyType === 'string') {
+        getPropertyTypes().then(types => {
+          const found = types.find(t => t._id === property.propertyType);
+          setPropertyTypeName(found ? found.type_name : property.type);
+        });
+      } else if (property.propertyType && property.propertyType.type_name) {
+        setPropertyTypeName(property.propertyType.type_name);
+      } else {
+        setPropertyTypeName(property.type);
+      }
+      if (property.city && typeof property.city === 'string') {
+        getCities().then(cities => {
+          const found = cities.find(c => c._id === property.city);
+          setCityName(found ? found.city_name : '');
+        });
+      } else if (property.city && property.city.city_name) {
+        setCityName(property.city.city_name);
+      } else {
+        setCityName('');
+      }
+    }
+  }, [property]);
+
   const handleKeyNavigation = useCallback((e) => {
     if (e.key === 'ArrowLeft') {
       setActiveImage(prev => (prev === 0 ? property.image.length - 1 : prev - 1));
@@ -80,7 +112,7 @@ const PropertyDetails = () => {
       if (navigator.share) {
         await navigator.share({
           title: property.title,
-          text: `Check out this ${property.type}: ${property.title}`,
+          text: `Check out this ${propertyTypeName}: ${property.title}`,
           url: window.location.href
         });
       } else {
@@ -93,98 +125,10 @@ const PropertyDetails = () => {
     }
   };
 
-  if (loading) {
+  if (loading || !property) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Navigation Skeleton */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="w-32 h-8 bg-gray-200 rounded-lg animate-pulse"></div>
-            <div className="w-24 h-8 bg-gray-200 rounded-lg animate-pulse"></div>
-          </div>
-          
-          {/* Main Content Skeleton */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            {/* Image Gallery Skeleton */}
-            <div className="relative h-[500px] bg-gray-200 rounded-xl mb-8 animate-pulse">
-              {/* Image Navigation Buttons */}
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/50 rounded-full"></div>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/50 rounded-full"></div>
-              
-              {/* Image Counter */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-20 h-8 bg-black/20 rounded-full"></div>
-            </div>
-  
-            {/* Content Skeleton */}
-            <div className="p-8">
-              {/* Title and Location */}
-              <div className="flex justify-between items-start mb-6">
-                <div className="space-y-3 w-full max-w-md">
-                  <div className="h-10 bg-gray-200 rounded-lg w-3/4 animate-pulse"></div>
-                  <div className="h-6 bg-gray-200 rounded-lg w-1/2 animate-pulse"></div>
-                </div>
-                <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse"></div>
-              </div>
-  
-              {/* Details Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Left Column */}
-                <div className="space-y-6">
-                  {/* Price Box */}
-                  <div className="h-28 bg-blue-50/50 rounded-lg animate-pulse"></div>
-                  
-                  {/* Features Grid */}
-                  <div className="grid grid-cols-3 gap-4">
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className="h-24 bg-gray-100 rounded-lg animate-pulse"></div>
-                    ))}
-                  </div>
-                  
-                  {/* Contact */}
-                  <div className="space-y-2">
-                    <div className="h-7 bg-gray-200 rounded-lg w-1/3 animate-pulse"></div>
-                    <div className="h-6 bg-gray-200 rounded-lg w-1/2 animate-pulse"></div>
-                  </div>
-                  
-                  {/* Button */}
-                  <div className="h-12 bg-blue-200 rounded-lg animate-pulse"></div>
-                </div>
-                
-                {/* Right Column */}
-                <div className="space-y-6">
-                  {/* Description */}
-                  <div className="space-y-2">
-                    <div className="h-7 bg-gray-200 rounded-lg w-1/3 animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded-lg w-full animate-pulse mt-2"></div>
-                    <div className="h-4 bg-gray-200 rounded-lg w-full animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded-lg w-4/5 animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded-lg w-full animate-pulse"></div>
-                  </div>
-                  
-                  {/* Amenities */}
-                  <div className="space-y-2">
-                    <div className="h-7 bg-gray-200 rounded-lg w-1/3 animate-pulse"></div>
-                    <div className="grid grid-cols-2 gap-4 mt-2">
-                      {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="h-6 bg-gray-200 rounded-lg animate-pulse"></div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Map Location Skeleton */}
-          <div className="mt-8 p-6 bg-blue-50/50 rounded-xl animate-pulse">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-5 h-5 bg-gray-300 rounded-full"></div>
-              <div className="h-7 bg-gray-300 rounded-lg w-1/6"></div>
-            </div>
-            <div className="h-5 bg-gray-300 rounded-lg w-4/5 mb-4"></div>
-            <div className="h-6 bg-gray-300 rounded-lg w-1/4"></div>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader className="w-10 h-10 text-blue-600 animate-spin" />
       </div>
     );
   }
@@ -292,9 +236,19 @@ const PropertyDetails = () => {
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
                   {property.title}
                 </h1>
-                <div className="flex items-center text-gray-600">
-                  <MapPin className="w-5 h-5 mr-2" />
-                  {property.location}
+                <div className="flex items-center text-gray-600 gap-4">
+                  {cityName && (
+                    <span className="flex items-center bg-blue-100 px-2 py-1 rounded text-xs ml-2">
+                      <MapPin className="w-4 h-4 mr-1 text-blue-600" />
+                      {cityName}
+                    </span>
+                  )}
+                  {propertyTypeName && (
+                    <span className="flex items-center bg-blue-100 px-2 py-1 rounded text-xs ml-2">
+                      <Home className="w-4 h-4 mr-1 text-blue-600" />
+                      {propertyTypeName}
+                    </span>
+                  )}
                 </div>
               </div>
               <button
@@ -305,14 +259,21 @@ const PropertyDetails = () => {
               </button>
             </div>
 
+            {/* Property Status Badge */}
+            <div className="flex items-center gap-2 mb-4">
+              <span className={`px-3 py-1 rounded-full text-xs font-medium ${property.status === 'available' ? 'bg-green-100 text-green-800' : property.status === 'rented' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                {property.status ? property.status.charAt(0).toUpperCase() + property.status.slice(1) : 'Available'}
+              </span>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <div className="bg-blue-50 rounded-lg p-6 mb-6">
-                  <p className="text-3xl font-bold text-blue-600 mb-2">
-                    ₹{Number(property.price).toLocaleString('en-IN')}
+                <p className="text-green-600">
+                    {property.availability.charAt(0).toUpperCase() + property.availability.slice(1)} for
                   </p>
-                  <p className="text-gray-600">
-                    Available for {property.availability}
+                  <p className="text-3xl font-bold text-blue-600 mb-2 flex items-center">
+                    <DollarSign className="w-5 h-5 text-blue-600" /> {Number(property.price).toLocaleString('en-US')}
                   </p>
                 </div>
 
@@ -356,6 +317,12 @@ const PropertyDetails = () => {
 
               <div>
                 <div className="mb-6">
+                  <h2 className="text-xl font-semibold mb-4">Listing Type</h2>
+                  <p className="text-gray-600 leading-relaxed">
+                    {property.availability.charAt(0).toUpperCase() + property.availability.slice(1)}
+                  </p>
+                </div>
+                <div className="mb-6">
                   <h2 className="text-xl font-semibold mb-4">Description</h2>
                   <p className="text-gray-600 leading-relaxed">
                     {property.description}
@@ -370,7 +337,7 @@ const PropertyDetails = () => {
                         key={amenity._id || index}
                         className="flex items-center text-gray-600"
                       >
-                        <Building className="w-4 h-4 mr-2 text-blue-600" />
+                        <SparkleIcon className="w-4 h-4 mr-2 text-blue-600" />
                         {amenity.name}
                       </div>
                     ))}
@@ -388,17 +355,29 @@ const PropertyDetails = () => {
             <h3 className="text-lg font-semibold">Location</h3>
           </div>
           <p className="text-gray-600 mb-4">
-            {property.location}
+            {property.city?.city_name || cityName || ''}
           </p>
-          <a
-            href={`https://maps.google.com/?q=${encodeURIComponent(property.location)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
-          >
-            <MapPin className="w-4 h-4" />
-            View on Google Maps
-          </a>
+          {property.mapUrl ? (
+            <a
+              href={property.mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
+            >
+              <MapPin className="w-4 h-4" />
+              View on Map
+            </a>
+          ) : (
+            <a
+              href={`https://maps.google.com/?q=${encodeURIComponent(property.city?.city_name || cityName || '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
+            >
+              <MapPin className="w-4 h-4" />
+              View on Google Maps
+            </a>
+          )}
         </div>
 
         {/* Viewing Modal */}

@@ -1,17 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import { Search, Home, MapPin, IndianRupee, Building } from 'lucide-react';
+import { getPropertyTypes, getCities } from '../../services/api';
 
 const SearchForm = ({ onSearch, isLoading }) => {
   const [searchParams, setSearchParams] = useState({
     city: '',
     maxPrice: 3,
     propertyCategory: 'Residential',
-    propertyType: 'Flat'
+    propertyType: ''
   });
-  
   const [activeField, setActiveField] = useState(null);
+  const [propertyTypes, setPropertyTypes] = useState([]);
+  const [cities, setCities] = useState([]);
+
+  useEffect(() => {
+    getPropertyTypes().then(setPropertyTypes);
+    getCities().then(setCities);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,8 +32,6 @@ const SearchForm = ({ onSearch, isLoading }) => {
     e.preventDefault();
     onSearch(searchParams);
   };
-
-  const popularCities = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Pune', 'Chennai'];
 
   const handleCitySelect = (city) => {
     setSearchParams(prev => ({
@@ -66,26 +71,26 @@ const SearchForm = ({ onSearch, isLoading }) => {
               onChange={handleChange}
               onFocus={() => setActiveField('city')}
               onBlur={() => setTimeout(() => setActiveField(null), 100)}
-              placeholder="Enter city name (e.g., Mumbai)"
+              placeholder="Enter city name (e.g., Damascus)"
               className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-shadow text-sm sm:text-base"
               required
             />
-            {activeField === 'city' && (
+            {activeField === 'city' && cities.length > 0 && (
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 py-2"
               >
-                <p className="px-3 py-1 text-xs font-medium text-gray-500">Popular Cities</p>
+                <p className="px-3 py-1 text-xs font-medium text-gray-500">Syrian Cities</p>
                 <div className="mt-1 max-h-48 overflow-y-auto">
-                  {popularCities.map((city) => (
+                  {cities.map((city) => (
                     <div
-                      key={city}
-                      onClick={() => handleCitySelect(city)}
+                      key={city._id}
+                      onClick={() => handleCitySelect(city.city_name)}
                       className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-gray-700 flex items-center"
                     >
                       <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                      {city}
+                      {city.city_name}
                     </div>
                   ))}
                 </div>
@@ -133,10 +138,10 @@ const SearchForm = ({ onSearch, isLoading }) => {
               onChange={handleChange}
               className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-shadow appearance-none text-sm sm:text-base"
             >
-              <option value="Flat">Flat</option>
-              <option value="Individual House">Individual House</option>
-              <option value="Villa">Villa</option>
-              <option value="Penthouse">Penthouse</option>
+              <option value="">All Types</option>
+              {propertyTypes.map((type) => (
+                <option key={type._id} value={type.type_name}>{type.type_name}</option>
+              ))}
             </select>
           </div>
           
@@ -155,6 +160,8 @@ const SearchForm = ({ onSearch, isLoading }) => {
             >
               <option value="Residential">Residential</option>
               <option value="Commercial">Commercial</option>
+              <option value="Land">Land</option>
+              <option value="Industrial">Industrial</option>
             </select>
           </div>
 
@@ -208,8 +215,8 @@ const SearchForm = ({ onSearch, isLoading }) => {
 };
 
 SearchForm.propTypes = {
-  onSearch: PropTypes.func,
-  isLoading: PropTypes.bool,
+  onSearch: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool
 };
 
 export default SearchForm;

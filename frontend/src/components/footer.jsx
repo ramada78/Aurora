@@ -25,6 +25,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
 import { Backendurl } from '../App';
 import PropTypes from 'prop-types';
+import Client from '../../../backend/models/Client';
 
 // Enhanced Animation Variants
 const containerVariants = {
@@ -292,7 +293,7 @@ const Newsletter = () => {
           <input
             type="email"
             name="email"
-            id="newsletter-email"
+            id="newsletter-email-footer"
             placeholder="Enter your email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -340,27 +341,22 @@ const companyLinks = [
 ];
 
 const helpLinks = [
-  { name: 'Customer Support', href: '/', icon: Heart },
-  { name: 'FAQs', href: '/', icon: Sparkles },
-  { name: 'Terms & Conditions', href: '/', icon: Shield },
-  { name: 'Privacy Policy', href: '/', icon: Clock },
+  { name: 'Rama Dadeekhi', href: '/', icon: Sparkles },
+  { name: 'Seba Ismail', href: '/', icon: Sparkles },
+  { name: 'Mohannad Tarakji', href: '/', icon: Sparkles },
+  { name: 'Mahmoud Alsaied', href: '/', icon: Sparkles },
 ];
 
 const contactInfo = [
   { 
     icon: MapPin, 
-    text: '123 Property Plaza, Silicon Valley, CA 94088',
-    href: 'https://maps.google.com/?q=123+Property+Plaza,Silicon+Valley,CA+94088' 
-  },
-  { 
-    icon: Phone, 
-    text: '+1 (234) 567-890',
-    href: 'tel:+1234567890'
+    text: 'Aleppo University, Informatics Engineering',
+    href: 'https:#' 
   },
   { 
     icon: Mail, 
-    text: 'support@buildestate.com',
-    href: 'mailto:support@buildestate.com' 
+    text: 'Dr. Marwa Dahdouh',
+    href: 'mailto:#' 
   },
 ];
 
@@ -391,7 +387,7 @@ const Footer = () => {
               </motion.div>
               <div className="ml-4">
                 <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
-                  BuildEstate
+                  Aurora
                 </span>
                 <p className="text-sm text-gray-500 font-medium">Premium Real Estate</p>
               </div>
@@ -403,7 +399,7 @@ const Footer = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.6 }}
             >
-              Your trusted partner in finding the perfect home. We make property hunting simple, efficient, and tailored to your unique needs with cutting-edge technology and personalized service.
+              This website is designed & developed in order to serve our graduation project in Aleppo University - Informatics engineering.
             </motion.p>
             
             <div className="flex justify-center lg:justify-start">
@@ -433,7 +429,7 @@ const Footer = () => {
 
             {/* Help Column */}
             <FooterColumn 
-              title="Support" 
+              title="Team Members" 
               className="col-span-3" 
               delay={0.3}
               icon={Heart}
@@ -451,7 +447,7 @@ const Footer = () => {
 
             {/* Contact Info */}
             <FooterColumn 
-              title="Contact Us" 
+              title="Credits" 
               className="col-span-3" 
               delay={0.4}
               icon={MapPin}
@@ -552,7 +548,7 @@ const Footer = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <span>© {new Date().getFullYear()} BuildEstate. All Rights Reserved.</span>
+              <span>© {new Date().getFullYear()} Aurora. All Rights Reserved.</span>
               <Heart className="w-4 h-4 text-red-400 animate-pulse" />
               <span className="text-gray-400">Made with love</span>
             </motion.p>

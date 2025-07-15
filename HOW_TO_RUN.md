@@ -1,10 +1,10 @@
-# 🚀 How to Run BuildEstate Project - Complete Guide
+# 🚀 How to Run Aurora Project - Complete Guide
 
-This guide provides step-by-step instructions to run the complete BuildEstate real estate platform locally.
+This guide provides step-by-step instructions to run the complete Aurora real estate platform locally.
 
 ## 📋 Project Components
 
-BuildEstate consists of three main applications:
+Aurora consists of three main applications:
 
 1. **Backend API** (Port 4000) - Express.js server with MongoDB
 2. **Frontend** (Port 5173) - React user interface  
@@ -77,7 +77,7 @@ NODE_ENV=development
 BACKEND_URL=http://localhost:4000
 
 # Database (Required)
-MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/buildestate
+MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/Aurora
 
 # Authentication (Required)
 JWT_SECRET=your_long_random_secret_key_here
@@ -86,7 +86,7 @@ JWT_SECRET=your_long_random_secret_key_here
 SMTP_USER=your_smtp_user@smtp-brevo.com
 SMTP_PASS=your_smtp_password
 EMAIL=your_email@gmail.com
-ADMIN_EMAIL=admin@buildestate.com
+ADMIN_EMAIL=admin@Aurora.com
 ADMIN_PASSWORD=admin123
 
 # Image Storage (Required)
@@ -168,7 +168,7 @@ npm run dev
 ## 🔑 Default Admin Credentials
 
 ```
-Email: admin@buildestate.com
+Email: admin@Aurora.com
 Password: admin123
 ```
 
@@ -198,7 +198,7 @@ brew install mongodb-community
 brew services start mongodb-community
 
 # Use local connection string
-MONGO_URI=mongodb://localhost:27017/buildestate
+MONGO_URI=mongodb://localhost:27017/Aurora
 ```
 
 ---

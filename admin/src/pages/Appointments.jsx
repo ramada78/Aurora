@@ -70,7 +70,8 @@ const Appointments = () => {
       }
     } catch (error) {
       console.error("Error updating appointment:", error);
-      toast.error("Failed to update appointment status");
+      const errorMessage = error.response?.data?.message || "Failed to update appointment status";
+      toast.error(errorMessage);
     }
   };
 

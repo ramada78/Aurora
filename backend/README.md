@@ -1,6 +1,6 @@
-# BuildEstate Backend
+# Aurora Backend
 
-> Backend API server for the BuildEstate real estate platform
+> Backend API server for the Aurora real estate platform
 
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=nodedotjs)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-4.21+-000000?style=flat-square&logo=express)](https://expressjs.com/)
@@ -59,8 +59,8 @@ npm run build   # Build for deployment
 docker-compose up --build
 
 # Using Docker directly  
-docker build -t buildestate-backend .
-docker run -p 4000:4000 --env-file .env.local buildestate-backend
+docker build -t Aurora-backend .
+docker run -p 4000:4000 --env-file .env.local Aurora-backend
 ```
 
 ## 📚 Documentation
@@ -109,4 +109,4 @@ The backend is configured for easy deployment on:
 
 ---
 
-Built with ❤️ for BuildEstate
+Built with ❤️ for Aurora

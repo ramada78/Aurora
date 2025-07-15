@@ -4,9 +4,10 @@ import { Navigate, Outlet } from 'react-router-dom';
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token');
   const isAdmin = localStorage.getItem('isAdmin');
+  const roles = JSON.parse(localStorage.getItem('roles') || '[]');
 
-  // Check both token and admin status
-  const isAuthenticated = token && isAdmin === 'true';
+  // Only allow access if user is an admin or has 'agent' or 'seller' role
+  const isAuthenticated = token && (isAdmin === 'true' || roles.includes('agent') || roles.includes('seller'));
 
   // Verify token expiration
   const isTokenExpired = () => {
@@ -23,6 +24,7 @@ const ProtectedRoute = () => {
   if (!isAuthenticated || isTokenExpired()) {
     // Clean up storage on invalid auth
     localStorage.removeItem('token');
+    localStorage.removeItem('roles');
     localStorage.removeItem('isAdmin');
     return <Navigate to="/login" replace />;
   }

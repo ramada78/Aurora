@@ -4,35 +4,48 @@ import axios from 'axios';
 import { backendurl } from '../App';
 import { Upload, X } from 'lucide-react';
 
-const PROPERTY_TYPES = ['House', 'Apartment', 'Office', 'Villa'];
 const AVAILABILITY_TYPES = ['rent', 'buy'];
 const AMENITIES = ['Lake View', 'Fireplace', 'Central heating and air conditioning', 'Dock', 'Pool', 'Garage', 'Garden', 'Gym', 'Security system', 'Master bathroom', 'Guest bathroom', 'Home theater', 'Exercise room/gym', 'Covered parking', 'High-speed internet ready'];
 
-const PropertyForm = () => {
+const Add = () => {
   const [formData, setFormData] = useState({
     title: '',
-    type: '',
+    propertyType: '', // propertyType ID
+    city: '', // city ID
+    seller: '', // seller ID
     price: '',
-    location: '',
+    mapUrl: '',
     description: '',
     beds: '',
     baths: '',
     sqft: '',
-    phone: '',
     availability: '',
     amenities: [], // will store amenity IDs
-    images: []
+    images: [],
+    status: 'available',
   });
 
   const [previewUrls, setPreviewUrls] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newAmenity, setNewAmenity] = useState('');
   const [allAmenities, setAllAmenities] = useState([]);
+  const [propertyTypes, setPropertyTypes] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [sellers, setSellers] = useState([]);
 
   useEffect(() => {
-    // Fetch amenities from backend
+    // Fetch amenities, property types, cities, and sellers from backend
     axios.get(`${backendurl}/api/products/amenities`).then(res => {
       if (res.data.success) setAllAmenities(res.data.amenities);
+    });
+    axios.get(`${backendurl}/api/property-types`).then(res => {
+      if (res.data.success) setPropertyTypes(res.data.types);
+    });
+    axios.get(`${backendurl}/api/cities`).then(res => {
+      if (res.data.success) setCities(res.data.cities);
+    });
+    axios.get(`${backendurl}/api/sellers`).then(res => {
+      if (res.data.success) setSellers(res.data.sellers);
     });
   }, []);
 
@@ -59,7 +72,6 @@ const PropertyForm = () => {
       alert('Maximum 4 images allowed');
       return;
     }
-
     const newPreviewUrls = files.map(file => URL.createObjectURL(file));
     setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
     setFormData(prev => ({
@@ -89,47 +101,51 @@ const PropertyForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
     try {
       const formdata = new FormData();
       formdata.append('title', formData.title);
-      formdata.append('type', formData.type);
+      formdata.append('propertyType', formData.propertyType);
+      formdata.append('city', formData.city);
+      if (formData.seller) {
+        formdata.append('seller', formData.seller);
+      }
       formdata.append('price', formData.price);
-      formdata.append('location', formData.location);
+      formdata.append('mapUrl', formData.mapUrl);
       formdata.append('description', formData.description);
       formdata.append('beds', formData.beds);
       formdata.append('baths', formData.baths);
       formdata.append('sqft', formData.sqft);
-      formdata.append('phone', formData.phone);
       formdata.append('availability', formData.availability);
+      formdata.append('status', formData.status);
       formData.amenities.forEach((amenityId, index) => {
         formdata.append(`amenities[${index}]`, amenityId);
       });
       formData.images.forEach((image, index) => {
         formdata.append(`image${index + 1}`, image);
       });
-
       const response = await axios.post(`${backendurl}/api/products/add`, formdata, {
         headers: {
-          'Content-Type': 'multipart/form-data'
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-
       if (response.data.success) {
         toast.success(response.data.message);
         setFormData({
           title: '',
-          type: '',
+          propertyType: '',
+          city: '',
+          seller: '',
           price: '',
-          location: '',
+          mapUrl: '',
           description: '',
           beds: '',
           baths: '',
           sqft: '',
-          phone: '',
           availability: '',
           amenities: [],
-          images: []
+          images: [],
+          status: 'available',
         });
         setPreviewUrls([]);
         toast.success('Property added successfully');
@@ -148,7 +164,6 @@ const PropertyForm = () => {
     <div className="min-h-screen pt-32 px-4 bg-gray-50">
       <div className="max-w-2xl mx-auto rounded-lg shadow-xl bg-white p-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Add New Property</h2>
-        
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div className="space-y-4">
@@ -163,10 +178,9 @@ const PropertyForm = () => {
                 required
                 value={formData.title}
                 onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
               />
             </div>
-
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                 Description
@@ -178,32 +192,65 @@ const PropertyForm = () => {
                 value={formData.description}
                 onChange={handleInputChange}
                 rows={3}
-                className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
               />
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="type" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="propertyType" className="block text-sm font-medium text-gray-700">
                   Property Type
                 </label>
                 <select
-                  id="type"
-                  name="type"
+                  id="propertyType"
+                  name="propertyType"
                   required
-                  value={formData.type}
+                  value={formData.propertyType}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
                 >
                   <option value="">Select Type</option>
-                  {PROPERTY_TYPES.map(type => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
+                  {propertyTypes.map(type => (
+                    <option key={type._id} value={type._id}>{type.type_name}</option>
                   ))}
                 </select>
               </div>
-
+              <div>
+                <label htmlFor="city" className="block text-sm font-medium text-gray-700">
+                  City
+                </label>
+                <select
+                  id="city"
+                  name="city"
+                  required
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                >
+                  <option value="">Select City</option>
+                  {cities.map(city => (
+                    <option key={city._id} value={city._id}>{city.city_name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="seller" className="block text-sm font-medium text-gray-700">
+                  Seller (Optional)
+                </label>
+                <select
+                  id="seller"
+                  name="seller"
+                  value={formData.seller}
+                  onChange={handleInputChange}
+                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                >
+                  <option value="">Select Seller</option>
+                  {sellers.map(seller => (
+                    <option key={seller._id} value={seller._id}>{seller.full_name || seller.name}</option>
+                  ))}
+                </select>
+              </div>
               <div>
                 <label htmlFor="availability" className="block text-sm font-medium text-gray-700">
                   Availability
@@ -214,18 +261,45 @@ const PropertyForm = () => {
                   required
                   value={formData.availability}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
                 >
                   <option value="">Select Availability</option>
                   {AVAILABILITY_TYPES.map(type => (
-                    <option key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </option>
+                    <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
                   ))}
                 </select>
               </div>
             </div>
-
+            <div>
+              <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                Status
+              </label>
+              <select
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                className="mt-1 block w-full rounded-md border border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+              >
+                <option value="available">Available</option>
+                <option value="rented">Rented</option>
+                <option value="sold">Sold</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="mapUrl" className="block text-sm font-medium text-gray-700">
+                Map URL
+              </label>
+              <input
+                type="text"
+                id="mapUrl"
+                name="mapUrl"
+                value={formData.mapUrl}
+                onChange={handleInputChange}
+                placeholder="https://maps.google.com/..."
+                className="mt-1 block w-full rounded-md border border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+              />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="price" className="block text-sm font-medium text-gray-700">
@@ -239,26 +313,10 @@ const PropertyForm = () => {
                   min="0"
                   value={formData.price}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-                  Location
-                </label>
-                <input
-                  type="text"
-                  id="location"
-                  name="location"
-                  required
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
                 />
               </div>
             </div>
-
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label htmlFor="beds" className="block text-sm font-medium text-gray-700">
@@ -272,10 +330,9 @@ const PropertyForm = () => {
                   min="0"
                   value={formData.beds}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
                 />
               </div>
-
               <div>
                 <label htmlFor="baths" className="block text-sm font-medium text-gray-700">
                   Bathrooms
@@ -288,10 +345,9 @@ const PropertyForm = () => {
                   min="0"
                   value={formData.baths}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
                 />
               </div>
-
               <div>
                 <label htmlFor="sqft" className="block text-sm font-medium text-gray-700">
                   Square Feet
@@ -304,27 +360,12 @@ const PropertyForm = () => {
                   min="0"
                   value={formData.sqft}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
                 />
               </div>
             </div>
-
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                Contact Phone
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                required
-                value={formData.phone}
-                onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              />
-            </div>
+            {/* Remove phone number field from the form */}
           </div>
-
           {/* Amenities */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -347,26 +388,21 @@ const PropertyForm = () => {
               ))}
             </div>
           </div>
-
           {/* Image Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Property Images (Max 4)
+              Property Images
             </label>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              {previewUrls.map((url, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={url}
-                    alt={`Preview ${index + 1}`}
-                    className="h-40 w-full object-cover rounded-lg"
-                  />
+            <div className="flex flex-wrap gap-4 mb-4">
+              {previewUrls.map((url, idx) => (
+                <div key={idx} className="relative w-24 h-24">
+                  <img src={url} alt="Preview" className="w-full h-full object-cover rounded-md" />
                   <button
                     type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                    onClick={() => removeImage(idx)}
+                    className="absolute top-1 right-1 bg-white rounded-full p-1 shadow hover:bg-gray-100"
                   >
-                    <X size={16} />
+                    <X className="w-4 h-4 text-gray-600" />
                   </button>
                 </div>
               ))}
@@ -394,7 +430,6 @@ const PropertyForm = () => {
               </div>
             )}
           </div>
-
           {/* Submit Button */}
           <div>
             <button
@@ -411,4 +446,4 @@ const PropertyForm = () => {
   );
 };
 
-export default PropertyForm;
+export default Add;
