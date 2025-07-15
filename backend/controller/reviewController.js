@@ -2,7 +2,12 @@ import Review from '../models/Review.js';
 
 export const listReviews = async (req, res) => {
   try {
-    const reviews = await Review.find().populate('property_id agent_id client_id');
+    const reviews = await Review.find()
+      .populate({
+        path: 'property_id',
+        populate: { path: 'city', select: 'city_name' }
+      })
+      .populate('user_id');
     res.json({ success: true, reviews });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -11,8 +16,8 @@ export const listReviews = async (req, res) => {
 
 export const addReview = async (req, res) => {
   try {
-    const { rating, comment, property_id, agent_id, client_id } = req.body;
-    const review = new Review({ rating, comment, property_id, agent_id, client_id });
+    const { rating, comment, property_id, user_id } = req.body;
+    const review = new Review({ rating, comment, property_id, user_id });
     await review.save();
     res.status(201).json({ success: true, review });
   } catch (error) {

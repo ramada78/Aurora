@@ -284,7 +284,7 @@ const PropertiesPage = () => {
             Find Your Perfect Property
           </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-            Discover a curated collection of premium properties
+            Discover a curated collection of Future Real Estate
           </p>
         </motion.header>
 

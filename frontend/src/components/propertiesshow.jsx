@@ -305,7 +305,7 @@ const PropertiesShow = () => {
           </h2>
           <div className="w-24 h-1 bg-blue-600 mx-auto mb-6"></div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Discover our handpicked selection of premium properties designed to match your lifestyle needs
+            Discover our handpicked selection of Future Real Estate designed to match your lifestyle needs
           </p>
         </motion.div>
 
@@ -382,7 +382,7 @@ const PropertiesShow = () => {
             <ArrowRight className="ml-2 w-4 h-4" />
           </button>
           <p className="text-gray-600 mt-4 text-sm">
-            Discover our complete collection of premium properties
+            Discover our complete collection of Future Real Estate
           </p>
         </motion.div>
       </div>

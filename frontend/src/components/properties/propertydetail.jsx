@@ -24,6 +24,7 @@ import {
 import { Backendurl } from "../../App.jsx";
 import ScheduleViewing from "./ScheduleViewing";
 import { getPropertyTypes, getCities } from "../../services/api";
+import PropertyReviews from './PropertyReviews';
 
 const PropertyDetails = () => {
   const { id } = useParams();
@@ -378,6 +379,11 @@ const PropertyDetails = () => {
               View on Google Maps
             </a>
           )}
+        </div>
+
+        {/* Property Reviews Section */}
+        <div className="mt-8">
+          <PropertyReviews propertyId={property._id} />
         </div>
 
         {/* Viewing Modal */}

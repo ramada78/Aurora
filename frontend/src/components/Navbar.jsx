@@ -185,7 +185,7 @@ const Navbar = () => {
                 Aurora
               </span>
               <span className="text-xs text-gray-500 font-medium -mt-1">
-                Premium Properties
+                Future Real Estate
               </span>
             </div>
           </Link>

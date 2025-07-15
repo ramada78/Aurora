@@ -81,7 +81,7 @@ const Reviews = () => {
 
   const filteredReviews = reviews.filter((review) =>
     review.property_id?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    review.client_id?.user_id?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    review.user_id?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     review.comment?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -161,7 +161,7 @@ const Reviews = () => {
                             {review.property_id?.title || "Unknown Property"}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {review.property_id?.location || "Unknown Location"}
+                            {review.property_id?.city?.city_name || "Unknown Location"}
                           </p>
                         </div>
                       </div>
@@ -171,10 +171,10 @@ const Reviews = () => {
                         <User className="w-5 h-5 text-gray-400 mr-2" />
                         <div>
                           <p className="font-medium text-gray-900">
-                            {review.client_id?.user_id?.name || "Anonymous"}
+                            {review.user_id?.name || "Anonymous"}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {review.client_id?.user_id?.email || "No email"}
+                            {review.user_id?.email || "No email"}
                           </p>
                         </div>
                       </div>

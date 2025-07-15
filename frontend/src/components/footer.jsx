@@ -389,7 +389,7 @@ const Footer = () => {
                 <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
                   Aurora
                 </span>
-                <p className="text-sm text-gray-500 font-medium">Premium Real Estate</p>
+                <p className="text-sm text-gray-500 font-medium">Future Real Estate</p>
               </div>
             </div>
             

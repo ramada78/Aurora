@@ -177,7 +177,7 @@ const Hero = () => {
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white/90 backdrop-blur-md text-blue-700 rounded-full text-sm font-semibold mb-8 shadow-lg border border-blue-100"
               >
                 <Shield className="w-4 h-4" />
-                <span>Trusted by 50,000+ families</span>
+                <span>Trusted by Syrians</span>
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
@@ -203,9 +203,9 @@ const Hero = () => {
                   variants={itemVariants}
                   className="text-gray-700 text-xl sm:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed font-medium"
                 >
-                  Discover exceptional properties in prime locations with our 
+                  Discover exceptional properties with our 
                   <span className="text-blue-600 font-semibold"> AI-powered search</span> and 
-                  <span className="text-purple-600 font-semibold"> expert guidance</span>
+                  <span className="text-purple-600 font-semibold"> AR/VR property view experience </span>
                 </motion.p>
               </motion.div>
 
