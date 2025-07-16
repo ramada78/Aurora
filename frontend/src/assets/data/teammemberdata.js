@@ -14,7 +14,7 @@ export const teamMembers = [
       },
     },
     {
-      name: 'Aayush Vaghela',
+      name: 'Rama Dadeekhi',
       position: 'Chief Technology Officer',
       bio: "Tech innovator driving our platform's cutting-edge solutions.",
       image: aayushimage,

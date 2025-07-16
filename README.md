@@ -351,6 +351,6 @@ Special thanks to all contributors and the open source community.
 
 <div align="center">
   <img src="./frontend/src/assets/home-regular-24.png" alt="Aurora Logo" width="60" />
-  <p>Built with ❤️ by Aayush Vaghela</p>
+  <p>Built with ❤️ by Rama Dadeekhi</p>
   <p>© 2025 Aurora. All Rights Reserved.</p>
 </div>

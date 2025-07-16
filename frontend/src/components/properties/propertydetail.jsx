@@ -19,7 +19,9 @@ import {
   Compass,
   Home,
   SparkleIcon, 
-  DollarSign
+  DollarSign,
+  MoveRight,
+  ArrowRight
 } from "lucide-react";
 import { Backendurl } from "../../App.jsx";
 import ScheduleViewing from "./ScheduleViewing";
@@ -297,14 +299,6 @@ const PropertyDetails = () => {
                   </div>
                 </div>
 
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold mb-4">Contact Details</h2>
-                  <div className="flex items-center text-gray-600">
-                    <Phone className="w-5 h-5 mr-2" />
-                    {property.phone}
-                  </div>
-                </div>
-
                 <button
                   onClick={() => setShowSchedule(true)}
                   className="w-full bg-blue-600 text-white py-3 rounded-lg 
@@ -351,13 +345,12 @@ const PropertyDetails = () => {
 
         {/* Add Map Location */}
         <div className="mt-8 p-6 bg-blue-50 rounded-xl">
-          <div className="flex items-center gap-2 text-blue-600 mb-4">
-            <Compass className="w-5 h-5" />
-            <h3 className="text-lg font-semibold">Location</h3>
-          </div>
-          <p className="text-gray-600 mb-4">
+          <div className="flex items-center gap-2 text-black-600 mb-4">
+          <Compass className="w-5 h-5" />
+          <h3 className="text-lg font-semibold">
             {property.city?.city_name || cityName || ''}
-          </p>
+            </h3>
+          </div>
           {property.mapUrl ? (
             <a
               href={property.mapUrl}
@@ -365,18 +358,18 @@ const PropertyDetails = () => {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
             >
-              <MapPin className="w-4 h-4" />
-              View on Map
+              <ArrowRight className="w-4 h-4" />
+              View Exact Location on Map
             </a>
           ) : (
             <a
-              href={`https://maps.google.com/?q=${encodeURIComponent(property.city?.city_name || cityName || '')}`}
+              href={`https://maps.google.com/?q=${encodeURIComponent(property.city?.city_name || '')}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
             >
-              <MapPin className="w-4 h-4" />
-              View on Google Maps
+              <ArrowRight className="w-4 h-4" />
+              View Exact Location on Map
             </a>
           )}
         </div>

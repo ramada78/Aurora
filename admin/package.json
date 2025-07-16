@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Aurora admin dashboard for property management",
-  "author": "Aayush Vaghela",
+  "author": "Rama Dadeekhi",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -19,7 +19,6 @@
   "dependencies": {
     "axios": "^1.7.9",
     "chart.js": "^4.4.7",
-    "flowbite-react": "^0.10.2",
     "framer-motion": "^12.4.2",
     "lucide-react": "^0.469.0",
     "prop-types": "^15.8.1",
@@ -28,7 +27,6 @@
     "react-dom": "^18.3.1",
     "react-error-boundary": "^5.0.0",
     "react-hot-toast": "^2.5.1",
-    "react-icon": "^1.0.0",
     "react-icons": "^5.4.0",
     "react-router-dom": "^7.1.1",
     "react-toastify": "^11.0.2"

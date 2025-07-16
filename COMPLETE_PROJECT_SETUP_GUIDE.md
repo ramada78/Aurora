@@ -620,5 +620,5 @@ This project is licensed under the MIT License. See the LICENSE file for details
 
 <div align="center">
   <p><strong>Happy Coding! 🚀</strong></p>
-  <p>Built with ❤️ by <a href="https://github.com/AAYUSH412">Aayush Vaghela</a></p>
+  <p>Built with ❤️ by <a href="https://github.com/AAYUSH412">Rama Dadeekhi</a></p>
 </div>

@@ -551,6 +551,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-  <p>Made with ❤️ by <a href="https://github.com/AAYUSH412">Aayush Vaghela</a></p>
+  <p>Made with ❤️ by <a href="https://github.com/AAYUSH412">Rama Dadeekhi</a></p>
   <p>⭐ If you found this project helpful, please give it a star!</p>
 </div>
