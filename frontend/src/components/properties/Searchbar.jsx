@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { saveLastSearch as saveLastSearchAPI } from '../../services/api';
 
 const SearchBar = ({ onSearch, className }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,6 +35,31 @@ const SearchBar = ({ onSearch, className }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showSuggestions]);
 
+  const saveLastSearch = async (searchObj) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      await saveLastSearchAPI(searchObj);
+    } else {
+      let arr = JSON.parse(localStorage.getItem('lastSearches') || '[]');
+      arr = [searchObj, ...arr.filter(s => JSON.stringify(s) !== JSON.stringify(searchObj))].slice(0, 10);
+      localStorage.setItem('lastSearches', JSON.stringify(arr));
+    }
+  };
+
+  const parseSearchQuery = (query) => {
+    // Very basic parsing for demo: look for known city/type keywords
+    const lower = query.toLowerCase();
+    const cities = ['aleppo', 'damascus']; // Add more as needed
+    const types = ['apartment', 'villa', 'house', 'flat', 'studio']; // Add more as needed
+    let city = cities.find(c => lower.includes(c));
+    let propertyType = types.find(t => lower.includes(t));
+    return {
+      city: city ? city.charAt(0).toUpperCase() + city.slice(1) : '',
+      propertyType: propertyType ? propertyType.charAt(0).toUpperCase() + propertyType.slice(1) : '',
+      searchQuery: query
+    };
+  };
+
   const handleSearch = (query) => {
     if (!query.trim()) return;
 
@@ -45,6 +71,10 @@ const SearchBar = ({ onSearch, className }) => {
 
     setRecentSearches(updatedSearches);
     localStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
+    
+    // Save last search for AI recommendations
+    const parsed = parseSearchQuery(query);
+    saveLastSearch(parsed.city || parsed.propertyType ? parsed : { searchQuery: query });
     
     onSearch(query);
     setShowSuggestions(false);

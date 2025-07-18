@@ -15,7 +15,11 @@ const UserSchema = new mongoose.Schema({
         default: ['client'] 
     },
     // Profile completion status
-    profileCompleted: { type: Boolean, default: false }
+    profileCompleted: { type: Boolean, default: false },
+    // Last 10 search/filter preferences for AI recommendations
+    lastSearches: { type: [Object], default: [] },
+    // Last search/filter preferences for AI recommendations
+    lastSearch: { type: Object, default: null }
 });
 
 const User = mongoose.model('User', UserSchema);

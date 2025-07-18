@@ -743,5 +743,37 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// Save last search/filter for logged-in user (now supports last 10)
+export const saveLastSearch = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { lastSearch } = req.body;
+    if (!lastSearch) {
+      return res.status(400).json({ success: false, message: 'Missing lastSearch data' });
+    }
+    const user = await userModel.findById(userId);
+    let lastSearches = user.lastSearches || [];
+    // Add new search to the front, remove duplicates, keep max 10
+    lastSearches = [lastSearch, ...lastSearches.filter(s => JSON.stringify(s) !== JSON.stringify(lastSearch))].slice(0, 10);
+    await userModel.findByIdAndUpdate(userId, { lastSearches });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error saving last search:', error);
+    res.status(500).json({ success: false, message: 'Failed to save last search' });
+  }
+};
+
+// Get last 10 search/filter actions for logged-in user
+export const getLastSearch = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await userModel.findById(userId);
+    res.json({ success: true, lastSearches: user?.lastSearches || [] });
+  } catch (error) {
+    console.error('Error getting last search:', error);
+    res.status(500).json({ success: false, message: 'Failed to get last search' });
+  }
+};
+
 
 export { login, register, forgotpassword, resetpassword, adminlogin, logout, getname, createUserWithRole, switchPrimaryRole, updateUserProfile, getUserRoles, getAllUsersWithRoles, testRegister, updateUserWithRole, deleteUser };

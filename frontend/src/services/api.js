@@ -120,4 +120,121 @@ export const getCompletedTransactions = async () => {
   }
 };
 
+export const saveLastSearch = async (lastSearch) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (token) {
+      await api.post('/api/users/last-search', { lastSearch }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return true;
+    } else {
+      // Save to localStorage as an array of last 10
+      let arr = JSON.parse(localStorage.getItem('lastSearches') || '[]');
+      arr = [lastSearch, ...arr.filter(s => JSON.stringify(s) !== JSON.stringify(lastSearch))].slice(0, 10);
+      localStorage.setItem('lastSearches', JSON.stringify(arr));
+      return true;
+    }
+  } catch (error) {
+    console.error('Error saving last search:', error);
+    return false;
+  }
+};
+
+export const getLastSearches = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const response = await api.get('/api/users/last-search', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data.lastSearches || [];
+    } else {
+      return JSON.parse(localStorage.getItem('lastSearches') || '[]');
+    }
+  } catch (error) {
+    console.error('Error getting last searches:', error);
+    return [];
+  }
+};
+
+// Aggregate an array of search/filter objects into a single preference object
+export const aggregatePreferences = (searches) => {
+  if (!searches.length) return {};
+  // For categorical: use most frequent; for numeric: use average (ignore 0, '0', '')
+  const fields = ['price','propertyType','city','minPrice','maxPrice','bedrooms','bathrooms','area','availability','status'];
+  const counts = {};
+  const sums = {};
+  const nums = {};
+  let n = 0;
+  searches.forEach(s => {
+    fields.forEach(f => {
+      const val = s[f];
+      if (val !== undefined && val !== '' && val !== 0 && val !== '0') {
+        if (typeof val === 'number' || (!isNaN(val) && val !== '' && val !== '0')) {
+          // Numeric
+          const numVal = typeof val === 'number' ? val : Number(val);
+          if (!isNaN(numVal) && numVal !== 0) {
+            sums[f] = (sums[f] || 0) + numVal;
+            nums[f] = (nums[f] || 0) + 1;
+          }
+        } else {
+          // Categorical
+          counts[f] = counts[f] || {};
+          counts[f][val] = (counts[f][val] || 0) + 1;
+        }
+      }
+    });
+  });
+  const result = {};
+  fields.forEach(f => {
+    if (nums[f]) {
+      result[f] = Math.round(sums[f] / nums[f]);
+    } else if (counts[f]) {
+      // Most frequent value
+      result[f] = Object.entries(counts[f]).sort((a,b) => b[1]-a[1])[0][0];
+    }
+    // Fallback: use most recent non-empty value
+    if ((result[f] === undefined || result[f] === '' || result[f] === 0 || result[f] === '0') && searches) {
+      for (let i = 0; i < searches.length; i++) {
+        const val = searches[i][f];
+        if (val !== undefined && val !== '' && val !== 0 && val !== '0') {
+          result[f] = val;
+          break;
+        }
+      }
+    }
+  });
+  // Special handling for price: use maxPrice if present
+  if (result.maxPrice) result.price = result.maxPrice;
+  // Fallback: use searchQuery for city/propertyType if missing
+  if ((!result.city || result.city === '') && searches) {
+    for (let i = 0; i < searches.length; i++) {
+      const sq = searches[i].searchQuery;
+      if (sq && typeof sq === 'string') {
+        // Try to match known cities/types
+        const lower = sq.toLowerCase();
+        const cities = [];
+        const types = ['apartment', 'villa', 'house', 'flat', 'studio'];
+        let city = cities.find(c => lower.includes(c));
+        let propertyType = types.find(t => lower.includes(t));
+        if (city && !result.city) result.city = city.charAt(0).toUpperCase() + city.slice(1);
+        if (propertyType && !result.propertyType) result.propertyType = propertyType.charAt(0).toUpperCase() + propertyType.slice(1);
+        if (result.city && result.propertyType) break;
+      }
+    }
+  }
+  return result;
+};
+
+export const recommendProperties = async (preferences) => {
+  try {
+    const response = await api.post('/api/properties/recommend', preferences);
+    return response.data.recommended || [];
+  } catch (error) {
+    console.error('Error getting recommendations:', error);
+    return [];
+  }
+};
+
 export default api;

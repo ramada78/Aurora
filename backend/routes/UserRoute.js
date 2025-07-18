@@ -1,5 +1,5 @@
 import express from 'express';
-import { login, register, forgotpassword,adminlogin,resetpassword,getname, createUserWithRole, switchPrimaryRole, updateUserProfile, getUserRoles, getAllUsersWithRoles, testRegister, updateUserWithRole, deleteUser } from '../controller/Usercontroller.js';
+import { login, register, forgotpassword,adminlogin,resetpassword,getname, createUserWithRole, switchPrimaryRole, updateUserProfile, getUserRoles, getAllUsersWithRoles, testRegister, updateUserWithRole, deleteUser, saveLastSearch, getLastSearch } from '../controller/Usercontroller.js';
 import authMiddleware, { adminAuth, rolesOrAdmin } from '../middleware/authmiddleware.js';
 
 
@@ -21,5 +21,7 @@ userrouter.post('/switch-role', authMiddleware, switchPrimaryRole);
 userrouter.put('/profile', authMiddleware, updateUserProfile);
 userrouter.get('/roles', authMiddleware, getUserRoles);
 userrouter.get('/all-with-roles', rolesOrAdmin(['agent']), getAllUsersWithRoles);
+userrouter.post('/last-search', authMiddleware, saveLastSearch);
+userrouter.get('/last-search', authMiddleware, getLastSearch);
 
 export default userrouter;

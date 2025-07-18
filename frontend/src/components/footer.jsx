@@ -205,31 +205,6 @@ const socialLinks = [
   },
 ];
 
-const SocialLinks = () => {
-  return (
-    <div className="flex items-center gap-4 mt-8">
-      <span className="text-sm text-gray-600 font-medium">Follow us:</span>
-      <div className="flex gap-3">
-        {socialLinks.map(({ icon: Icon, href, label, color, hoverColor }) => (
-          <motion.a
-            key={label}
-            whileHover={{ scale: 1.15, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-            href={href}
-            title={label}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex items-center justify-center text-white bg-gradient-to-br ${color} ${hoverColor} rounded-xl w-11 h-11 shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden group`}
-          >
-            <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-            <Icon className="w-5 h-5 relative z-10" />
-          </motion.a>
-        ))}
-      </div>
-    </div>
-  );
-};
-
 // Newsletter Component
 const Newsletter = () => {
   const [email, setEmail] = useState('');
@@ -401,10 +376,6 @@ const Footer = () => {
             >
               This website is designed & developed in order to serve our graduation project in Aleppo University - Informatics engineering.
             </motion.p>
-            
-            <div className="flex justify-center lg:justify-start">
-              <SocialLinks />
-            </div>
           </motion.div>
 
           {/* Desktop layout */}

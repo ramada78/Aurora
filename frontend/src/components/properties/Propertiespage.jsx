@@ -6,7 +6,7 @@ import SearchBar from "./Searchbar.jsx";
 import FilterSection from "./Filtersection.jsx";
 import PropertyCard from "./Propertycard.jsx";
 import { Backendurl } from "../../App.jsx";
-import { getPropertyTypes, getCities } from "../../services/api";
+import { getPropertyTypes, getCities, saveLastSearch as saveLastSearchAPI } from "../../services/api";
 import { useLocation } from "react-router-dom";
 
 const PropertiesPage = () => {
@@ -29,9 +29,8 @@ const PropertiesPage = () => {
   const [cities, setCities] = useState([]);
 
   const [filters, setFilters] = useState({
-    propertyType: "",
-    minPrice: 0,
-    maxPrice: 1000000,
+    minPrice: '',
+    maxPrice: '',
     bedrooms: "0",
     bathrooms: "0",
     area: "0",
@@ -53,11 +52,18 @@ const PropertiesPage = () => {
     const params = new URLSearchParams(location.search);
     const cityParam = params.get('city');
     const propertyTypeParam = params.get('propertyType');
-    setFilters(prev => ({
-      ...prev,
-      city: cityParam || prev.city,
-      propertyType: propertyTypeParam || prev.propertyType
-    }));
+    setFilters(prev => {
+      const updated = {
+        ...prev,
+        city: cityParam || prev.city,
+        propertyType: propertyTypeParam || prev.propertyType
+      };
+      // Save to preferences if city/propertyType is present in URL
+      if (cityParam || propertyTypeParam) {
+        saveLastSearch(updated);
+      }
+      return updated;
+    });
   }, [location.search]);
 
   const propertyTypeMap = useMemo(() => {
@@ -134,7 +140,9 @@ const PropertiesPage = () => {
           property.city?.city_name?.toLowerCase().includes(filters.city.toLowerCase());
 
         // Price filter (USD)
-        const priceMatch = property.price >= filters.minPrice && property.price <= filters.maxPrice;
+        const minPrice = filters.minPrice === '' || filters.minPrice === undefined ? -Infinity : Number(filters.minPrice);
+        const maxPrice = filters.maxPrice === '' || filters.maxPrice === undefined ? Infinity : Number(filters.maxPrice);
+        const priceMatch = property.price >= minPrice && property.price <= maxPrice;
 
         // Bedrooms, Bathrooms, Area
         const bedroomsMatch = !filters.bedrooms || filters.bedrooms === "0" || 
@@ -172,11 +180,48 @@ const PropertiesPage = () => {
       });
   }, [propertyState.properties, filters]);
 
+  const numericFields = ['minPrice','maxPrice','bedrooms','bathrooms','area','beds','price','sqft'];
+  const coerceNumericFilters = (filters) => {
+    const result = { ...filters };
+    numericFields.forEach(f => {
+      if (result[f] !== undefined && result[f] !== '' && result[f] !== null) {
+        const n = Number(result[f]);
+        if (!isNaN(n)) result[f] = n;
+      }
+    });
+    return result;
+  };
+
+  const saveLastSearch = async (searchObj) => {
+    const coerced = coerceNumericFilters(searchObj);
+    console.log('Saving filter for AI aggregation:', coerced);
+    const token = localStorage.getItem('token');
+    if (token) {
+      await saveLastSearchAPI(coerced);
+    } else {
+      let arr = JSON.parse(localStorage.getItem('lastSearches') || '[]');
+      arr = [coerced, ...arr.filter(s => JSON.stringify(s) !== JSON.stringify(coerced))].slice(0, 10);
+      localStorage.setItem('lastSearches', JSON.stringify(arr));
+    }
+  };
+
   const handleFilterChange = (newFilters) => {
-    setFilters(prev => ({
-      ...prev,
+    const updatedFilters = {
+      ...filters,
       ...newFilters
-    }));
+    };
+    setFilters(updatedFilters);
+    // Do NOT saveLastSearch here
+  };
+
+  // Add a handler for numeric blur
+  const handleNumericBlur = () => {
+    saveLastSearch(filters);
+  };
+
+  // Add a handler for non-numeric changes
+  const handleNonNumericChange = (newFilters) => {
+    saveLastSearch(newFilters);
   };
 
   if (propertyState.loading) {
@@ -315,6 +360,8 @@ const PropertiesPage = () => {
                   filters={filters}
                   setFilters={setFilters}
                   onApplyFilters={handleFilterChange}
+                  onNumericBlur={handleNumericBlur}
+                  onNonNumericChange={handleNonNumericChange}
                   amenities={amenities}
                   propertyTypes={propertyTypes}
                   cities={cities}
@@ -327,7 +374,11 @@ const PropertiesPage = () => {
             <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <SearchBar
-                  onSearch={(query) => setFilters(prev => ({ ...prev, searchQuery: query }))}
+                  onSearch={(query) => {
+                    const updatedFilters = { ...filters, searchQuery: query };
+                    setFilters(updatedFilters);
+                    saveLastSearch(updatedFilters);
+                  }}
                   className="flex-1"
                 />
 

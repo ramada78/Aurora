@@ -1,52 +1,67 @@
 import { Home, DollarSign, Filter, MapPin, HousePlus, SparkleIcon, Check, CheckCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
-// Remove hardcoded propertyTypes and priceRanges
-// ... existing code ...
 
-const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [], propertyTypes = [], cities = [] }) => {
+const FilterSection = ({ filters, setFilters, onApplyFilters, onNumericBlur, onNonNumericChange, amenities = [], propertyTypes = [], cities = [] }) => {
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handlePriceRangeChange = (min, max) => {
-    setFilters(prev => ({
-      ...prev,
-      priceRange: [min, max]
-    }));
+    let name, value;
+    if (e && e.target) {
+      ({ name, value } = e.target);
+    } else if (e && typeof e === 'object') {
+      ({ name, value } = e);
+    }
+    setFilters(prev => {
+      const updated = { ...prev, [name]: value };
+      onApplyFilters && onApplyFilters(updated);
+      return updated;
+    });
   };
 
   const handleAmenityCheckbox = (amenityId) => {
-    setFilters(prev => ({
-      ...prev,
-      amenities: prev.amenities.includes(amenityId)
-        ? prev.amenities.filter(a => a !== amenityId)
-        : [...prev.amenities, amenityId]
-    }));
+    setFilters(prev => {
+      const updated = {
+        ...prev,
+        amenities: prev.amenities.includes(amenityId)
+          ? prev.amenities.filter(a => a !== amenityId)
+          : [...prev.amenities, amenityId]
+      };
+      onApplyFilters && onApplyFilters(updated);
+      return updated;
+    });
+    onNonNumericChange && onNonNumericChange({ ...filters, amenities: filters.amenities.includes(amenityId)
+      ? filters.amenities.filter(a => a !== amenityId)
+      : [...filters.amenities, amenityId] });
+  };
+
+  const handleButtonChange = (field, value) => {
+    setFilters(prev => {
+      const updated = { ...prev, [field]: value };
+      onApplyFilters && onApplyFilters(updated);
+      return updated;
+    });
+    onNonNumericChange && onNonNumericChange();
   };
 
   const handleReset = () => {
-    setFilters({
+    const resetFilters = {
+      ...filters,
+      minPrice: '',
+      maxPrice: '',
       propertyType: "",
-      minPrice: 0,
-      maxPrice: 1000000,
       bedrooms: "0",
       bathrooms: "0",
-      area: "0",
+      area: "",
       availability: "",
       city: "",
       searchQuery: "",
       sortBy: "",
       status: "",
       amenities: []
-    });
+    };
+    setFilters(resetFilters);
+    onApplyFilters && onApplyFilters(resetFilters);
   };
 
-  // Remove priceRanges and priceRange logic
 
   const availabilityTypes = ["buy", "rent"];
 
@@ -81,7 +96,7 @@ const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [], pr
           <button
             type="button"
             aria-pressed={filters.status === 'available'}
-            onClick={() => setFilters(prev => ({ ...prev, status: prev.status === 'available' ? '' : 'available' }))}
+            onClick={() => { handleButtonChange('status', filters.status === 'available' ? '' : 'available'); onNonNumericChange && onNonNumericChange({ ...filters, status: filters.status === 'available' ? '' : 'available' }); }}
             className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-200 focus:outline-none border-2 border-blue-500 mt-1 mx-auto ${filters.status === 'available' ? 'bg-blue-600' : 'bg-gray-200'}`}
             style={{ marginLeft: '0.25rem' }}
           >
@@ -98,7 +113,7 @@ const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [], pr
             {availabilityTypes.map(type => (
               <button
                 key={type}
-                onClick={() => setFilters(prev => ({ ...prev, availability: type }))}
+                onClick={() => { handleButtonChange('availability', type); onNonNumericChange && onNonNumericChange({ ...filters, availability: type }); }}
                 className={`min-w-[110px] px-4 py-2 rounded-lg text-sm font-medium transition-all ${filters.availability === type ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
               >
                 {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -117,7 +132,7 @@ const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [], pr
             {propertyTypes.map((type) => (
               <button
                 key={type._id}
-                onClick={() => setFilters(prev => ({ ...prev, propertyType: type.type_name }))}
+                onClick={() => { handleButtonChange('propertyType', type.type_name); onNonNumericChange && onNonNumericChange({ ...filters, propertyType: type.type_name }); }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filters.propertyType === type.type_name ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
               >
                 {type.type_name}
@@ -132,7 +147,10 @@ const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [], pr
           <select
             name="city"
             value={filters.city}
-            onChange={handleChange}
+            onChange={e => {
+              handleChange(e);
+              onNonNumericChange && onNonNumericChange({ ...filters, city: e.target.value });
+            }}
             className="w-full mt-2 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All Cities</option>
@@ -150,8 +168,9 @@ const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [], pr
               type="number"
               min={0}
               name="minPrice"
-              value={filters.minPrice && filters.minPrice !== 0 ? filters.minPrice : ''}
-              onChange={e => setFilters(prev => ({ ...prev, minPrice: e.target.value === '' ? 0 : Number(e.target.value) }))}
+              value={filters.minPrice !== undefined && filters.minPrice !== '' ? filters.minPrice : ''}
+              onChange={e => handleChange({ name: 'minPrice', value: e.target.value === '' ? '' : Number(e.target.value) })}
+              onBlur={() => onNumericBlur && onNumericBlur()}
               className="w-1/2 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder="Min"
             />
@@ -160,8 +179,9 @@ const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [], pr
               type="number"
               min={0}
               name="maxPrice"
-              value={filters.maxPrice && filters.maxPrice !== 1000000 ? filters.maxPrice : ''}
-              onChange={e => setFilters(prev => ({ ...prev, maxPrice: e.target.value === '' ? 1000000 : Number(e.target.value) }))}
+              value={filters.maxPrice !== undefined && filters.maxPrice !== '' ? filters.maxPrice : ''}
+              onChange={e => handleChange({ name: 'maxPrice', value: e.target.value === '' ? '' : Number(e.target.value) })}
+              onBlur={() => onNumericBlur && onNumericBlur()}
               className="w-1/2 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder="Max"
             />
@@ -179,6 +199,7 @@ const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [], pr
                 min="0"
                 value={filters.bedrooms}
                 onChange={handleChange}
+                onBlur={() => onNumericBlur && onNumericBlur()}
                 className="w-full mt-2 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 placeholder="Any"
               />
@@ -191,6 +212,7 @@ const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [], pr
                 min="0"
                 value={filters.bathrooms}
                 onChange={handleChange}
+                onBlur={() => onNumericBlur && onNumericBlur()}
                 className="w-full mt-2 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                 placeholder="Any"
               />
@@ -204,6 +226,7 @@ const FilterSection = ({ filters, setFilters, onApplyFilters, amenities = [], pr
               min="0"
               value={filters.area || ''}
               onChange={handleChange}
+              onBlur={() => onNumericBlur && onNumericBlur()}
               className="w-full mt-2 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder="Any"
             />

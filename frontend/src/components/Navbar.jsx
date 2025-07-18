@@ -528,21 +528,6 @@ const NavLinks = ({ currentPath }) => {
           </div>
           <span>AI Property Hub</span>
           
-          {/* Premium badge */}
-          {!isAIHubActive && (
-            <motion.span
-              animate={{ 
-                opacity: [0.8, 1, 0.8],
-                scale: [0.95, 1, 0.95]
-              }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -top-2 -right-2 px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 rounded-full text-[10px] font-bold shadow-lg flex items-center gap-2"
-            >
-              <Zap className="w-2.5 h-2.5" />
-              NEW
-            </motion.span>
-          )}
-
           {/* Animated background */}
           <motion.div
             className="absolute inset-0 bg-gradient-to-r from-white/10 via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -664,16 +649,6 @@ const MobileNavLinks = ({
               Smart property recommendations
             </div>
           </div>
-          {!isAIHubActive && (
-            <motion.span 
-              animate={{ scale: [0.9, 1.1, 0.9] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 rounded-full text-xs font-bold shadow-lg flex items-center gap-1"
-            >
-              <Zap className="w-3 h-3" />
-              NEW
-            </motion.span>
-          )}
           
           {/* Animated background */}
           <motion.div
