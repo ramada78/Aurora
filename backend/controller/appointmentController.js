@@ -231,16 +231,52 @@ export const updateAppointmentStatus = async (req, res) => {
     await appointment.save();
     await appointment.populate('propertyId userId');
 
-    // Send email notification
-    /*
-    const mailOptions = {
-      from: process.env.EMAIL,
-      to: appointment.userId.email,
-      subject: `Viewing Appointment ${status.charAt(0).toUpperCase() + status.slice(1)} - Aurora`,
-      html: getEmailTemplate(appointment, status)
-    };
-    await transporter.sendMail(mailOptions);
-    */
+    // In-app notifications for confirmation/edit/cancellation
+    let notifMsg = `Appointment for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been updated.`;
+    let clientMsg = `Your appointment for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been updated.`;
+    if (status === 'confirmed') {
+      notifMsg = `Appointment for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been confirmed.`;
+      clientMsg = `Your appointment for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been confirmed.`;
+    } else if (status === 'cancelled') {
+      notifMsg = `Appointment for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} was cancelled.`;
+      clientMsg = `Your appointment for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} was cancelled.`;
+    }
+    // Notify client
+    await User.findByIdAndUpdate(appointment.userId._id, {
+      $push: {
+        notifications: {
+          type: 'appointment',
+          message: clientMsg,
+          link: '/dashboard/appointments'
+        }
+      }
+    });
+    // Notify agent
+    if (appointment.propertyId.agent) {
+      await User.findByIdAndUpdate(appointment.propertyId.agent._id, {
+        $push: {
+          notifications: {
+            type: 'appointment',
+            message: notifMsg,
+            link: '/appointments'
+          }
+        }
+      });
+    }
+    // Notify seller (if seller is a user)
+    if (appointment.propertyId.seller && appointment.propertyId.seller._id) {
+      await User.findByIdAndUpdate(appointment.propertyId.seller._id, {
+        $push: {
+          notifications: {
+            type: 'appointment',
+            message: notifMsg,
+            link: '/appointments'
+          }
+        }
+      });
+    }
+    // Notify admin
+    await User.updateMany({ isAdmin: true }, { $push: { notifications: { type: 'appointment', message: notifMsg, link: '/appointments' } } });
 
     res.json({
       success: true,
@@ -320,6 +356,35 @@ export const scheduleViewing = async (req, res) => {
     await appointment.save();
     await appointment.populate(['propertyId', 'userId']);
 
+    // In-app notifications for scheduling (agent, seller, admin)
+    const notifMsg = `New appointment requested for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} by ${appointment.userId.name}.`;
+    // Notify agent
+    if (appointment.propertyId.agent) {
+      await User.findByIdAndUpdate(appointment.propertyId.agent._id, {
+        $push: {
+          notifications: {
+            type: 'appointment',
+            message: notifMsg,
+            link: '/appointments'
+          }
+        }
+      });
+    }
+    // Notify seller (if seller is a user)
+    if (appointment.propertyId.seller && appointment.propertyId.seller._id) {
+      await User.findByIdAndUpdate(appointment.propertyId.seller._id, {
+        $push: {
+          notifications: {
+            type: 'appointment',
+            message: notifMsg,
+            link: '/appointments'
+          }
+        }
+      });
+    }
+    // Notify admin
+    await User.updateMany({ isAdmin: true }, { $push: { notifications: { type: 'appointment', message: notifMsg, link: '/appointments' } } });
+
     // Send confirmation email
     /*
     const mailOptions = {
@@ -350,8 +415,14 @@ export const cancelAppointment = async (req, res) => {
   try {
     const appointmentId = req.params.id;
     const appointment = await Appointment.findById(appointmentId)
-      .populate('propertyId', 'title')
-      .populate('userId', 'email');
+      .populate({
+        path: 'propertyId',
+        populate: [
+          { path: 'agent', model: 'User' },
+          { path: 'seller', model: 'Seller' }
+        ]
+      })
+      .populate('userId', 'email name notifications');
 
     if (!appointment) {
       return res.status(404).json({
@@ -360,7 +431,13 @@ export const cancelAppointment = async (req, res) => {
       });
     }
 
-    // Verify user owns this appointment
+    if (!appointment.userId || !appointment.userId._id || !req.user || !req.user._id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to cancel this appointment (missing user info)'
+      });
+    }
+
     if (appointment.userId._id.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
@@ -372,26 +449,44 @@ export const cancelAppointment = async (req, res) => {
     appointment.cancelReason = req.body.reason || 'Cancelled by user';
     await appointment.save();
 
-    // Send cancellation email
-    const mailOptions = {
-      from: process.env.EMAIL,
-      to: appointment.userId.email,
-      subject: 'Appointment Cancelled - Aurora',
-      html: `
-        <div style="max-width: 600px; margin: 20px auto; padding: 30px; background: #ffffff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-          <h1 style="color: #2563eb; text-align: center;">Appointment Cancelled</h1>
-          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <p>Your viewing appointment for <strong>${appointment.propertyId.title}</strong> has been cancelled.</p>
-            <p><strong>Date:</strong> ${new Date(appointment.date).toLocaleDateString()}</p>
-            <p><strong>Time:</strong> ${appointment.time}</p>
-            ${appointment.cancelReason ? `<p><strong>Reason:</strong> ${appointment.cancelReason}</p>` : ''}
-          </div>
-          <p style="color: #4b5563;">You can schedule another viewing at any time.</p>
-        </div>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
+    // In-app notifications for cancellation (agent, seller, client, admin)
+    const notifMsg = `Appointment for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} was cancelled. Reason: ${appointment.cancelReason}`;
+    // Notify user
+    await User.findByIdAndUpdate(appointment.userId._id, {
+      $push: {
+        notifications: {
+          type: 'appointment',
+          message: `Your appointment for "${appointment.propertyId.title}" was cancelled. Reason: ${appointment.cancelReason}`,
+          link: '/dashboard/appointments'
+        }
+      }
+    });
+    // Notify agent
+    if (appointment.propertyId.agent) {
+      await User.findByIdAndUpdate(appointment.propertyId.agent._id, {
+        $push: {
+          notifications: {
+            type: 'appointment',
+            message: notifMsg,
+            link: '/appointments'
+          }
+        }
+      });
+    }
+    // Notify seller (if seller is a user)
+    if (appointment.propertyId.seller && appointment.propertyId.seller._id) {
+      await User.findByIdAndUpdate(appointment.propertyId.seller._id, {
+        $push: {
+          notifications: {
+            type: 'appointment',
+            message: notifMsg,
+            link: '/appointments'
+          }
+        }
+      });
+    }
+    // Notify admin
+    await User.updateMany({ isAdmin: true }, { $push: { notifications: { type: 'appointment', message: notifMsg, link: '/appointments' } } });
 
     res.json({
       success: true,
@@ -401,7 +496,8 @@ export const cancelAppointment = async (req, res) => {
     console.error('Error cancelling appointment:', error);
     res.status(500).json({
       success: false,
-      message: 'Error cancelling appointment'
+      message: 'Error cancelling appointment',
+      error: error.message
     });
   }
 };
@@ -555,6 +651,58 @@ export const updateAppointmentDetails = async (req, res) => {
       }
       appointment.status = status;
     }
+
+    // In-app notifications for appointment editing
+    const notifMsg = `Appointment for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been updated.`;
+    const clientMsg = `Your appointment for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been updated.`;
+    
+    // Notify client
+    await User.findByIdAndUpdate(appointment.userId._id, {
+      $push: {
+        notifications: {
+          type: 'appointment',
+          message: clientMsg,
+          link: '/dashboard/appointments'
+        }
+      }
+    });
+    
+    // Notify agent
+    if (appointment.propertyId.agent) {
+      await User.findByIdAndUpdate(appointment.propertyId.agent._id, {
+        $push: {
+          notifications: {
+            type: 'appointment',
+            message: notifMsg,
+            link: '/appointments'
+          }
+        }
+      });
+    }
+    
+    // Notify seller (if seller is a user)
+    if (appointment.propertyId.seller && appointment.propertyId.seller._id) {
+      await User.findByIdAndUpdate(appointment.propertyId.seller._id, {
+        $push: {
+          notifications: {
+            type: 'appointment',
+            message: notifMsg,
+            link: '/appointments'
+          }
+        }
+      });
+    }
+    
+    // Notify admin
+    await User.updateMany({ isAdmin: true }, { 
+      $push: { 
+        notifications: { 
+          type: 'appointment', 
+          message: notifMsg, 
+          link: '/appointments' 
+        } 
+      } 
+    });
 
     res.json({
       success: true,

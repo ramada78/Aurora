@@ -11,8 +11,8 @@ export const listClients = async (req, res) => {
 
 export const addClient = async (req, res) => {
   try {
-    const { user_id, phone_number } = req.body;
-    const client = new Client({ user_id, phone_number });
+    const { user_id } = req.body;
+    const client = new Client({ user_id });
     await client.save();
     res.status(201).json({ success: true, client });
   } catch (error) {
@@ -23,8 +23,8 @@ export const addClient = async (req, res) => {
 export const updateClient = async (req, res) => {
   try {
     const { id } = req.params;
-    const { user_id, phone_number } = req.body;
-    const client = await Client.findByIdAndUpdate(id, { user_id, phone_number }, { new: true });
+    const { user_id } = req.body;
+    const client = await Client.findByIdAndUpdate(id, { user_id }, { new: true });
     if (!client) return res.status(404).json({ success: false, message: 'Not found' });
     res.json({ success: true, client });
   } catch (error) {

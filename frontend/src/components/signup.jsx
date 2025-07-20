@@ -99,7 +99,6 @@ const Signup = () => {
     password: '',
     phone: '',
     roles: ['client'], // Default to client
-    primaryRole: 'client'
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -155,9 +154,6 @@ const Signup = () => {
       case 'roles':
         if (formData.roles.length === 0) errors.roles = 'Please select at least one role';
         break;
-      case 'primaryRole':
-        if (!formData.roles.includes(value)) errors.primaryRole = 'Primary role must be one of your selected roles';
-        break;
     }
     
     setValidationErrors(prev => ({ ...prev, ...errors }));
@@ -175,11 +171,7 @@ const Signup = () => {
       
       setFormData(prev => ({
         ...prev,
-        roles: updatedRoles,
-        // Update primary role if the current primary role is being removed
-        primaryRole: updatedRoles.includes(prev.primaryRole) 
-          ? prev.primaryRole 
-          : updatedRoles[0] || 'client'
+        roles: updatedRoles
       }));
     } else {
       setFormData(prev => ({
@@ -217,11 +209,6 @@ const Signup = () => {
     // Validate roles before submission
     if (formData.roles.length === 0) {
       toast.error('Please select at least one role');
-      return;
-    }
-    
-    if (!formData.roles.includes(formData.primaryRole)) {
-      toast.error('Primary role must be one of your selected roles');
       return;
     }
     
@@ -650,39 +637,6 @@ const Signup = () => {
                 {formData.roles.length === 0 && (
                   <motion.p className="mt-1 text-sm text-red-600">
                     Please select at least one role.
-                  </motion.p>
-                )}
-              </motion.div>
-
-              {/* Primary Role Dropdown */}
-              <motion.div variants={inputVariants} className="mt-4">
-                <label htmlFor="primaryRole" className="block text-sm font-medium text-gray-700 mb-2">
-                  Primary Role
-                </label>
-                <select
-                  id="primaryRole"
-                  name="primaryRole"
-                  value={formData.primaryRole}
-                  onChange={handleChange}
-                  onFocus={() => handleFocus('primaryRole')}
-                  onBlur={() => handleBlur('primaryRole')}
-                  className={`w-full pl-3 pr-10 py-3 rounded-xl bg-gray-50/50 border-2 transition-all duration-200 placeholder-gray-400 ${
-                    validationErrors.primaryRole
-                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
-                      : fieldFocus.primaryRole
-                      ? 'border-blue-500 focus:border-blue-500 focus:ring-blue-500/20'
-                      : 'border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
-                  } focus:ring-4 focus:outline-none`}
-                >
-                  {formData.roles.map((role) => (
-                    <option key={role} value={role}>
-                      {role.charAt(0).toUpperCase() + role.slice(1)}
-                    </option>
-                  ))}
-                </select>
-                {validationErrors.primaryRole && (
-                  <motion.p className="mt-1 text-sm text-red-600">
-                    {validationErrors.primaryRole}
                   </motion.p>
                 )}
               </motion.div>

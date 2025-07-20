@@ -1,9 +1,7 @@
 import mongoose from "mongoose";
 
 const sellerSchema = new mongoose.Schema({
-  full_name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  phone_number: { type: String }
+  user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true }
 });
 
 const Seller = mongoose.model("Seller", sellerSchema);

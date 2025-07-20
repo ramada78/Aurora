@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -13,22 +13,51 @@ import {
   Eye,
   Home,
   SparkleIcon,
-  DollarSign
+  DollarSign,
+  Heart
 } from 'lucide-react';
 import PropTypes from 'prop-types';
 import { Backendurl } from '../../App.jsx';
+import { getWishlist, addToWishlist, removeFromWishlist } from '../../services/api';
 
 const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
   const isGrid = viewType === 'grid';
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showControls, setShowControls] = useState(false);
+  const [wishlist, setWishlist] = useState([]);
+  const [saving, setSaving] = useState(false);
 
   // Get logged-in user info
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const roles = JSON.parse(localStorage.getItem('roles') || '[]');
   const isAdmin = localStorage.getItem('isAdmin') === 'true';
   const canEdit = isAdmin || (roles.includes('agent') && property.agent === user._id) || (roles.includes('seller') && property.seller === user._id);
+
+  useEffect(() => {
+    // Fetch wishlist on mount
+    getWishlist().then(setWishlist).catch(() => setWishlist([]));
+  }, []);
+
+  const isSaved = wishlist.some(p => p._id === property._id);
+
+  const handleWishlist = async (e) => {
+    e.stopPropagation();
+    setSaving(true);
+    try {
+      if (isSaved) {
+        await removeFromWishlist(property._id);
+        setWishlist(wishlist.filter(p => p._id !== property._id));
+      } else {
+        await addToWishlist(property._id);
+        setWishlist([...wishlist, property]);
+      }
+    } catch (err) {
+      // Optionally show error
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleNavigateToDetails = () => {
     navigate(`/properties/single/${property._id}`);
@@ -91,6 +120,16 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
           />
         </AnimatePresence>
 
+        {/* Wishlist Heart Button */}
+        <button
+          className={`absolute top-4 right-4 z-20 p-2 rounded-full bg-white/90 hover:bg-pink-100 transition-colors border ${isSaved ? 'border-pink-500' : 'border-gray-200'}`}
+          onClick={handleWishlist}
+          disabled={saving}
+          title={isSaved ? 'Remove from wishlist' : 'Save to wishlist'}
+        >
+          <Heart className={`w-6 h-6 ${isSaved ? 'fill-pink-500 text-pink-500' : 'text-gray-400'}`} />
+        </button>
+
         {/* Image Navigation Controls */}
         {showControls && property.image.length > 1 && (
           <>
@@ -109,8 +148,18 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
           </>
         )}
         {/* Property badges */}
-        
+        {/* Status badge: top left */}
         <div className="absolute top-4 left-4 z-10">
+          <motion.span
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className={`px-3 py-1 rounded-full text-xs font-medium shadow-lg ${property.status === 'available' ? 'bg-green-500 text-white' : property.status === 'rented' ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'}`}
+          >
+            {property.status ? property.status.charAt(0).toUpperCase() + property.status.slice(1) : 'Available'}
+          </motion.span>
+        </div>
+        {/* Property type badge: bottom left */}
+        <div className="absolute bottom-4 left-4 z-10">
           <motion.span 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -118,15 +167,6 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
           >
             <Home className="w-4 h-4 mr-1" />
             {property.propertyType?.type_name}
-          </motion.span>
-        </div>
-        <div className="absolute top-4 right-4 z-10">
-          <motion.span 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className={`px-3 py-1 rounded-full text-xs font-medium shadow-lg ${property.status === 'available' ? 'bg-green-500 text-white' : property.status === 'rented' ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'}`}
-          >
-            {property.status ? property.status.charAt(0).toUpperCase() + property.status.slice(1) : 'Available'}
           </motion.span>
         </div>
         <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white/80 px-2 py-1 rounded-full shadow text-gray-700 text-xs font-medium">

@@ -10,6 +10,7 @@ import userModel from "../models/Usermodel.js";
 import transporter from "../config/nodemailer.js";
 import { getWelcomeTemplate } from "../email.js";
 import { getPasswordResetTemplate } from "../email.js";
+import Property from '../models/propertymodel.js';
 
 const backendurl = process.env.BACKEND_URL;
 
@@ -43,7 +44,7 @@ const login = async (req, res) => {
 
 const register = async (req, res) => {
   try {
-    const { name, email, password, roles = ['client'], primaryRole = 'client' } = req.body;
+    const { name, email, password, phone, roles = ['client'], primaryRole = 'client' } = req.body;
     
     console.log('Registration received:', { name, email, roles, primaryRole });
     
@@ -68,6 +69,7 @@ const register = async (req, res) => {
       name, 
       email, 
       password: hashedPassword,
+      phone,
       roles: selectedRoles,
       profileCompleted: true
     });
@@ -80,27 +82,17 @@ const register = async (req, res) => {
       for (const role of selectedRoles) {
         if (role === 'client') {
           const Client = (await import('../models/Client.js')).default;
-          const clientRecord = new Client({
-            user_id: newUser._id,
-            phone_number: ''
-          });
+          const clientRecord = new Client({ user_id: newUser._id });
           await clientRecord.save();
           console.log('Client record created');
         } else if (role === 'agent') {
           const Agent = (await import('../models/Agent.js')).default;
-          const agentRecord = new Agent({
-            user_id: newUser._id,
-            phone_number: ''
-          });
+          const agentRecord = new Agent({ user_id: newUser._id });
           await agentRecord.save();
           console.log('Agent record created');
         } else if (role === 'seller') {
           const Seller = (await import('../models/Seller.js')).default;
-          const sellerRecord = new Seller({
-            full_name: name,
-            email: email,
-            phone_number: ''
-          });
+          const sellerRecord = new Seller({ user_id: newUser._id });
           await sellerRecord.save();
           console.log('Seller record created');
         }
@@ -222,12 +214,23 @@ const adminlogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // 1. Allow .env admin credentials
     if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
       const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' });
       return res.json({ token, user: { email, isAdmin: true }, success: true });
-    } else {
-      return res.status(400).json({ message: "Invalid credentials", success: false });
     }
+
+    // 2. Allow any user in DB with isAdmin: true
+    const adminUser = await userModel.findOne({ email, isAdmin: true });
+    if (adminUser) {
+      const isMatch = await bcrypt.compare(password, adminUser.password);
+      if (isMatch) {
+        const token = jwt.sign({ id: adminUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        return res.json({ token, user: { _id: adminUser._id, name: adminUser.name, email: adminUser.email, isAdmin: true, roles: adminUser.roles }, success: true });
+      }
+    }
+
+    return res.status(400).json({ message: "Invalid credentials", success: false });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Server error", success: false });
@@ -237,7 +240,7 @@ const adminlogin = async (req, res) => {
 // New function for admin to create users with roles
 const createUserWithRole = async (req, res) => {
   try {
-    const { name, email, phone_number, roles, password } = req.body;
+    const { name, email, phone, roles, password } = req.body;
 
     // Validate required fields
     if (!name || !email || !roles || !Array.isArray(roles) || roles.length === 0) {
@@ -283,6 +286,7 @@ const createUserWithRole = async (req, res) => {
       name, 
       email, 
       password: hashedPassword,
+      phone,
       roles: selectedRoles,
       profileCompleted: true
     });
@@ -292,25 +296,15 @@ const createUserWithRole = async (req, res) => {
     for (const roleType of selectedRoles) {
       if (roleType === 'client') {
         const Client = (await import('../models/Client.js')).default;
-        const clientRecord = new Client({
-          user_id: newUser._id,
-          phone_number: phone_number || ''
-        });
+        const clientRecord = new Client({ user_id: newUser._id });
         await clientRecord.save();
       } else if (roleType === 'agent') {
         const Agent = (await import('../models/Agent.js')).default;
-        const agentRecord = new Agent({
-          user_id: newUser._id,
-          phone_number: phone_number || ''
-        });
+        const agentRecord = new Agent({ user_id: newUser._id });
         await agentRecord.save();
       } else if (roleType === 'seller') {
         const Seller = (await import('../models/Seller.js')).default;
-        const sellerRecord = new Seller({
-          full_name: name,
-          email,
-          phone_number: phone_number || ''
-        });
+        const sellerRecord = new Seller({ user_id: newUser._id });
         await sellerRecord.save();
       }
     }
@@ -396,52 +390,10 @@ const getname = async (req, res) => {
   }
 }
 
-// Function to switch primary role
-const switchPrimaryRole = async (req, res) => {
-  try {
-    const { primaryRole } = req.body;
-    const userId = req.user.id;
-
-    const user = await userModel.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found", success: false });
-    }
-
-    // Check if user has this role
-    if (!user.roles.includes(primaryRole)) {
-      return res.status(400).json({ 
-        message: `You don't have the ${primaryRole} role`, 
-        success: false 
-      });
-    }
-
-    user.primaryRole = primaryRole;
-    await user.save();
-
-    res.json({ 
-      success: true, 
-      message: `Primary role switched to ${primaryRole}`,
-      user: {
-        name: user.name,
-        email: user.email,
-        roles: user.roles,
-        primaryRole: user.primaryRole
-      }
-    });
-
-  } catch (error) {
-    console.error('Error switching primary role:', error);
-    res.status(500).json({ 
-      message: "Server error while switching role", 
-      success: false 
-    });
-  }
-};
-
 // Function to update user profile with phone numbers
 const updateUserProfile = async (req, res) => {
   try {
-    const { phoneNumbers } = req.body; // { client: "123", agent: "456", seller: "789" }
+    const { phone } = req.body; // phone number for user
     const userId = req.user.id;
 
     const user = await userModel.findById(userId);
@@ -449,32 +401,10 @@ const updateUserProfile = async (req, res) => {
       return res.status(404).json({ message: "User not found", success: false });
     }
 
-    // Update phone numbers for each role
-    for (const [role, phoneNumber] of Object.entries(phoneNumbers)) {
-      if (user.roles.includes(role) && phoneNumber) {
-        if (role === 'client') {
-          const Client = (await import('../models/Client.js')).default;
-          await Client.findOneAndUpdate(
-            { user_id: userId },
-            { phone_number: phoneNumber },
-            { upsert: true }
-          );
-        } else if (role === 'agent') {
-          const Agent = (await import('../models/Agent.js')).default;
-          await Agent.findOneAndUpdate(
-            { user_id: userId },
-            { phone_number: phoneNumber },
-            { upsert: true }
-          );
-        } else if (role === 'seller') {
-          const Seller = (await import('../models/Seller.js')).default;
-          await Seller.findOneAndUpdate(
-            { email: user.email },
-            { phone_number: phoneNumber },
-            { upsert: true }
-          );
-        }
-      }
+    // Update phone number in User only
+    if (phone) {
+      user.phone = phone;
+      await user.save();
     }
 
     res.json({ 
@@ -518,7 +448,7 @@ const getUserRoles = async (req, res) => {
     
     if (user.roles.includes('seller')) {
       const Seller = (await import('../models/Seller.js')).default;
-      const sellerRecord = await Seller.findOne({ email: user.email });
+      const sellerRecord = await Seller.findOne({ user_id: userId });
       roleData.seller = sellerRecord;
     }
 
@@ -579,60 +509,10 @@ const getAllUsersWithRoles = async (req, res) => {
   }
 };
 
-// Simple test registration function
-const testRegister = async (req, res) => {
-  try {
-    const { name, email, password, roles = ['client'], primaryRole = 'client' } = req.body;
-    
-    console.log('Test registration received:', { name, email, roles, primaryRole });
-    
-    if (!validator.isEmail(email)) {
-      return res.json({ message: "Invalid email", success: false });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Create user with roles
-    const newUser = new userModel({ 
-      name, 
-      email, 
-      password: hashedPassword,
-      roles: Array.isArray(roles) ? roles : [roles],
-      primaryRole: primaryRole,
-      profileCompleted: true
-    });
-    
-    await newUser.save();
-    console.log('User saved successfully:', newUser._id);
-
-    const token = createtoken(newUser._id);
-
-    return res.json({ 
-      token, 
-      user: { 
-        name: newUser.name, 
-        email: newUser.email,
-        roles: newUser.roles,
-        primaryRole: newUser.primaryRole
-      }, 
-      success: true,
-      message: "Test registration successful"
-    });
-  } catch (error) {
-    console.error('Test registration error:', error);
-    
-    if (error.code === 11000) {
-      return res.json({ message: "Email already exists", success: false });
-    }
-    
-    return res.json({ message: "Server error during test registration", success: false });
-  }
-};
-
 // Function to update user with roles for admin panel
 const updateUserWithRole = async (req, res) => {
   try {
-    const { userId, name, email, phone_number, roles, password } = req.body;
+    const { userId, name, email, phone, roles, password } = req.body;
 
     // Validate required fields
     if (!userId || !name || !email || !roles) {
@@ -667,7 +547,7 @@ const updateUserWithRole = async (req, res) => {
     user.name = name;
     user.email = email;
     user.roles = selectedRoles;
-    user.phone = phone_number || '';
+    user.phone = phone || '';
     if (password) {
       user.password = await bcrypt.hash(password, 10);
     }
@@ -679,25 +559,21 @@ const updateUserWithRole = async (req, res) => {
         const Client = (await import('../models/Client.js')).default;
         await Client.findOneAndUpdate(
           { user_id: userId },
-          { phone_number: phone_number || '' },
+          {},
           { upsert: true }
         );
       } else if (role === 'agent') {
         const Agent = (await import('../models/Agent.js')).default;
         await Agent.findOneAndUpdate(
           { user_id: userId },
-          { phone_number: phone_number || '' },
+          {},
           { upsert: true }
         );
       } else if (role === 'seller') {
         const Seller = (await import('../models/Seller.js')).default;
         await Seller.findOneAndUpdate(
-          { email: email },
-          { 
-            full_name: name,
-            email: email,
-            phone_number: phone_number || ''
-          },
+          { user_id: userId },
+          {},
           { upsert: true }
         );
       }
@@ -711,6 +587,7 @@ const updateUserWithRole = async (req, res) => {
         name: user.name,
         email: user.email,
         roles: user.roles,
+        phone: user.phone
       }
     });
 
@@ -743,8 +620,8 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// Save last search/filter for logged-in user (now supports last 10)
-export const saveLastSearch = async (req, res) => {
+// Save last search/filter for logged-in user (supports last 10)
+const saveLastSearch = async (req, res) => {
   try {
     const userId = req.user.id;
     const { lastSearch } = req.body;
@@ -764,7 +641,7 @@ export const saveLastSearch = async (req, res) => {
 };
 
 // Get last 10 search/filter actions for logged-in user
-export const getLastSearch = async (req, res) => {
+const getLastSearch = async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await userModel.findById(userId);
@@ -775,5 +652,83 @@ export const getLastSearch = async (req, res) => {
   }
 };
 
+// Get user's wishlist (populated)
+const getWishlist = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user.id).populate({
+      path: 'wishlist',
+      populate: [
+        { path: 'propertyType' },
+        { path: 'city' },
+        { path: 'amenities' },
+        { path: 'seller' },
+        { path: 'agent' }
+      ]
+    });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    res.json({ success: true, wishlist: user.wishlist });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch wishlist' });
+  }
+};
 
-export { login, register, forgotpassword, resetpassword, adminlogin, logout, getname, createUserWithRole, switchPrimaryRole, updateUserProfile, getUserRoles, getAllUsersWithRoles, testRegister, updateUserWithRole, deleteUser };
+// Add property to wishlist
+const addToWishlist = async (req, res) => {
+  try {
+    const { propertyId } = req.body;
+    if (!propertyId) return res.status(400).json({ success: false, message: 'Missing propertyId' });
+    const user = await userModel.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (user.wishlist.includes(propertyId)) {
+      return res.status(400).json({ success: false, message: 'Property already in wishlist' });
+    }
+    user.wishlist.push(propertyId);
+    await user.save();
+    res.json({ success: true, message: 'Added to wishlist' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to add to wishlist' });
+  }
+};
+
+// Remove property from wishlist
+const removeFromWishlist = async (req, res) => {
+  try {
+    const { propertyId } = req.body;
+    if (!propertyId) return res.status(400).json({ success: false, message: 'Missing propertyId' });
+    const user = await userModel.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    user.wishlist = user.wishlist.filter(id => id.toString() !== propertyId);
+    await user.save();
+    res.json({ success: true, message: 'Removed from wishlist' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to remove from wishlist' });
+  }
+};
+
+// In-app notifications endpoints
+const getNotifications = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user.id).select('notifications');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    // Sort notifications by createdAt descending (newest first)
+    const sorted = (user.notifications || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    res.json({ success: true, notifications: sorted });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch notifications' });
+  }
+};
+
+const markNotificationsRead = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    user.notifications.forEach(n => { n.read = true; });
+    await user.save();
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to mark notifications as read' });
+  }
+};
+
+
+export { login, register, forgotpassword, resetpassword, adminlogin, logout, getname, createUserWithRole, updateUserProfile, getUserRoles, getAllUsersWithRoles, updateUserWithRole, deleteUser, saveLastSearch, getLastSearch, getWishlist, addToWishlist, removeFromWishlist, getNotifications, markNotificationsRead };

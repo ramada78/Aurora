@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -15,17 +15,25 @@ import {
   Settings,
   Building,
   MapPin,
-  Tag,
+  BellIcon,
   Star,
   TrendingUp,
   Users,
+  MessageCircle,
+  Bell,
 } from 'lucide-react';
+import axios from 'axios';
+import { AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMetaDataOpen, setIsMetaDataOpen] = useState(false);
+  const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const notifRef = useRef(null);
   
   const isActive = (path) => {
     return location.pathname === path;
@@ -41,6 +49,75 @@ const Navbar = () => {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  // Fetch notifications
+  const fetchNotifications = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setNotifLoading(true);
+      axios.get('/api/users/notifications', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(res => setNotifications(res.data.notifications || []))
+        .catch(() => setNotifications([]))
+        .finally(() => setNotifLoading(false));
+    }
+  };
+
+  // Initial fetch
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  // Real-time updates - poll every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchNotifications();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Mark notifications as read
+  const markAllRead = () => {
+    const token = localStorage.getItem('token');
+    axios.put('/api/users/notifications/read', {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(() => {
+      setNotifications(notifications.map(n => ({ ...n, read: true })));
+    });
+  };
+
+  // Unread count
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  // Clear all notifications
+  const clearAllNotifications = () => {
+    const token = localStorage.getItem('token');
+    axios.delete('/api/users/notifications', {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(() => {
+      setNotifications([]);
+      setNotifDropdownOpen(false);
+    }).catch((error) => {
+      console.error("Error clearing notifications:", error);
+    });
+  };
+
+  // Handle click outside of notification dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setNotifDropdownOpen(false);
+      }
+    };
+    if (notifDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [notifDropdownOpen]);
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -91,7 +168,7 @@ const Navbar = () => {
           </Link>
           
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-1">
+          <nav className="hidden md:flex space-x-1 items-center">
             {filteredNavItems.map((item) => (
               <Link
                 key={item.path}
@@ -146,6 +223,159 @@ const Navbar = () => {
                 )}
               </div>
             )}
+
+            {/* Enhanced Notification Bell Dropdown */}
+            <div className="relative ml-4" ref={notifRef}>
+              <button
+                className="relative p-2.5 rounded-xl hover:bg-gray-100 transition-all duration-200 group"
+                onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
+              >
+                <BellIcon className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                {unreadCount > 0 && (
+                  <motion.span 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg"
+                  >
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </motion.span>
+                )}
+              </button>
+              
+              <AnimatePresence>
+                {notifDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="absolute right-0 mt-3 w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50"
+                  >
+                    {/* Header */}
+                    <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <BellIcon className="w-5 h-5 text-blue-600" />
+                          <span className="font-bold text-gray-900">Notifications</span>
+                          {unreadCount > 0 && (
+                            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                              {unreadCount} new
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button 
+                            onClick={fetchNotifications}
+                            className="text-xs text-gray-500 hover:text-blue-600 transition-colors p-1 rounded hover:bg-gray-100"
+                            title="Refresh notifications"
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          </button>
+                          {unreadCount > 0 && (
+                            <button 
+                              onClick={markAllRead}
+                              className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
+                            >
+                              Mark all read
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Notifications List */}
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifLoading ? (
+                        <div className="p-8 text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                          <p className="text-gray-500 mt-2 text-sm">Loading notifications...</p>
+                        </div>
+                      ) : notifications.length === 0 ? (
+                        <div className="p-8 text-center">
+                          <BellIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                          <p className="text-gray-500 text-sm">No notifications yet</p>
+                          <p className="text-gray-400 text-xs mt-1">We'll notify you when something happens</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-gray-50">
+                          {notifications.map((notif, idx) => (
+                            <motion.div
+                              key={idx}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.05 }}
+                              className={`group relative px-6 py-4 hover:bg-gray-50 transition-colors duration-200 ${
+                                !notif.read ? 'bg-blue-50/50' : ''
+                              }`}
+                            >
+                              {/* Unread indicator */}
+                              {!notif.read && (
+                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-blue-600"></div>
+                              )}
+                              
+                              <div className="flex items-start space-x-3">
+                                {/* Icon */}
+                                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                                  notif.type === 'appointment' ? 'bg-blue-100 text-blue-600' :
+                                  notif.type === 'system' ? 'bg-gray-100 text-gray-600' :
+                                  notif.type === 'message' ? 'bg-green-100 text-green-600' :
+                                  'bg-purple-100 text-purple-600'
+                                }`}>
+                                  {notif.type === 'appointment' && <Calendar className="w-4 h-4" />}
+                                  {notif.type === 'system' && <Settings className="w-4 h-4" />}
+                                  {notif.type === 'message' && <MessageCircle className="w-4 h-4" />}
+                                  {notif.type === 'other' && <Bell className="w-4 h-4" />}
+                                </div>
+                                
+                                {/* Content */}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-gray-800 leading-relaxed">
+                                    {notif.message}
+                                  </p>
+                                  <div className="flex items-center justify-between mt-2">
+                                    <span className="text-xs text-gray-400">
+                                      {new Date(notif.createdAt).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </span>
+                                    {notif.link && (
+                                      <Link 
+                                        to={notif.link}
+                                        className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
+                                        onClick={() => setNotifDropdownOpen(false)}
+                                      >
+                                        View →
+                                      </Link>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Footer */}
+                    {false && notifications.length > 0 && (
+                      <div className="px-6 py-3 border-t border-gray-100 bg-gray-50">
+                        <button 
+                          onClick={clearAllNotifications}
+                          className="text-xs text-gray-500 hover:text-red-600 font-medium transition-colors"
+                        >
+                          Clear all notifications →
+                        </button>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             <button
               onClick={handleLogout}

@@ -20,11 +20,12 @@ const Login = () => {
     
     try {
       let response;
-      if (email === adminEmail) {
-        // Main admin login
+      
+      // First try admin login (for both .env admin and database with "isAdmin: true" users)
+      try {
         response = await axios.post(`${backendUrl}/api/users/admin`, { email, password });
-      } else {
-        // Agent/seller login
+      } catch (adminError) {
+        // If admin login fails, try regular login for agent/seller users
         response = await axios.post(`${backendUrl}/api/users/login`, { email, password });
       }
 
@@ -41,10 +42,10 @@ const Login = () => {
        // Only allow access if main admin or agent/seller
        const roles = response.data.user.roles || [];
        if (response.data.user.isAdmin) {
-         toast.success("Admin login successful!");
+         toast.success("Admin Login successful!");
          navigate("/dashboard");
        } else if (roles.includes('agent') || roles.includes('seller')) {
-         toast.success("Admin login successful!");
+         toast.success("Login successful!");
          navigate("/list");
        } else {
          toast.error("You do not have permission to access the admin panel.");
@@ -58,7 +59,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Error logging in:', error);
-      toast.error(error.response?.data?.message || 'Invalid admin credentials');
+      toast.error(error.response?.data?.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }

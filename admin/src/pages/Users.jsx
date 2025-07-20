@@ -85,7 +85,7 @@ const UsersPage = () => {
         {
           name: formData.name,
           email: formData.email,
-          phone_number: formData.phone, // use phone_number
+          phone: formData.phone,
           roles: formData.roles, // array
           password: formData.password
         },
@@ -131,7 +131,7 @@ const UsersPage = () => {
           userId: editingUser.user_id || editingUser._id,
           name: formData.name,
           email: formData.email,
-          phone_number: formData.phone,
+          phone: formData.phone,
           roles: formData.roles,
           ...(formData.password ? { password: formData.password } : {})
         },
@@ -474,83 +474,77 @@ const UsersPage = () => {
             </h2>
             <form onSubmit={editingUser ? handleEditUser : handleAddUser}>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name *
-                  </label>
+                {/* Name Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-semibold mb-1">Name <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter full name"
                     required
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter name"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email *
-                  </label>
+                {/* Email Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-semibold mb-1">Email <span className="text-red-500">*</span></label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter email"
                     required
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter email"
                   />
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number <span className="text-gray-400 text-xs">(Optional)</span>
-                  </label>
+                {/* Phone Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-semibold mb-1">Phone Number</label>
                   <input
-                    type="tel"
+                    type="text"
                     name="phone"
                     value={formData.phone}
                     onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter phone number (optional)"
                   />
-                  <p className="text-xs text-gray-400 mt-1">We'll use this to contact the user if needed. Leave blank if not applicable.</p>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Roles *
-                  </label>
-                  <div className="space-y-2">
-                    {roles.map((role) => (
-                      <label key={role.value} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={formData.roles.includes(role.value)}
-                          onChange={(e) => handleRoleChange(role.value, e.target.checked)}
-                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <span className="text-sm text-gray-700">{role.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password {editingUser ? <span className="text-gray-400 text-xs">(Leave blank to keep unchanged)</span> : <span className="text-red-500">*</span>}
+                {/* Password Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-semibold mb-1">
+                    Password 
+                    {!editingUser && <span className="text-red-500">*</span>}
                   </label>
                   <input
                     type="password"
                     name="password"
                     value={formData.password}
                     onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder={editingUser ? "Leave blank to keep current password" : "Set a password"}
-                    {...(!editingUser && { required: true })}
+                    required={!editingUser}
+                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                    placeholder={editingUser ? "Leave blank to keep current password" : "Enter password"}
                   />
+                </div>
+
+                {/* Roles Field */}
+                <div className="mb-4">
+                  <label className="block text-gray-700 font-semibold mb-1">Roles <span className="text-red-500">*</span></label>
+                  <div className="flex gap-4">
+                    {roles.map((role) => (
+                      <label key={role.value} className="flex items-center gap-1">
+                        <input
+                          type="checkbox"
+                          checked={formData.roles.includes(role.value)}
+                          onChange={(e) => handleRoleChange(role.value, e.target.checked)}
+                          required={formData.roles.length === 0}
+                        />
+                        {role.label}
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
 

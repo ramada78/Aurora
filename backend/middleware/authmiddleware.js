@@ -51,6 +51,26 @@ export const adminAuth = async (req, res, next) => {
     if (decoded.email && decoded.email === process.env.ADMIN_EMAIL) {
       req.admin = { email: decoded.email };
       next();
+    } else if (decoded.id) {
+      // Check for database user with isAdmin: true
+      const user = await userModel.findById(decoded.id).select("-password");
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+      
+      if (user.isAdmin) {
+        req.admin = { id: user._id, email: user.email };
+        req.user = user;
+        next();
+      } else {
+        return res.status(401).json({
+          success: false,
+          message: "Admin access required",
+        });
+      }
     } else {
       return res.status(401).json({
         success: false,
@@ -74,22 +94,37 @@ export const rolesOrAdmin = (allowedRoles = []) => async (req, res, next) => {
       return res.status(401).json({ success: false, message: "Please login to continue" });
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
     // Main admin always allowed
     if (decoded.email && decoded.email === process.env.ADMIN_EMAIL) {
       req.admin = { email: decoded.email };
       return next();
     }
-    // Otherwise, check user roles
-    const user = await userModel.findById(decoded.id).select("-password");
-    if (!user) {
-      return res.status(401).json({ success: false, message: "User not found" });
+    
+    // Check for database user with isAdmin: true
+    if (decoded.id) {
+      const user = await userModel.findById(decoded.id).select("-password");
+      if (!user) {
+        return res.status(401).json({ success: false, message: "User not found" });
+      }
+      
+      // If user has isAdmin: true, allow access
+      if (user.isAdmin) {
+        req.admin = { id: user._id, email: user.email };
+        req.user = user;
+        return next();
+      }
+      
+      // Otherwise, check user roles
+      const hasRole = user.roles.some(role => allowedRoles.includes(role));
+      if (!hasRole) {
+        return res.status(403).json({ success: false, message: "You do not have permission to access this resource" });
+      }
+      req.user = user;
+      next();
+    } else {
+      return res.status(401).json({ success: false, message: "Invalid token" });
     }
-    const hasRole = user.roles.some(role => allowedRoles.includes(role));
-    if (!hasRole) {
-      return res.status(403).json({ success: false, message: "You do not have permission to access this resource" });
-    }
-    req.user = user;
-    next();
   } catch (error) {
     console.error("Role or admin auth error:", error);
     return res.status(401).json({ success: false, message: "Not authorized" });

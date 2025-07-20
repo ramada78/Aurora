@@ -237,4 +237,44 @@ export const recommendProperties = async (preferences) => {
   }
 };
 
+export const getWishlist = async () => {
+  const token = localStorage.getItem('token');
+  const response = await api.get('/api/users/wishlist', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data.wishlist || [];
+};
+
+export const addToWishlist = async (propertyId) => {
+  const token = localStorage.getItem('token');
+  const response = await api.post('/api/users/wishlist/add', { propertyId }, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+};
+
+export const removeFromWishlist = async (propertyId) => {
+  const token = localStorage.getItem('token');
+  const response = await api.post('/api/users/wishlist/remove', { propertyId }, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+};
+
+export const getUserAppointments = async () => {
+  const token = localStorage.getItem('token');
+  const response = await api.get('/api/appointments/user', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data.appointments || [];
+};
+
+export const cancelAppointment = async (appointmentId, reason) => {
+  const token = localStorage.getItem('token');
+  const response = await api.put(`/api/appointments/cancel/${appointmentId}`, { reason }, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+};
+
 export default api;

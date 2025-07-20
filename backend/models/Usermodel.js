@@ -6,9 +6,9 @@ const UserSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     phone: { type: String },
+    isAdmin: { type: Boolean, default: false },
     resetToken: { type: String },
     resetTokenExpire: { type: Date },
-    // Track which roles this user has
     roles: { 
         type: [String], 
         enum: ['client', 'agent', 'seller'], 
@@ -18,8 +18,18 @@ const UserSchema = new mongoose.Schema({
     profileCompleted: { type: Boolean, default: false },
     // Last 10 search/filter preferences for AI recommendations
     lastSearches: { type: [Object], default: [] },
-    // Last search/filter preferences for AI recommendations
-    lastSearch: { type: Object, default: null }
+    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Property' }],
+    notifications: [{
+        type: {
+            type: String,
+            enum: ['appointment', 'system', 'message', 'other'],
+            default: 'system'
+        },
+        message: { type: String, required: true },
+        read: { type: Boolean, default: false },
+        createdAt: { type: Date, default: Date.now },
+        link: { type: String }
+    }]
 });
 
 const User = mongoose.model('User', UserSchema);

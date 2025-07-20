@@ -1,28 +1,37 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { User, Building, UserCheck, Settings, Phone, Mail, Save, Loader } from 'lucide-react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
+import { User, Building, UserCheck, Settings, Heart, Loader, CalendarCheck2, Star } from 'lucide-react';
 import { Backendurl } from '../App';
 import { toast } from 'react-toastify';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const roleIcons = {
+  client: User,
+  seller: Building,
+  agent: UserCheck
+};
+const roleColors = {
+  client: 'bg-blue-500',
+  seller: 'bg-green-500',
+  agent: 'bg-purple-500'
+};
+
+const sidebarLinks = [
+  { to: '/dashboard/profile', label: 'Profile', icon: User },
+  { to: '/dashboard/saved-properties', label: 'Saved Properties', icon: Heart },
+  { to: '/dashboard/appointments', label: 'Appointments', icon: CalendarCheck2 },
+];
 
 const UserDashboard = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [switchingRole, setSwitchingRole] = useState(false);
-
-  const roleIcons = {
-    client: User,
-    seller: Building,
-    agent: UserCheck
-  };
-
-  const roleColors = {
-    client: 'bg-blue-500',
-    seller: 'bg-green-500',
-    agent: 'bg-purple-500'
-  };
+  const [stats, setStats] = useState({ saved: 0, appointments: 0 });
+  const location = useLocation();
 
   useEffect(() => {
     fetchUserData();
+    fetchStats();
   }, []);
 
   const fetchUserData = async () => {
@@ -31,7 +40,6 @@ const UserDashboard = () => {
       const response = await axios.get(`${Backendurl}/api/users/roles`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
       if (response.data.success) {
         setUserData(response.data.user);
       }
@@ -43,27 +51,26 @@ const UserDashboard = () => {
     }
   };
 
-  const switchRole = async (newRole) => {
+  const fetchStats = async () => {
     try {
-      setSwitchingRole(true);
       const token = localStorage.getItem('token');
-      
-      const response = await axios.post(
-        `${Backendurl}/api/users/switch-role`,
-        { primaryRole: newRole },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.data.success) {
-        setUserData(prev => ({ ...prev, primaryRole: newRole }));
-        toast.success(`Switched to ${newRole} role`);
-      }
-    } catch (error) {
-      console.error('Error switching role:', error);
-      toast.error('Failed to switch role');
-    } finally {
-      setSwitchingRole(false);
-    }
+      // Saved properties
+      const savedRes = await axios.get(`${Backendurl}/api/users/wishlist`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // Appointments 
+      let appointmentsCount = 0;
+      try {
+        const appRes = await axios.get(`${Backendurl}/api/appointments/user`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        appointmentsCount = appRes.data.appointments?.length || 0;
+      } catch {}
+      setStats({
+        saved: savedRes.data.wishlist?.length || 0,
+        appointments: appointmentsCount
+      });
+    } catch {}
   };
 
   if (loading) {
@@ -83,50 +90,73 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen pt-32 px-4 bg-gray-50">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {userData.name}!</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Role Management</h2>
-          
-          <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Current Primary Role</h3>
-            <div className={`inline-flex items-center px-4 py-2 rounded-full text-white ${roleColors[userData.primaryRole]}`}>
-              {React.createElement(roleIcons[userData.primaryRole], { className: "w-4 h-4 mr-2" })}
-              {userData.primaryRole.charAt(0).toUpperCase() + userData.primaryRole.slice(1)}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Switch Primary Role</h3>
-            <div className="space-y-3">
-              {userData.roles.map((role) => (
-                <button
-                  key={role}
-                  onClick={() => switchRole(role)}
-                  disabled={switchingRole || role === userData.primaryRole}
-                  className={`w-full flex items-center justify-between p-3 rounded-lg border-2 transition-all duration-200 ${
-                    role === userData.primaryRole
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                  } ${switchingRole ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                >
-                  <div className="flex items-center">
-                    {React.createElement(roleIcons[role], { className: "w-5 h-5 mr-3" })}
-                    <span className="font-medium">
-                      {role.charAt(0).toUpperCase() + role.slice(1)}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
+    <div className="min-h-screen flex pt-32 pb-32 bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-100">
+      {/* Sidebar */}
+      <aside className="w-72 bg-white/90 shadow-xl rounded-r-3xl p-8 flex flex-col gap-8 sticky top-0 h-[calc(100vh-4rem)] max-h-[900px] z-20">
+        <div className="mb-6">
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold text-gray-900 mb-1 tracking-tight">Dashboard</motion.div>
+          <div className="text-sm text-gray-500 mb-2">Welcome, <span className="font-semibold text-blue-700">{userData.name}</span></div>
+          <div className="flex gap-2 flex-wrap">
+            {userData.roles.map(role => {
+              const meta = roleColors[role] || 'bg-gray-400';
+              return <span key={role} className={`px-2 py-1 rounded text-xs text-white font-semibold ${meta}`}>{role.charAt(0).toUpperCase() + role.slice(1)}</span>;
+            })}
           </div>
         </div>
-      </div>
+        <nav className="flex flex-col gap-2 mt-4">
+          {sidebarLinks.map(link => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className={`flex items-center gap-3 px-5 py-3 rounded-xl font-medium transition-all duration-200
+                ${location.pathname === link.to ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'}`}
+            >
+              <motion.span initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
+                {link.icon && React.createElement(link.icon, { className: 'w-5 h-5' })}
+              </motion.span>
+              <span>{link.label}</span>
+            </Link>
+          ))}
+        </nav>
+        <div className="mt-auto pt-8">
+          <div className="text-xs text-gray-400">Aurora Real Estate</div>
+        </div>
+      </aside>
+      {/* Main Content */}
+      <main className="flex-1 px-8 py-10">
+        <AnimatePresence mode="wait">
+          {location.pathname === '/dashboard' && (
+            <motion.div
+              key="welcome"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.4 }}
+              className="max-w-3xl mx-auto bg-white/90 rounded-2xl shadow-xl p-10 mb-10 flex flex-col gap-6"
+            >
+              <div className="text-2xl font-bold text-blue-700 mb-2">Welcome back, {userData.name}!</div>
+              <div className="flex gap-8 flex-wrap">
+                <div className="flex flex-col items-center">
+                  <Save className="w-7 h-7 text-pink-500 mb-1" />
+                  <div className="text-lg font-bold">{stats.saved}</div>
+                  <div className="text-xs text-gray-500">Saved Properties</div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <CalendarCheck2 className="w-7 h-7 text-green-500 mb-1" />
+                  <div className="text-lg font-bold">{stats.appointments}</div>
+                  <div className="text-xs text-gray-500">Appointments</div>
+                </div>
+                <div className="flex flex-col items-center">
+                  <Star className="w-7 h-7 text-yellow-400 mb-1" />
+                  <div className="text-lg font-bold">{userData.roles.length}</div>
+                  <div className="text-xs text-gray-500">Roles</div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <Outlet />
+      </main>
     </div>
   );
 };

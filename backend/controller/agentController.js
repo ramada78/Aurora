@@ -11,8 +11,8 @@ export const listAgents = async (req, res) => {
 
 export const addAgent = async (req, res) => {
   try {
-    const { user_id, phone_number } = req.body;
-    const agent = new Agent({ user_id, phone_number });
+    const { user_id } = req.body;
+    const agent = new Agent({ user_id });
     await agent.save();
     res.status(201).json({ success: true, agent });
   } catch (error) {
@@ -23,8 +23,8 @@ export const addAgent = async (req, res) => {
 export const updateAgent = async (req, res) => {
   try {
     const { id } = req.params;
-    const { user_id, phone_number } = req.body;
-    const agent = await Agent.findByIdAndUpdate(id, { user_id, phone_number }, { new: true });
+    const { user_id } = req.body;
+    const agent = await Agent.findByIdAndUpdate(id, { user_id }, { new: true });
     if (!agent) return res.status(404).json({ success: false, message: 'Not found' });
     res.json({ success: true, agent });
   } catch (error) {

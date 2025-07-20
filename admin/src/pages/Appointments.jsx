@@ -277,6 +277,7 @@ const Appointments = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Meeting Link
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cancel Reason</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
@@ -416,6 +417,15 @@ const Appointments = () => {
                             </button>
                           )}
                         </div>
+                      )}
+                    </td>
+
+                    {/* Cancel Reason */}
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      {appointment.cancelReason ? (
+                        <span className="text-red-600">{appointment.cancelReason}</span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
                       )}
                     </td>
 
