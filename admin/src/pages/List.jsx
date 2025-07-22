@@ -30,6 +30,7 @@ const PropertyListings = () => {
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [cities, setCities] = useState([]);
   const [showMineOnly, setShowMineOnly] = useState(false);
+  // Remove myAgentId and mySellerId logic
   const user = JSON.parse(localStorage.getItem('user'));
 
   useEffect(() => {
@@ -55,7 +56,6 @@ const PropertyListings = () => {
         toast.error(response.data.error);
       }
     } catch (error) {
-      console.error("Error fetching properties:", error);
       toast.error("Failed to fetch properties");
     } finally {
       setLoading(false);
@@ -69,7 +69,6 @@ const PropertyListings = () => {
         ? JSON.parse(amenities[0].replace(/'/g, '"'))
         : amenities;
     } catch (error) {
-      console.error("Error parsing amenities:", error);
       return [];
     }
   };
@@ -101,7 +100,6 @@ const PropertyListings = () => {
         toast.error(deleteResponse.data.message || "Failed to delete property");
       }
     } catch (error) {
-      console.error("Delete error:", error, error.response);
       if (error.response && error.response.data && error.response.data.message) {
         toast.error(error.response.data.message);
       } else {
@@ -109,22 +107,19 @@ const PropertyListings = () => {
       }
     }
   };
-  const filteredProperties = properties
-    
-  .filter(property => {
+  // Updated filter logic for 'Show Only Mine'
+  const filteredProperties = properties.filter(property => {
     const matchesSearch = !searchTerm || 
       [property.title, property.location, property.propertyType?.type_name || property.type]
         .some(field => field && field.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesType = filterType === "all" || (property.propertyType?.type_name || property.type)?.toLowerCase() === filterType.toLowerCase();
     const matchesCity = filterCity === "all" || (property.city?.city_name)?.toLowerCase() === filterCity.toLowerCase();
-  
-    // Agent is always a string, seller is a populated object with _id
-    const agentId = property.agent;
-    const sellerId = property.seller?._id;
-  
-    // If showMineOnly is ON, filter by agent or seller
-    const matchesMine = !showMineOnly || (agentId === user._id || sellerId === user._id);
-    console.log(agentId, ',', sellerId, ',', user._id)
+    // If showMineOnly is ON, filter by agent or seller (user._id)
+    const matchesMine = !showMineOnly ||
+      (user && user._id && (
+        (property.agent && String(property.agent._id || property.agent) === String(user._id)) ||
+        (property.seller && String(property.seller._id || property.seller) === String(user._id))
+      ));
     return matchesSearch && matchesType && matchesCity && matchesMine;
   })
     .sort((a, b) => {

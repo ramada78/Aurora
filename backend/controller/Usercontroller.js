@@ -11,6 +11,9 @@ import transporter from "../config/nodemailer.js";
 import { getWelcomeTemplate } from "../email.js";
 import { getPasswordResetTemplate } from "../email.js";
 import Property from '../models/propertymodel.js';
+import Seller from "../models/Seller.js";
+import Agent from "../models/Agent.js";
+import Client from "../models/Client.js";
 
 const backendurl = process.env.BACKEND_URL;
 
@@ -46,8 +49,6 @@ const register = async (req, res) => {
   try {
     const { name, email, password, phone, roles = ['client'], primaryRole = 'client' } = req.body;
     
-    console.log('Registration received:', { name, email, roles, primaryRole });
-    
     if (!validator.isEmail(email)) {
       return res.json({ message: "Invalid email", success: false });
     }
@@ -75,26 +76,19 @@ const register = async (req, res) => {
     });
     
     await newUser.save();
-    console.log('User saved successfully:', newUser._id);
 
     // Try to create role-specific records, but don't fail if they don't work
     try {
       for (const role of selectedRoles) {
         if (role === 'client') {
-          const Client = (await import('../models/Client.js')).default;
           const clientRecord = new Client({ user_id: newUser._id });
           await clientRecord.save();
-          console.log('Client record created');
         } else if (role === 'agent') {
-          const Agent = (await import('../models/Agent.js')).default;
           const agentRecord = new Agent({ user_id: newUser._id });
           await agentRecord.save();
-          console.log('Agent record created');
         } else if (role === 'seller') {
-          const Seller = (await import('../models/Seller.js')).default;
           const sellerRecord = new Seller({ user_id: newUser._id });
           await sellerRecord.save();
-          console.log('Seller record created');
         }
       }
     } catch (roleError) {
@@ -132,13 +126,10 @@ const register = async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
-      console.log('Welcome email sent successfully');
     } catch (emailError) {
       console.error('Email sending failed:', emailError);
       // Don't fail the registration if email fails
     }
-
-    console.log('Registration completed successfully');
 
     return res.json({ 
       token, 
@@ -295,15 +286,12 @@ const createUserWithRole = async (req, res) => {
     // Create role-specific records for all selected roles
     for (const roleType of selectedRoles) {
       if (roleType === 'client') {
-        const Client = (await import('../models/Client.js')).default;
         const clientRecord = new Client({ user_id: newUser._id });
         await clientRecord.save();
       } else if (roleType === 'agent') {
-        const Agent = (await import('../models/Agent.js')).default;
         const agentRecord = new Agent({ user_id: newUser._id });
         await agentRecord.save();
       } else if (roleType === 'seller') {
-        const Seller = (await import('../models/Seller.js')).default;
         const sellerRecord = new Seller({ user_id: newUser._id });
         await sellerRecord.save();
       }
@@ -335,7 +323,6 @@ const createUserWithRole = async (req, res) => {
       };
 
       await transporter.sendMail(mailOptions);
-      console.log('Welcome email sent successfully');
     } catch (emailError) {
       console.error('Email sending failed:', emailError);
       // Don't fail the user creation if email fails
@@ -440,16 +427,19 @@ const getUserRoles = async (req, res) => {
       roleData.client = clientRecord;
     }
     
+    let agentId = null;
+    let sellerId = null;
     if (user.roles.includes('agent')) {
       const Agent = (await import('../models/Agent.js')).default;
       const agentRecord = await Agent.findOne({ user_id: userId });
       roleData.agent = agentRecord;
+      if (agentRecord) agentId = agentRecord._id;
     }
-    
     if (user.roles.includes('seller')) {
       const Seller = (await import('../models/Seller.js')).default;
       const sellerRecord = await Seller.findOne({ user_id: userId });
       roleData.seller = sellerRecord;
+      if (sellerRecord) sellerId = sellerRecord._id;
     }
 
     res.json({ 
@@ -459,7 +449,9 @@ const getUserRoles = async (req, res) => {
         email: user.email,
         roles: user.roles,
         primaryRole: user.primaryRole,
-        profileCompleted: user.profileCompleted
+        profileCompleted: user.profileCompleted,
+        agentId,
+        sellerId
       },
       roleData
     });
@@ -556,21 +548,18 @@ const updateUserWithRole = async (req, res) => {
     // Update or create role-specific records
     for (const role of selectedRoles) {
       if (role === 'client') {
-        const Client = (await import('../models/Client.js')).default;
         await Client.findOneAndUpdate(
           { user_id: userId },
           {},
           { upsert: true }
         );
       } else if (role === 'agent') {
-        const Agent = (await import('../models/Agent.js')).default;
         await Agent.findOneAndUpdate(
           { user_id: userId },
           {},
           { upsert: true }
         );
       } else if (role === 'seller') {
-        const Seller = (await import('../models/Seller.js')).default;
         await Seller.findOneAndUpdate(
           { user_id: userId },
           {},

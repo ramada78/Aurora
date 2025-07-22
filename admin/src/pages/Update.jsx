@@ -12,9 +12,10 @@ const Update = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
-    propertyType: '', // propertyType ID
-    city: '', // city ID
-    seller: '', // seller ID
+    propertyType: '',
+    city: '',
+    seller: '',
+    agent: '',
     price: '',
     mapUrl: '',
     description: '',
@@ -22,9 +23,10 @@ const Update = () => {
     baths: '',
     sqft: '',
     availability: '',
-    amenities: [], // will store amenity IDs
+    amenities: [],
     images: [],
     status: 'available',
+    vrTourLink: '',
   });
   const [previewUrls, setPreviewUrls] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -32,6 +34,9 @@ const Update = () => {
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [cities, setCities] = useState([]);
   const [sellers, setSellers] = useState([]);
+  const [agents, setAgents] = useState([]);
+  const [existingImages, setExistingImages] = useState([]); // URLs of already uploaded images
+  const [newImages, setNewImages] = useState([]); // File objects for new uploads
 
   useEffect(() => {
     // Fetch amenities, property types, cities, and sellers from backend
@@ -47,7 +52,50 @@ const Update = () => {
     axios.get(`${backendurl}/api/sellers`).then(res => {
       if (res.data.success) setSellers(res.data.sellers);
     });
+    axios.get(`${backendurl}/api/agents`).then(res => {
+      if (res.data.success) setAgents(res.data.agents);
+    });
   }, []);
+
+  // Auto-fill agent if user is agent and property has no agent, after agents are loaded
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const roles = JSON.parse(localStorage.getItem('roles') || '[]');
+    if (user && user._id && Array.isArray(roles) && roles.includes('agent')) {
+      setFormData(prev => {
+        if (!prev.agent) {
+          // Find the Agent document for this user
+          const agentDoc = agents.find(a =>
+            String(a.user_id?._id || a.user_id) === String(user._id)
+          );
+          if (agentDoc) {
+            return { ...prev, agent: String(agentDoc._id) };
+          }
+        }
+        return prev;
+      });
+    }
+  }, [agents]);
+
+  // Auto-fill seller if user is seller and property has no seller, after sellers are loaded
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const roles = JSON.parse(localStorage.getItem('roles') || '[]');
+    if (user && user._id && Array.isArray(roles) && roles.includes('seller')) {
+      setFormData(prev => {
+        if (!prev.seller) {
+          // Find the Seller document for this user
+          const sellerDoc = sellers.find(s =>
+            String(s.user_id?._id) === String(user._id)
+          );
+          if (sellerDoc) {
+            return { ...prev, seller: String(sellerDoc._id) };
+          }
+        }
+        return prev;
+      });
+    }
+  }, [sellers]);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -59,7 +107,8 @@ const Update = () => {
             title: property.title,
             propertyType: property.propertyType?._id || '',
             city: property.city?._id || '',
-            seller: property.seller?._id || '',
+            seller: property.seller?._id || property.seller || '', // User ID
+            agent: property.agent?._id || property.agent || '', // User ID
             price: property.price,
             mapUrl: property.mapUrl || '',
             description: property.description,
@@ -70,10 +119,11 @@ const Update = () => {
             amenities: property.amenities.map(a => a._id), // store IDs
             images: property.image,
             status: property.status || 'available',
+            vrTourLink: property.vrTourLink || '',
           });
-          setPreviewUrls(property.image.map(img =>
-            img.startsWith('/uploads/') ? `${backendurl}${img}` : img
-          ));
+          setExistingImages(property.image);
+          setNewImages([]);
+          setPreviewUrls(property.image.map(img => img.startsWith('/uploads/') ? `${backendurl}${img}` : img));
         } else {
           toast.error(response.data.message);
         }
@@ -103,19 +153,18 @@ const Update = () => {
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    setPreviewUrls(files.map((file) => URL.createObjectURL(file)));
-    setFormData((prev) => ({
-      ...prev,
-      images: files
-    }));
+    setNewImages(prev => [...prev, ...files]);
+    setPreviewUrls(prev => [...prev, ...files.map(file => URL.createObjectURL(file))]);
   };
 
   const removeImage = (index) => {
-    setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
-    setFormData((prev) => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }));
+    if (index < existingImages.length) {
+      setExistingImages(prev => prev.filter((_, i) => i !== index));
+    } else {
+      const newIdx = index - existingImages.length;
+      setNewImages(prev => prev.filter((_, i) => i !== newIdx));
+    }
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -130,6 +179,9 @@ const Update = () => {
       if (formData.seller) {
         formdata.append('seller', formData.seller);
       }
+      if (formData.agent) {
+        formdata.append('agent', formData.agent);
+      }
       formdata.append('price', formData.price);
       formdata.append('mapUrl', formData.mapUrl);
       formdata.append('description', formData.description);
@@ -138,11 +190,15 @@ const Update = () => {
       formdata.append('sqft', formData.sqft);
       formdata.append('availability', formData.availability);
       formdata.append('status', formData.status);
+      formdata.append('vrTourLink', formData.vrTourLink);
       formData.amenities.forEach((amenityId, index) => {
         formdata.append(`amenities[${index}]`, amenityId);
       });
-      formData.images.forEach((image, index) => {
-        formdata.append(`image${index + 1}`, image);
+      existingImages.forEach((img, idx) => {
+        formdata.append(`existingImages[${idx}]`, img);
+      });
+      newImages.forEach((image, idx) => {
+        formdata.append(`image${idx + 1}`, image);
       });
       const response = await axios.post(
         `${backendurl}/api/products/update`,
@@ -262,28 +318,45 @@ const Update = () => {
                 >
                   <option value="">Select Seller</option>
                   {sellers.map(seller => (
-                    <option key={seller._id} value={seller._id}>{seller.full_name || seller.name}</option>
+                    <option key={seller._id} value={seller.user_id?._id}>{seller.user_id?.name}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label htmlFor="availability" className="block text-sm font-medium text-gray-700">
-                  Availability
+                <label htmlFor="agent" className="block text-sm font-medium text-gray-700">
+                  Agent (Optional)
                 </label>
                 <select
-                  id="availability"
-                  name="availability"
-                  required
-                  value={formData.availability}
+                  id="agent"
+                  name="agent"
+                  value={formData.agent || ''}
                   onChange={handleInputChange}
                   className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
                 >
-                  <option value="">Select Availability</option>
-                  {AVAILABILITY_TYPES.map(type => (
-                    <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                  <option value="">Select Agent</option>
+                  {agents.map(agent => (
+                    <option key={agent._id} value={agent.user_id?._id}>{agent.user_id?.name}</option>
                   ))}
                 </select>
               </div>
+            </div>
+            <div>
+              <label htmlFor="availability" className="block text-sm font-medium text-gray-700">
+                Availability
+              </label>
+              <select
+                id="availability"
+                name="availability"
+                required
+                value={formData.availability}
+                onChange={handleInputChange}
+                className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+              >
+                <option value="">Select Availability</option>
+                {AVAILABILITY_TYPES.map(type => (
+                  <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label htmlFor="status" className="block text-sm font-medium text-gray-700">
@@ -312,6 +385,20 @@ const Update = () => {
                 value={formData.mapUrl}
                 onChange={handleInputChange}
                 placeholder="https://maps.google.com/..."
+                className="mt-1 block w-full rounded-md border border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+              />
+            </div>
+            <div>
+              <label htmlFor="vrTourLink" className="block text-sm font-medium text-gray-700">
+                VR Tour Link
+              </label>
+              <input
+                type="text"
+                id="vrTourLink"
+                name="vrTourLink"
+                value={formData.vrTourLink}
+                onChange={handleInputChange}
+                placeholder="https://uploads/.../file.glb"
                 className="mt-1 block w-full rounded-md border border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
               />
             </div>
@@ -409,9 +496,9 @@ const Update = () => {
               Property Images
             </label>
             <div className="flex flex-wrap gap-4 mb-4">
-              {previewUrls.map((url, idx) => (
+              {[...existingImages, ...newImages].map((img, idx) => (
                 <div key={idx} className="relative w-24 h-24">
-                  <img src={url} alt="Preview" className="w-full h-full object-cover rounded-md" />
+                  <img src={typeof img === 'string' ? (img.startsWith('/uploads/') ? `${backendurl}${img}` : img) : URL.createObjectURL(img)} alt="Preview" className="w-full h-full object-cover rounded-md" />
                   <button
                     type="button"
                     onClick={() => removeImage(idx)}

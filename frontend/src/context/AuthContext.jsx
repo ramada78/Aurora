@@ -16,14 +16,14 @@ export const AuthProvider = ({ children }) => {
         // Add token to axios default headers
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-        const response = await axios.get(`${Backendurl}/api/users/me`, {
+        const response = await axios.get(`${Backendurl}/api/users/roles`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        if (response.data) {
-          setUser(response.data);
+        if (response.data && response.data.user) {
+          setUser(response.data.user);
           setIsLoggedIn(true);
         } else {
           throw new Error("Invalid response");

@@ -1,11 +1,14 @@
 import fs from "fs";
 import Property from "../models/propertymodel.js";
 import Amenity from "../models/amenityModel.js";
+import Agent from '../models/Agent.js';
+import Seller from '../models/Seller.js';
 
 const addproperty = async (req, res) => {
     try {
-        let { title, price, beds, baths, sqft, propertyType, city, availability, description, amenities, seller, mapUrl } = req.body;
+        let { title, price, beds, baths, sqft, propertyType, city, availability, description, amenities, seller, agent, mapUrl, vrTourLink } = req.body;
         if (seller === "") seller = undefined;
+        if (agent === "") agent = undefined;
         // Use propertyType if available, otherwise fall back to type
         const propertyTypeValue = propertyType;
         
@@ -23,38 +26,46 @@ const addproperty = async (req, res) => {
         const image4 = req.files.image4 && req.files.image4[0];
         const images = [image1, image2, image3, image4].filter((item) => item !== undefined);
         const imageUrls = images.map(item => `/uploads/${item.filename}`);
-        // If admin, agent is null; otherwise, use logged-in user's _id
-        const agentId = req.user?._id || null;
+        // Use agent from body if provided, else fallback to logged-in user if agent, else null
+        let agentId = agent;
+        if (!agentId && req.user && req.user.roles && req.user.roles.includes('agent')) {
+          agentId = req.user._id;
+        }
+        // seller and agent are now user IDs
         const product = new Property({
             title,
             price,
             beds,
             baths,
             sqft,
-            propertyType: propertyTypeValue, // Also set propertyType field
-            city, // Add city field
+            propertyType: propertyTypeValue,
+            city,
             availability,
             description,
             amenities,
             image: imageUrls,
-            seller, // Add seller reference
-            agent: agentId, // Set agent to logged-in user or null for admin
-            mapUrl // Add mapUrl field
+            seller, // user id
+            agent: agentId, // user id
+            mapUrl,
+            vrTourLink
         });
         await product.save();
         res.json({ message: "Product added successfully", success: true });
     } catch (error) {
-        console.log("Error adding product: ", error);
         res.status(500).json({ message: error.message || "Server Error", error: error, success: false });
     }
 };
 
 const listproperty = async (req, res) => {
     try {
-        const property = await Property.find().populate('amenities').populate('seller').populate('city').populate('propertyType');
+        const property = await Property.find()
+            .populate('amenities')
+            .populate('seller', 'name email') // now User
+            .populate('agent', 'name email') // now User
+            .populate('city')
+            .populate('propertyType');
         res.json({ property, success: true });
     } catch (error) {
-        console.log("Error listing products: ", error);
         res.status(500).json({ message: "Server Error", success: false });
     }
 };
@@ -65,14 +76,9 @@ const removeproperty = async (req, res) => {
         if (!property) {
             return res.status(404).json({ message: "Property not found", success: false });
         }
-        const isAgent = property.agent && (
-          (typeof property.agent === 'string' && req.user && property.agent === req.user._id.toString()) ||
-          (typeof property.agent === 'object' && property.agent._id && req.user && property.agent._id.toString() === req.user._id.toString())
-        );
-        const isSeller = property.seller && (
-          (typeof property.seller === 'string' && req.user && property.seller === req.user._id.toString()) ||
-          (typeof property.seller === 'object' && property.seller._id && req.user && property.seller._id.toString() === req.user._id.toString())
-        );
+        // Authorization: compare user _id directly
+        const isAgent = property.agent && property.agent.toString() === req.user._id.toString();
+        const isSeller = property.seller && property.seller.toString() === req.user._id.toString();
         const isAdmin = !!req.admin;
         if (!(isAgent || isSeller || isAdmin)) {
           return res.status(403).json({ message: "You do not have permission to delete this property", success: false });
@@ -80,8 +86,7 @@ const removeproperty = async (req, res) => {
         await property.deleteOne();
         return res.json({ message: "Property removed successfully", success: true });
     } catch (error) {
-        console.log("Error removing product: ", error);
-        return res.status(500).json({ message: "Server Error", success: false });
+        res.status(500).json({ message: "Server Error", success: false });
     }
 };
 
@@ -90,7 +95,6 @@ const updateproperty = async (req, res) => {
         let { id, title, price, beds, baths, sqft, propertyType, city, availability, description, amenities, seller, mapUrl, status } = req.body;
         // Use propertyType if available, otherwise fall back to type
         const propertyTypeValue = propertyType;
-        
         if (!Array.isArray(amenities)) {
             if (typeof amenities === 'string') {
                 amenities = [amenities];
@@ -100,57 +104,54 @@ const updateproperty = async (req, res) => {
         }
         const property = await Property.findById(id);
         if (!property) {
-            console.log("Property not found with ID:", id); // Debugging line
             return res.status(404).json({ message: "Property not found", success: false });
         }
-        // Ownership checks
-        const isAgent = req.user && property.agent && property.agent.toString() === req.user._id.toString();
-        const isSeller = req.user && property.seller && property.seller.toString() === req.user._id.toString();
+        // Authorization: compare user _id directly
+        const isAgent = property.agent && property.agent.toString() === req.user._id.toString();
+        const isSeller = property.seller && property.seller.toString() === req.user._id.toString();
         const isAdmin = !!req.admin;
         if (!(isAgent || isSeller || isAdmin)) {
           return res.status(403).json({ message: "You do not have permission to update this property", success: false });
         }
-        if (!req.files || Object.keys(req.files).length === 0) {
-            property.title = title;
-            property.price = price;
-            property.beds = beds;
-            property.baths = baths;
-            property.sqft = sqft;
-            property.propertyType = propertyTypeValue; // Also set propertyType field
-            property.city = city; // Add city field
-            property.availability = availability;
-            property.description = description;
-            property.amenities = amenities;
-            property.seller = seller; // Add seller field
-            property.mapUrl = mapUrl; // Add mapUrl field
-            if (status) property.status = status;
-            await property.save();
-            return res.json({ message: "Property updated successfully", success: true });
+        // Handle images: merge existing image URLs and new uploads
+        let mergedImages = [];
+        if (req.body["existingImages[0]"] !== undefined) {
+            // Collect all existing image URLs from the form
+            mergedImages = Object.keys(req.body)
+                .filter(key => key.startsWith("existingImages["))
+                .map(key => req.body[key]);
         }
-        const image1 = req.files.image1 && req.files.image1[0];
-        const image2 = req.files.image2 && req.files.image2[0];
-        const image3 = req.files.image3 && req.files.image3[0];
-        const image4 = req.files.image4 && req.files.image4[0];
-        const images = [image1, image2, image3, image4].filter((item) => item !== undefined);
-        const imageUrls = images.map(item => `/uploads/${item.filename}`);
+        // Add new uploaded files
+        if (req.files && Object.keys(req.files).length > 0) {
+            const newFiles = Object.keys(req.files)
+                .filter(key => key.startsWith("image"))
+                .map(key => req.files[key][0]);
+            const newFileUrls = newFiles.map(item => `/uploads/${item.filename}`);
+            mergedImages = [...mergedImages, ...newFileUrls];
+        }
+        // If no images provided at all, keep the old images
+        if (mergedImages.length === 0) {
+            mergedImages = property.image;
+        }
         property.title = title;
         property.price = price;
         property.beds = beds;
         property.baths = baths;
         property.sqft = sqft;
-        property.propertyType = propertyTypeValue; // Also set propertyType field
-        property.city = city; // Add city field
+        property.propertyType = propertyTypeValue;
+        property.city = city;
         property.availability = availability;
         property.description = description;
         property.amenities = amenities;
-        property.seller = seller;
-        property.image = imageUrls;
-        property.mapUrl = mapUrl; // Add mapUrl field
+        property.seller = seller; // user id
+        if (typeof req.body.agent !== 'undefined') property.agent = req.body.agent === "" ? undefined : req.body.agent; // user id
+        property.mapUrl = mapUrl;
         if (status) property.status = status;
+        if (req.body.vrTourLink !== undefined) property.vrTourLink = req.body.vrTourLink;
+        property.image = mergedImages;
         await property.save();
-        res.json({ message: "Property updated successfully", success: true });
+        return res.json({ message: "Property updated successfully", success: true });
     } catch (error) {
-        console.log("Error updating property: ", error);
         res.status(500).json({ message: "Server Error", success: false });
     }
 };
@@ -158,7 +159,12 @@ const updateproperty = async (req, res) => {
 const singleproperty = async (req, res) => {
     try {
         const { id } = req.params;
-        const property = await Property.findById(id).populate('amenities').populate('seller').populate('city').populate('propertyType');
+        const property = await Property.findById(id)
+            .populate('amenities')
+            .populate('seller', 'name email') // now User
+            .populate('agent', 'name email') // now User
+            .populate('city')
+            .populate('propertyType');
         if (!property) {
             return res.status(404).json({ message: "Property not found", success: false });
         }
@@ -169,7 +175,6 @@ const singleproperty = async (req, res) => {
         }
         res.json({ property, success: true });
     } catch (error) {
-        console.log("Error fetching property:", error);
         res.status(500).json({ message: "Server Error", success: false });
     }
 };
@@ -180,7 +185,6 @@ const listAmenities = async (req, res) => {
         const amenities = await Amenity.find();
         res.json({ amenities, success: true });
     } catch (error) {
-        console.log("Error listing amenities: ", error);
         res.status(500).json({ message: "Server Error", success: false });
     }
 };
@@ -198,7 +202,6 @@ const seedAmenities = async (req, res) => {
         }));
         res.json({ amenities: amenityDocs, success: true });
     } catch (error) {
-        console.log("Error seeding amenities: ", error);
         res.status(500).json({ message: "Server Error", success: false });
     }
 };

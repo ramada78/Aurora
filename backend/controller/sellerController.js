@@ -2,7 +2,7 @@ import Seller from '../models/Seller.js';
 
 export const listSellers = async (req, res) => {
   try {
-    const sellers = await Seller.find();
+    const sellers = await Seller.find().populate('user_id');
     res.json({ success: true, sellers });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

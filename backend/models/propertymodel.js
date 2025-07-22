@@ -41,12 +41,12 @@ const propertySchema = new mongoose.Schema({
   agent: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: false // Every property must have an agent
+    required: false
   },
   seller: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Seller',
-    required: false // Will be required for new properties
+    ref: 'User',
+    required: false
   },
   propertyType: {
     type: mongoose.Schema.Types.ObjectId,
@@ -68,6 +68,7 @@ const propertySchema = new mongoose.Schema({
     default: 0
   },
   status: { type: String, enum: ['available', 'rented', 'sold'], default: 'available' },
+  vrTourLink: { type: String, required: false, default: '' },
 }, {
   timestamps: true
 });

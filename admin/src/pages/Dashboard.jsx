@@ -285,9 +285,6 @@ const Dashboard = () => {
                 <div className={`p-3 rounded-lg ${stat.color}`}>
                   <stat.icon className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-sm font-medium text-gray-500">
-                  Last 30 days
-                </span>
               </div>
               <h3 className="text-lg font-medium text-gray-900">{stat.title}</h3>
               <p className="text-3xl font-bold text-gray-900 mt-2">{stat.value}</p>

@@ -1,5 +1,5 @@
 import express from "express";
-import { protect, rolesOrAdmin } from '../middleware/authmiddleware.js';
+import { protect } from '../middleware/authmiddleware.js';
 import {
   scheduleViewing,
   getAllAppointments,
@@ -13,21 +13,17 @@ import {
   updateAppointmentDetails
 } from "../controller/appointmentController.js";
 
-
 const router = express.Router();
 
-// User routes
-router.post("/schedule", protect, scheduleViewing);  // Add protect middleware
+router.post("/schedule", protect, scheduleViewing);
 router.get("/user", protect, getAppointmentsByUser);
 router.put("/cancel/:id", protect, cancelAppointment);
-router.put("/feedback/:id", submitAppointmentFeedback);
-router.get("/upcoming", getUpcomingAppointments);
-
-// Admin routes
-router.get("/all", rolesOrAdmin(['agent']), getAllAppointments);
-router.get("/stats", rolesOrAdmin(['agent']), getAppointmentStats);
-router.put("/status", rolesOrAdmin(['agent']), updateAppointmentStatus);
-router.put("/update-meeting", rolesOrAdmin(['agent']), updateAppointmentMeetingLink);
-router.put("/update-details", rolesOrAdmin(['agent']), updateAppointmentDetails);
+router.put("/feedback/:id", protect, submitAppointmentFeedback);
+router.get("/upcoming", protect, getUpcomingAppointments);
+router.get("/all", protect, getAllAppointments);
+router.get("/stats", protect, getAppointmentStats);
+router.put("/status", protect, updateAppointmentStatus);
+router.put("/update-meeting", protect, updateAppointmentMeetingLink);
+router.put("/update-details", protect, updateAppointmentDetails);
 
 export default router;

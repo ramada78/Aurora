@@ -6,9 +6,9 @@ const transactionSchema = new mongoose.Schema({
   status: { type: String, required: true },
   deal_type: { type: String, enum: ['sale', 'rent'], required: true },
   property_id: { type: mongoose.Schema.Types.ObjectId, ref: "Property", required: true },
-  seller_id: { type: mongoose.Schema.Types.ObjectId, ref: "Seller", required: true },
+  seller_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   buyer_id: { type: mongoose.Schema.Types.ObjectId, ref: "Client", required: true },
-  agent_id: { type: mongoose.Schema.Types.ObjectId, ref: "Agent", required: false },
+  agent_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: false },
 }, { timestamps: true });
 
 const Transaction = mongoose.model("Transaction", transactionSchema);

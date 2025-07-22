@@ -38,7 +38,6 @@ const Appointments = () => {
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [editLoading, setEditLoading] = useState(false);
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
   const fetchAppointments = async () => {
     try {
@@ -162,7 +161,11 @@ const Appointments = () => {
         toast.error(response.data.message);
       }
     } catch (error) {
-      toast.error("Failed to update appointment");
+      if (error.response && error.response.status === 403) {
+        toast.error("You do not have permission to edit this appointment.");
+      } else {
+        toast.error("Failed to update appointment.");
+      }
     } finally {
       setEditLoading(false);
     }
@@ -195,14 +198,6 @@ const Appointments = () => {
       default:
         return "bg-gray-100 text-gray-800";
     }
-  };
-
-  const isAllowedToEdit = (appointment) => {
-    return (
-      currentUser?.isAdmin ||
-      (appointment.propertyId.agent?._id === currentUser?._id) ||
-      (appointment.propertyId.seller?._id === currentUser?._id)
-    );
   };
 
   if (loading) {
@@ -476,11 +471,7 @@ const Appointments = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Edit Appointment</h2>
-            {!isAllowedToEdit(editingAppointment) && (
-              <div className="mb-4 p-3 bg-yellow-100 text-yellow-800 rounded">
-                You do not have permission to edit this appointment. All fields are read-only.
-              </div>
-            )}
+            {/* Always show edit form, backend will handle permission */}
             <form onSubmit={handleEditSubmit} className="space-y-4">
               {/* Property (read-only for now) */}
               <div>
@@ -502,8 +493,6 @@ const Appointments = () => {
                   onChange={handleEditFormChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   required
-                  readOnly={!isAllowedToEdit(editingAppointment)}
-                  disabled={!isAllowedToEdit(editingAppointment)}
                 />
               </div>
               {/* Time */}
@@ -516,8 +505,6 @@ const Appointments = () => {
                   onChange={handleEditFormChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   required
-                  readOnly={!isAllowedToEdit(editingAppointment)}
-                  disabled={!isAllowedToEdit(editingAppointment)}
                 />
               </div>
               {/* Visit Type */}
@@ -529,7 +516,6 @@ const Appointments = () => {
                   onChange={handleEditFormChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   required
-                  disabled={!isAllowedToEdit(editingAppointment)}
                 >
                   {VISIT_TYPES.map((type) => (
                     <option key={type.value} value={type.value}>{type.label}</option>
@@ -546,7 +532,6 @@ const Appointments = () => {
                     onChange={handleEditFormChange}
                     className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                     required
-                    disabled={!isAllowedToEdit(editingAppointment)}
                   >
                     <option value="">Select a VR City</option>
                     {VR_CITIES.map((city) => (
@@ -563,7 +548,6 @@ const Appointments = () => {
                   value={editForm.meetingPlatform}
                   onChange={handleEditFormChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  disabled={!isAllowedToEdit(editingAppointment)}
                 >
                   {MEETING_PLATFORMS.map((platform) => (
                     <option key={platform} value={platform}>{platform}</option>
@@ -580,8 +564,6 @@ const Appointments = () => {
                   onChange={handleEditFormChange}
                   placeholder="Enter meeting link (if applicable)"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  readOnly={!isAllowedToEdit(editingAppointment)}
-                  disabled={!isAllowedToEdit(editingAppointment)}
                 />
               </div>
               {/* Notes */}
@@ -593,8 +575,6 @@ const Appointments = () => {
                   onChange={handleEditFormChange}
                   rows="3"
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  readOnly={!isAllowedToEdit(editingAppointment)}
-                  disabled={!isAllowedToEdit(editingAppointment)}
                 />
               </div>
               {/* Status */}
@@ -606,7 +586,6 @@ const Appointments = () => {
                   onChange={handleEditFormChange}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   required
-                  disabled={!isAllowedToEdit(editingAppointment)}
                 >
                   <option value="pending">Pending</option>
                   <option value="confirmed">Confirmed</option>
@@ -617,9 +596,8 @@ const Appointments = () => {
               {/* Buttons */}
               <div className="flex justify-end gap-2 mt-4">
                 <button type="button" className="px-4 py-2 bg-gray-200 rounded" onClick={closeEditModal} disabled={editLoading}>Cancel</button>
-                {isAllowedToEdit(editingAppointment) && (
+                {/* Always show save button, backend will handle permission */}
                   <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded" disabled={editLoading}>{editLoading ? "Saving..." : "Save"}</button>
-                )}
               </div>
             </form>
           </div>

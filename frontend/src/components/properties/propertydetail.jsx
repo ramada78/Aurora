@@ -21,12 +21,14 @@ import {
   SparkleIcon, 
   DollarSign,
   MoveRight,
-  ArrowRight
+  ArrowRight,
+  X
 } from "lucide-react";
 import { Backendurl } from "../../App.jsx";
 import ScheduleViewing from "./ScheduleViewing";
 import { getPropertyTypes, getCities } from "../../services/api";
 import PropertyReviews from './PropertyReviews';
+import VR360Embed from "../VR360Embed.jsx";
 
 const PropertyDetails = () => {
   const { id } = useParams();
@@ -39,6 +41,7 @@ const PropertyDetails = () => {
   const [propertyTypeName, setPropertyTypeName] = useState("");
   const [cityName, setCityName] = useState("");
   const navigate = useNavigate();
+  const [showVR, setShowVR] = useState(false);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -151,6 +154,8 @@ const PropertyDetails = () => {
       </div>
     );
   }
+
+  const DEMO_VR_TOUR_URL = "https://my.matterport.com/show/?m=zEWsxhZpGba&play=1&qs=1";
 
   return (
     <motion.div 
@@ -342,6 +347,58 @@ const PropertyDetails = () => {
             </div>
           </div>
         </div>
+
+        {/* VR Tour Section */}
+        {property.vrTourLink && (
+          <div className="mt-8">
+            <AnimatePresence>
+              {showVR ? (
+                <motion.div
+                  key="vr-embed"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto', transition: { duration: 0.5 } }}
+                  exit={{ opacity: 0, height: 0, transition: { duration: 0.5 } }}
+                  className="relative"
+                >
+                  <VR360Embed tourUrl={property.vrTourLink || DEMO_VR_TOUR_URL} />
+                  <button
+                    onClick={() => setShowVR(false)}
+                    className="absolute top-4 right-4 z-10 bg-white/80 backdrop-blur-sm rounded-full p-2 text-gray-800 hover:bg-white transition"
+                    aria-label="Close VR Tour"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="vr-launcher"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <div
+                    className="relative h-64 rounded-xl overflow-hidden flex items-center justify-center text-center p-8 bg-cover bg-center"
+                    style={{ backgroundImage: `url(${property.image[0]?.startsWith('/uploads/') ? `${Backendurl}${encodeURI(property.image[0])}` : property.image[0]})` }}
+                  >
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+                    <div className="relative z-10">
+                      <SparkleIcon className="w-12 h-12 text-white mx-auto mb-4 opacity-80" />
+                      <h2 className="text-3xl font-bold text-white mb-2">Immersive 360° Tour</h2>
+                      <p className="text-white/80 mb-6">Step inside and explore this property from every angle.</p>
+                      <button
+                        onClick={() => setShowVR(true)}
+                        className="inline-flex items-center gap-3 px-8 py-4 bg-white text-blue-600 font-bold rounded-lg shadow-lg hover:bg-gray-100 hover:scale-105 transition-all"
+                      >
+                        <Compass className="w-6 h-6" />
+                        Launch Virtual Tour
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
 
         {/* Add Map Location */}
         <div className="mt-8 p-6 bg-blue-50 rounded-xl">

@@ -150,7 +150,8 @@ const Navbar = () => {
       filteredMetaDataItems = metaDataItems.filter(item => item.path !== '/reviews');
     } else if (roles.includes('seller')) {
       // Seller: only Properties
-      filteredNavItems = navItems.filter(item => item.path === '/list');
+      filteredNavItems = navItems.filter(item =>
+        ['/list', '/appointments', '/transactions'].includes(item.path));
       filteredMetaDataItems = [];
     }
   }

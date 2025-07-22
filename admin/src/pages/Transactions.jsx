@@ -24,13 +24,25 @@ const Transactions = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState(null);
-  const [actionLoading, setActionLoading] = useState(false);
   const [properties, setProperties] = useState([]);
   const [sellers, setSellers] = useState([]);
   const [clients, setClients] = useState([]);
   const [agents, setAgents] = useState([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addForm, setAddForm] = useState({
+    transaction_date: '',
+    sale_price: '',
+    status: '',
+    deal_type: '',
+    property_id: '',
+    seller_id: '',
+    agent_id: '',
+    buyer_id: '',
+  });
+  const [addLoading, setAddLoading] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState(null);
+  const [editLoading, setEditLoading] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -79,145 +91,6 @@ const Transactions = () => {
     }
   };
 
-  const handleAddTransaction = async (e) => {
-    e.preventDefault();
-    if (!formData.transaction_date || !formData.sale_price || !formData.status || 
-        !formData.property_id || !formData.seller_id || !formData.buyer_id) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-    // Prepare payload, set agent_id to null if empty
-    const payload = { ...formData };
-    if (payload.agent_id === "") payload.agent_id = null;
-    try {
-      setActionLoading(true);
-      const response = await axios.post(
-        `${backendurl}/api/transactions`,
-        payload,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
-
-      if (response.data.success) {
-        toast.success("Transaction added successfully");
-        resetForm();
-        setShowAddModal(false);
-        fetchTransactions();
-      } else {
-        toast.error(response.data.message || "Failed to add transaction");
-      }
-    } catch (error) {
-      console.error("Error adding transaction:", error);
-      toast.error("Failed to add transaction");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleEditTransaction = async (e) => {
-    e.preventDefault();
-    if (!formData.transaction_date || !formData.sale_price || !formData.status || 
-        !formData.property_id || !formData.seller_id || !formData.buyer_id) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-    // Prepare payload, set agent_id to null if empty
-    const payload = { ...formData };
-    if (payload.agent_id === "") payload.agent_id = null;
-    try {
-      setActionLoading(true);
-      const response = await axios.put(
-        `${backendurl}/api/transactions/${editingTransaction._id}`,
-        payload,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
-
-      if (response.data.success) {
-        toast.success("Transaction updated successfully");
-        resetForm();
-        setEditingTransaction(null);
-        fetchTransactions();
-      } else {
-        toast.error(response.data.message || "Failed to update transaction");
-      }
-    } catch (error) {
-      console.error("Error updating transaction:", error);
-      toast.error("Failed to update transaction");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleDeleteTransaction = async (transactionId) => {
-    if (!window.confirm("Are you sure you want to delete this transaction?")) {
-      return;
-    }
-
-    try {
-      setActionLoading(true);
-      const response = await axios.delete(
-        `${backendurl}/api/transactions/${transactionId}`,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
-
-      if (response.data.success) {
-        toast.success("Transaction deleted successfully");
-        fetchTransactions();
-      } else {
-        toast.error(response.data.message || "Failed to delete transaction");
-      }
-    } catch (error) {
-      console.error("Error deleting transaction:", error);
-      toast.error("Failed to delete transaction");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const openEditModal = (transaction) => {
-    setEditingTransaction(transaction);
-    setFormData({
-      transaction_date: transaction.transaction_date
-        ? (() => {
-            const d = new Date(transaction.transaction_date);
-            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-            return d.toISOString().slice(0, 16);
-          })()
-        : "",
-      sale_price: transaction.sale_price || "",
-      status: transaction.status || "",
-      deal_type: transaction.deal_type || "",
-      property_id: transaction.property_id?._id || transaction.property_id || "",
-      seller_id: transaction.seller_id?._id || transaction.seller_id || "",
-      buyer_id: transaction.buyer_id?._id || transaction.buyer_id || "",
-      agent_id: transaction.agent_id?._id || transaction.agent_id || "",
-    });
-  };
-
-  const resetForm = () => {
-    setFormData({
-      transaction_date: "",
-      sale_price: "",
-      status: "",
-      deal_type: "",
-      property_id: "",
-      seller_id: "",
-      buyer_id: "",
-      agent_id: "",
-    });
-  };
-
-  const closeModal = () => {
-    setShowAddModal(false);
-    setEditingTransaction(null);
-    resetForm();
-  };
-
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -232,9 +105,117 @@ const Transactions = () => {
     setFormData(prev => ({
       ...prev,
       property_id: propertyId,
-      seller_id: selectedProperty?.seller?._id || "",
-      agent_id: selectedProperty?.agent?._id || "",
+      seller_id: selectedProperty?.seller || undefined,
+      agent_id: selectedProperty?.agent || undefined,
     }));
+  };
+
+  const handleAddFormChange = (e) => {
+    const { name, value } = e.target;
+    setAddForm((prev) => ({ ...prev, [name]: value }));
+    // Auto-fill seller/agent when property changes
+    if (name === 'property_id') {
+      const selectedProperty = properties.find(p => p._id === value);
+      setAddForm((prev) => ({
+        ...prev,
+        property_id: value,
+        seller_id: selectedProperty?.seller ? String(selectedProperty.seller) : '',
+        agent_id: selectedProperty?.agent ? String(selectedProperty.agent) : '',
+      }));
+    }
+  };
+
+  const handleAddTransaction = async (e) => {
+    e.preventDefault();
+    if (!addForm.transaction_date || !addForm.sale_price || !addForm.status || !addForm.deal_type || !addForm.property_id || !addForm.seller_id || !addForm.buyer_id) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    // Always send string IDs in the payload
+    const payload = {
+      ...addForm,
+      property_id: String(addForm.property_id),
+      seller_id: String(addForm.seller_id),
+      agent_id: addForm.agent_id ? String(addForm.agent_id) : undefined,
+      buyer_id: String(addForm.buyer_id),
+      sale_price: Number(addForm.sale_price),
+    };
+    if (!payload.agent_id) delete payload.agent_id;
+    setAddLoading(true);
+    try {
+      const response = await axios.post(`${backendurl}/api/transactions`, payload, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      if (response.data.success) {
+        toast.success('Transaction added successfully');
+        setShowAddModal(false);
+        setAddForm({ transaction_date: '', sale_price: '', status: '', deal_type: '', property_id: '', seller_id: '', agent_id: '', buyer_id: '' });
+        fetchTransactions();
+      } else {
+        toast.error(response.data.message || 'Failed to add transaction');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add transaction');
+    } finally {
+      setAddLoading(false);
+    }
+  };
+
+  const handleDeleteTransaction = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this transaction?')) return;
+    try {
+      await axios.delete(`${backendurl}/api/transactions/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      toast.success('Transaction deleted');
+      fetchTransactions();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete transaction');
+    }
+  };
+
+  const handleEditClick = (transaction) => {
+    setEditForm({
+      ...transaction,
+      property_id: safeGetId(transaction.property_id),
+      seller_id: safeGetId(transaction.seller_id),
+      agent_id: safeGetId(transaction.agent_id),
+      buyer_id: safeGetId(transaction.buyer_id),
+      transaction_date: formatDateForInput(transaction.transaction_date),
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditTransaction = async (e) => {
+    e.preventDefault();
+    setEditLoading(true);
+    try {
+      const payload = {
+        ...editForm,
+        property_id: String(editForm.property_id),
+        seller_id: String(editForm.seller_id),
+        agent_id: editForm.agent_id ? String(editForm.agent_id) : undefined,
+        buyer_id: String(editForm.buyer_id),
+        sale_price: Number(editForm.sale_price),
+      };
+      if (!payload.agent_id) delete payload.agent_id;
+      await axios.put(`${backendurl}/api/transactions/${editForm._id}`, payload, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      toast.success('Transaction updated');
+      setShowEditModal(false);
+      setEditForm(null);
+      fetchTransactions();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update transaction');
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   const getReferenceName = (id, referenceArray, nameField = 'name') => {
@@ -255,19 +236,49 @@ const Transactions = () => {
     }
   };
 
+  // Utility function to safely extract an _id
+  function safeGetId(obj) {
+    return obj && typeof obj === 'object' && obj._id ? obj._id : obj ? String(obj) : '';
+  }
+
+  // Utility function to format date for datetime-local input
+  function formatDateForInput(date) {
+    if (!date) return '';
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
   useEffect(() => {
     fetchTransactions();
     fetchReferenceData();
   }, []);
 
   const filteredTransactions = transactions.filter((transaction) => {
-    const property = properties.find(p => p._id === (transaction.property_id?._id || transaction.property_id));
-    const seller = sellers.find(s => s._id === (transaction.seller_id?._id || transaction.seller_id));
-    const client = clients.find(c => c._id === (transaction.buyer_id?._id || transaction.buyer_id));
-    const agent = agents.find(a => a._id === (transaction.agent_id?._id || transaction.agent_id));
+    const propertyId = transaction.property_id && typeof transaction.property_id === 'object'
+      ? transaction.property_id._id
+      : transaction.property_id;
+    const sellerId = transaction.seller_id && typeof transaction.seller_id === 'object'
+      ? transaction.seller_id._id
+      : transaction.seller_id;
+    const buyerId = transaction.buyer_id && typeof transaction.buyer_id === 'object'
+      ? transaction.buyer_id._id
+      : transaction.buyer_id;
+    const agentId = transaction.agent_id && typeof transaction.agent_id === 'object'
+      ? transaction.agent_id._id
+      : transaction.agent_id;
+
+    const property = properties.find(p => p._id === propertyId);
+    const seller = sellers.find(s => s._id === sellerId);
+    const client = clients.find(c => c._id === buyerId);
+    const agent = agents.find(a => a._id === agentId);
 
     const propertyTitle = property?.title?.toLowerCase() || "";
-    const sellerName = seller?.full_name?.toLowerCase() || "";
+    const sellerName = seller?.user_id?.name?.toLowerCase() || "";
     const buyerName = client?.user_id?.name?.toLowerCase() || "";
     const agentName = agent?.user_id?.name?.toLowerCase() || "";
 
@@ -281,6 +292,25 @@ const Transactions = () => {
       agentName.includes(search)
     );
   });
+
+  // Get current user and roles
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const roles = JSON.parse(localStorage.getItem('roles') || '[]');
+
+  // Filter properties for transaction creation
+  const myProperties = properties.filter(property => {
+    if (user.isAdmin) return true;
+    if (!user._id) return false;
+    return (
+      (property.agent && (property.agent._id === user._id || property.agent === user._id)) ||
+      (property.seller && (property.seller._id === user._id || property.seller === user._id))
+    );
+  });
+
+  // Add diagnostic logging at the top of the component render
+  console.log('sellers:', sellers);
+  console.log('agents:', agents);
+  console.log('transactions:', transactions);
 
   if (loading) {
     return (
@@ -327,7 +357,6 @@ const Transactions = () => {
                 <option value="cancelled">Cancelled</option>
               </select>
             </div>
-
             <button
               onClick={() => setShowAddModal(true)}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -356,7 +385,14 @@ const Transactions = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredTransactions.map((transaction) => (
+                {filteredTransactions.map((transaction) => {
+                  let seller = sellers.find(c => safeGetId(c.user_id) === safeGetId(transaction.seller_id));
+                  if (!seller) seller = sellers.find(s => s.user_id && s.user_id._id === String(transaction.seller_id));
+                  let agent = agents.find(a => a.user_id && a.user_id._id === String(transaction.agent_id));
+                  if (!agent) agent = agents.find(a => a.user_id && a.user_id._id === String(transaction.agent_id));
+                  const property = properties.find(p => safeGetId(p._id) === safeGetId(transaction.property_id));
+                  const client = clients.find(c => safeGetId(c._id) === safeGetId(transaction.buyer_id));
+                  return (
                   <motion.tr
                     key={transaction._id}
                     initial={{ opacity: 0, y: 20 }}
@@ -369,54 +405,40 @@ const Transactions = () => {
                         <Home className="w-5 h-5 text-gray-400 mr-2" />
                         <div>
                           <p className="font-medium text-gray-900">
-                            {(() => {
-                              const property = properties.find(p => p._id === (transaction.property_id?._id || transaction.property_id));
-                              return property ? `${property.title} - ${property.city?.city_name || ''}` : 'N/A';
-                            })()}
+                              {property ? `${property.title} - ${property.city?.city_name || ''}` : 'N/A'}
                           </p>
                         </div>
                       </div>
                     </td>
-                    {/* Seller */}
+                      {/* Seller (show user name) */}
                     <td className="px-6 py-4 text-xs">
                       <div className="flex items-center">
                         <User className="w-5 h-5 text-gray-400 mr-2" />
                         <div>
                           <p className="font-medium text-gray-900">
-                            {(() => {
-                              const seller = sellers.find(s => s._id === (transaction.seller_id?._id || transaction.seller_id));
-                              return seller ? seller.full_name : 'N/A';
-                            })()}
+                              {seller ? `${seller.user_id.name}` : 'N/A'}
                           </p>
                         </div>
                       </div>
                     </td>
-                    {/* Buyer */}
+                      {/* Buyer (show user name) */}
                     <td className="px-6 py-4 text-xs">
                       <div className="flex items-center">
                         <User className="w-5 h-5 text-gray-400 mr-2" />
                         <div>
                           <p className="font-medium text-gray-900">
-                            {(() => {
-                              const client = clients.find(c => c._id === (transaction.buyer_id?._id || transaction.buyer_id));
-                              return client ? (client.user_id?.name || 'N/A') : 'N/A';
-                            })()}
+                              {client && client.user_id && client.user_id.name ? client.user_id.name : 'N/A'}
                           </p>
                         </div>
                       </div>
                     </td>
-                    {/* Agent */}
+                      {/* Agent (show user name) */}
                     <td className="px-6 py-4 text-xs">
                       <div className="flex items-center">
                         <User className="w-5 h-5 text-gray-400 mr-2" />
                         <div>
                           <p className="font-medium text-gray-900">
-                            {(() => {
-                              if (!transaction.agent_id) return '—';
-                              const agentId = transaction.agent_id?._id || transaction.agent_id;
-                              const agent = agents.find(a => a._id === agentId);
-                              return agent ? (agent.user_id?.name || 'N/A') : 'N/A';
-                            })()}
+                              {transaction.agent_id && transaction.agent_id.name ? transaction.agent_id.name : 'N/A'}
                           </p>
                         </div>
                       </div>
@@ -453,26 +475,17 @@ const Transactions = () => {
                     {/* Actions */}
                     <td className="px-6 py-4 text-xs">
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => openEditModal(transaction)}
-                          className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
-                          disabled={actionLoading}
-                          title="Edit transaction"
-                        >
-                          <Edit className="w-4 h-4" />
+                          <button onClick={() => handleEditClick(transaction)} className="p-1 rounded hover:bg-gray-200">
+                            <Edit className="w-4 h-4 text-blue-500" />
                         </button>
-                        <button
-                          onClick={() => handleDeleteTransaction(transaction._id)}
-                          className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
-                          disabled={actionLoading}
-                          title="Delete transaction"
-                        >
-                          <Trash2 className="w-4 h-4" />
+                          <button onClick={() => handleDeleteTransaction(transaction._id)} className="p-1 rounded hover:bg-gray-200">
+                            <Trash2 className="w-4 h-4 text-red-500" />
                         </button>
                       </div>
                     </td>
                   </motion.tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -485,52 +498,42 @@ const Transactions = () => {
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
-      {(showAddModal || editingTransaction) && (
+      {/* Add Transaction Modal */}
+      {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">
-              {editingTransaction ? "Edit Transaction" : "Add New Transaction"}
-            </h2>
-            <form onSubmit={editingTransaction ? handleEditTransaction : handleAddTransaction}>
+            <h2 className="text-xl font-bold mb-4">Add New Transaction</h2>
+            <form onSubmit={handleAddTransaction}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Transaction Date *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Transaction Date *</label>
                   <input
                     type="datetime-local"
                     name="transaction_date"
-                    value={formData.transaction_date}
-                    onChange={handleFormChange}
+                    value={addForm.transaction_date}
+                    onChange={handleAddFormChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   />
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Price of Sale / Monthly Rent *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Price of Sale / Monthly Rent *</label>
                   <input
                     type="number"
                     name="sale_price"
-                    value={formData.sale_price}
-                    onChange={handleFormChange}
+                    value={addForm.sale_price}
+                    onChange={handleAddFormChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Enter sale price"
                     required
                   />
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Status *</label>
                   <select
                     name="status"
-                    value={formData.status}
-                    onChange={handleFormChange}
+                    value={addForm.status}
+                    onChange={handleAddFormChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   >
@@ -540,15 +543,12 @@ const Transactions = () => {
                     <option value="cancelled">Cancelled</option>
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Deal Type *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Deal Type *</label>
                   <select
                     name="deal_type"
-                    value={formData.deal_type}
-                    onChange={handleFormChange}
+                    value={addForm.deal_type}
+                    onChange={handleAddFormChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   >
@@ -557,15 +557,184 @@ const Transactions = () => {
                     <option value="rent">Rent</option>
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Property *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Property *</label>
                   <select
                     name="property_id"
-                    value={formData.property_id}
-                    onChange={handlePropertyChange}
+                    value={addForm.property_id}
+                    onChange={handleAddFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select property</option>
+                    {myProperties.map((property) => (
+                      <option key={property._id} value={property._id}>
+                        {property.title} - {property.city?.city_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Seller</label>
+                  <select
+                    name="seller_id"
+                    value={addForm.seller_id}
+                    onChange={handleAddFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select Seller</option>
+                    {sellers
+                      .filter(seller => seller && seller.user_id && typeof seller.user_id === 'object' && seller.user_id.name && seller.user_id._id)
+                      .reduce((unique, seller) => {
+                        if (!unique.some(c => c.user_id && c.user_id._id === seller.user_id._id)) unique.push(seller);
+                        return unique;
+                      }, [])
+                      .map(seller => (
+                        <option key={seller.user_id._id} value={seller.user_id._id}>
+                          {seller.user_id.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Agent</label>
+                  <select
+                    name="agent_id"
+                    value={addForm.agent_id}
+                    onChange={handleAddFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select Agent</option>
+                    {agents
+                      .filter(agent => agent && agent.user_id && typeof agent.user_id === 'object' && agent.user_id.name && agent.user_id._id)
+                      .reduce((unique, agent) => {
+                        if (!unique.some(c => c.user_id && c.user_id._id === agent.user_id._id)) unique.push(agent);
+                        return unique;
+                      }, [])
+                      .map(agent => (
+                        <option key={agent.user_id._id} value={agent.user_id._id}>
+                          {agent.user_id.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Buyer (Client) *</label>
+                  <select
+                    name="buyer_id"
+                    value={addForm.buyer_id}
+                    onChange={handleAddFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select buyer</option>
+                    {(() => {
+                      const filteredClients = clients
+                        .filter(client => client && client.user_id && typeof client.user_id === 'object' && client.user_id.name && client.user_id._id);
+                      filteredClients.forEach(client => console.log('client in dropdown:', client));
+                      return filteredClients
+                        .reduce((unique, client) => {
+                          if (!unique.some(c => c.user_id && c.user_id._id === client.user_id._id)) unique.push(client);
+                          return unique;
+                        }, [])
+                        .map(client => (
+                          <option key={client._id} value={client._id}>
+                            {client.user_id.name}
+                          </option>
+                        ));
+                    })()}
+                  </select>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  disabled={addLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  disabled={addLoading}
+                >
+                  {addLoading ? <Loader className="w-4 h-4 animate-spin" /> : 'Add'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Transaction Modal */}
+      {showEditModal && editForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Edit Transaction</h2>
+            <form onSubmit={handleEditTransaction}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Transaction Date *</label>
+                  <input
+                    type="datetime-local"
+                    name="transaction_date"
+                    value={formatDateForInput(editForm.transaction_date)}
+                    onChange={handleEditFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Price of Sale / Monthly Rent *</label>
+                  <input
+                    type="number"
+                    name="sale_price"
+                    value={editForm.sale_price}
+                    onChange={handleEditFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter sale price"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+                  <select
+                    name="status"
+                    value={editForm.status}
+                    onChange={handleEditFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select status</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Deal Type *</label>
+                  <select
+                    name="deal_type"
+                    value={editForm.deal_type}
+                    onChange={handleEditFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select deal type</option>
+                    <option value="sale">Sale</option>
+                    <option value="rent">Rent</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Property *</label>
+                  <select
+                    name="property_id"
+                    value={editForm.property_id}
+                    onChange={handleEditFormChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   >
@@ -577,43 +746,66 @@ const Transactions = () => {
                     ))}
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Seller *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Seller</label>
                   <select
                     name="seller_id"
-                    value={formData.seller_id}
-                    onChange={handleFormChange}
+                    value={editForm.seller_id}
+                    onChange={handleEditFormChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   >
-                    <option value="">Select seller</option>
-                    {sellers.map((seller) => (
-                      <option key={seller._id} value={seller._id}>
-                        {seller.full_name}
+                    <option value="">Select Seller</option>
+                    {sellers
+                      .filter(seller => seller && seller.user_id && typeof seller.user_id === 'object' && seller.user_id.name && seller.user_id._id)
+                      .reduce((unique, seller) => {
+                        if (!unique.some(c => c.user_id && c.user_id._id === seller.user_id._id)) unique.push(seller);
+                        return unique;
+                      }, [])
+                      .map(seller => (
+                        <option key={seller.user_id._id} value={seller.user_id._id}>
+                          {seller.user_id.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Agent</label>
+                  <select
+                    name="agent_id"
+                    value={editForm.agent_id}
+                    onChange={handleEditFormChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="">Select Agent</option>
+                    {agents
+                      .filter(agent => agent && agent.user_id && typeof agent.user_id === 'object' && agent.user_id.name && agent.user_id._id)
+                      .reduce((unique, agent) => {
+                        if (!unique.some(c => c.user_id && c.user_id._id === agent.user_id._id)) unique.push(agent);
+                        return unique;
+                      }, [])
+                      .map(agent => (
+                        <option key={agent.user_id._id} value={agent.user_id._id}>
+                          {agent.user_id.name}
                       </option>
                     ))}
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Buyer (Client) *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Buyer (Client) *</label>
                   <select
                     name="buyer_id"
-                    value={formData.buyer_id}
-                    onChange={handleFormChange}
+                    value={editForm.buyer_id}
+                    onChange={handleEditFormChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   >
                     <option value="">Select buyer</option>
                     {clients
-                      .filter(client => client.user_id && typeof client.user_id === 'object' && client.user_id.name)
+                      .filter(client => client && client.user_id && typeof client.user_id === 'object' && client.user_id.name && client.user_id._id)
                       .reduce((unique, client) => {
-                        if (!unique.some(c => c.user_id._id === client.user_id._id)) unique.push(client);
+                        if (!unique.some(c => c.user_id && c.user_id._id === client.user_id._id)) unique.push(client);
                         return unique;
                       }, [])
                       .map(client => (
@@ -623,54 +815,22 @@ const Transactions = () => {
                       ))}
                   </select>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Agent
-                  </label>
-                  <select
-                    name="agent_id"
-                    value={formData.agent_id}
-                    onChange={handleFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Select agent</option>
-                    {agents
-                      .filter(agent => agent.user_id && typeof agent.user_id === 'object' && agent.user_id.name)
-                      .reduce((unique, agent) => {
-                        if (!unique.some(a => a.user_id._id === agent.user_id._id)) unique.push(agent);
-                        return unique;
-                      }, [])
-                      .map(agent => (
-                        <option key={agent._id} value={agent._id}>
-                          {agent.user_id.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
               </div>
-
               <div className="flex justify-end gap-2 mt-6">
                 <button
                   type="button"
-                  onClick={closeModal}
+                  onClick={() => setShowEditModal(false)}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                  disabled={actionLoading}
+                  disabled={editLoading}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                  disabled={actionLoading}
+                  disabled={editLoading}
                 >
-                  {actionLoading ? (
-                    <Loader className="w-4 h-4 animate-spin" />
-                  ) : editingTransaction ? (
-                    "Update"
-                  ) : (
-                    "Add"
-                  )}
+                  {editLoading ? <Loader className="w-4 h-4 animate-spin" /> : 'Save'}
                 </button>
               </div>
             </form>
