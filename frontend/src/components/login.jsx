@@ -9,7 +9,8 @@ import {
   Lock, 
   Sparkles, 
   Shield, 
-  ArrowRight, 
+  ArrowRight,
+  ArrowLeft, 
   Home,
   CheckCircle,
   User,
@@ -18,6 +19,7 @@ import {
 import { Backendurl } from "../App";
 import { toast } from "react-toastify";
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from "react-i18next";
 
 // Enhanced Animation Variants
 const containerVariants = {
@@ -102,6 +104,8 @@ const Login = () => {
   const [passwordFocused, setPasswordFocused] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
 
 
   const handleChange = (e) => {
@@ -122,14 +126,14 @@ const Login = () => {
       );
       if (response.data.success) {
         await login(response.data.token, response.data.user);
-        toast.success("Login successful!");
+        toast.success(t('login.success'));
         navigate("/");
       } else {
         toast.error(response.data.message);
       }
     } catch (error) {
       console.error("Error logging in:", error);
-      toast.error("An error occurred. Please try again.");
+      toast.error(t('login.error'));
     } finally {
       setLoading(false);
     }
@@ -164,21 +168,17 @@ const Login = () => {
       />
 
       <div className="relative z-10 flex items-center justify-center min-h-screen px-4 py-20">
-        <motion.div
+        <motion.div 
+          className="w-full max-w-md"
+          variants={containerVariants}
           initial="hidden"
           animate="visible"
           exit="exit"
-          variants={containerVariants}
-          className="w-full max-w-md"
         >
-          <motion.div
+          <motion.div 
+            className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-blue-500/10 border border-white/20"
             variants={cardVariants}
-            className="relative bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden"
           >
-            {/* Decorative Elements */}
-            <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-blue-500/20 to-indigo-600/20 rounded-full blur-xl"></div>
-            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-gradient-to-br from-purple-500/20 to-pink-600/20 rounded-full blur-xl"></div>
-            
             <div className="relative p-8 pt-12">
               {/* Logo & Title Section */}
               <motion.div 
@@ -214,10 +214,10 @@ const Login = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome back!</h2>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('login.welcome')}</h2>
                   <p className="text-gray-600 flex items-center justify-center gap-2">
                     <Shield className="w-4 h-4 text-blue-500" />
-                    Sign in to your secure account
+                    {t('login.signInSecure')}
                   </p>
                 </motion.div>
               </motion.div>
@@ -233,9 +233,18 @@ const Login = () => {
                   className="space-y-2"
                   variants={inputVariants}
                 >
-                  <label htmlFor="email" className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                    <Mail className="w-4 h-4 text-blue-500" />
-                    Email address
+                  <label htmlFor="email" className={`flex items-center gap-2 text-sm font-semibold text-gray-700 ${isRTL ? 'flex-row-reverse justify-end' : ''}`}>
+                    {isRTL ? (
+                      <>
+                        {t('login.emailLabel')}
+                        <Mail className="w-4 h-4 text-blue-500" />
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4 text-blue-500" />
+                        {t('login.emailLabel')}
+                      </>
+                    )}
                   </label>
                   <div className="relative">
                     <motion.input
@@ -247,12 +256,12 @@ const Login = () => {
                       onChange={handleChange}
                       onFocus={() => setEmailFocused(true)}
                       onBlur={() => setEmailFocused(false)}
-                      className="w-full px-4 py-4 pl-12 rounded-xl bg-gray-50/80 backdrop-blur-sm border border-gray-200/50 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300 text-gray-800 placeholder-gray-400"
-                      placeholder="name@company.com"
+                      className={`w-full px-4 py-4 ${isRTL ? 'pr-12 pl-4 text-right' : 'pl-12 pr-4'} rounded-xl bg-gray-50/80 backdrop-blur-sm border border-gray-200/50 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300 text-gray-800 placeholder-gray-400`}
+                      placeholder={t('login.emailPlaceholder')}
                       whileFocus={{ scale: 1.02 }}
                     />
                     <motion.div 
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                      className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-gray-400`}
                       animate={emailFocused ? { scale: 1.1, color: "#3B82F6" } : { scale: 1 }}
                     >
                       <User className="w-5 h-5" />
@@ -265,9 +274,18 @@ const Login = () => {
                   className="space-y-2"
                   variants={inputVariants}
                 >
-                  <label htmlFor="password" className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                    <Lock className="w-4 h-4 text-blue-500" />
-                    Password
+                  <label htmlFor="password" className={`flex items-center gap-2 text-sm font-semibold text-gray-700 ${isRTL ? 'flex-row-reverse justify-end' : ''}`}>
+                    {isRTL ? (
+                      <>
+                        {t('login.passwordLabel')}
+                        <Lock className="w-4 h-4 text-blue-500" />
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="w-4 h-4 text-blue-500" />
+                        {t('login.passwordLabel')}
+                      </>
+                    )}
                   </label>
                   <div className="relative">
                     <motion.input
@@ -279,12 +297,12 @@ const Login = () => {
                       onChange={handleChange}
                       onFocus={() => setPasswordFocused(true)}
                       onBlur={() => setPasswordFocused(false)}
-                      className="w-full px-4 py-4 pl-12 pr-12 rounded-xl bg-gray-50/80 backdrop-blur-sm border border-gray-200/50 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300 text-gray-800 placeholder-gray-400"
+                      className={`w-full px-4 py-4 ${isRTL ? 'pr-12 pl-12 text-right' : 'pl-12 pr-12'} rounded-xl bg-gray-50/80 backdrop-blur-sm border border-gray-200/50 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300 text-gray-800 placeholder-gray-400`}
                       placeholder="••••••••"
                       whileFocus={{ scale: 1.02 }}
                     />
                     <motion.div 
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                      className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 -translate-y-1/2 text-gray-400`}
                       animate={passwordFocused ? { scale: 1.1, color: "#3B82F6" } : { scale: 1 }}
                     >
                       <Key className="w-5 h-5" />
@@ -292,7 +310,7 @@ const Login = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
+                      className={`absolute ${isRTL ? 'left-4' : 'right-4'} top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100`}
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -300,12 +318,12 @@ const Login = () => {
                 </motion.div>
 
                 {/* Forgot Password Link */}
-                <div className="flex items-center justify-end">
+                <div className={`flex items-center ${isRTL ? 'justify-start' : 'justify-end'}`}>
                   <Link 
                     to="/forgot-password"
                     className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium hover:underline"
                   >
-                    Forgot password?
+                    {t('login.forgotPassword')}
                   </Link>
                 </div>
 
@@ -321,13 +339,13 @@ const Login = () => {
                   {loading ? (
                     <>
                       <Loader className="w-5 h-5 animate-spin" />
-                      <span>Signing in...</span>
+                      <span>{t('login.signingIn')}</span>
                     </>
                   ) : (
                     <>
                       <CheckCircle className="w-5 h-5" />
-                      <span>Sign in</span>
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                      <span>{t('login.signIn')}</span>
+                      {isRTL ? <ArrowLeft className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" /> : <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />}
                     </>
                   )}
                 </motion.button>
@@ -339,7 +357,7 @@ const Login = () => {
                   </div>
                   <div className="relative flex justify-center text-sm">
                     <span className="px-4 bg-white/80 text-gray-500 font-medium">
-                      Don&apos;t have an account?
+                      {t('login.noAccount')}
                     </span>
                   </div>
                 </div>
@@ -354,8 +372,8 @@ const Login = () => {
                     className="w-full flex items-center justify-center gap-3 px-6 py-4 border border-gray-200 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:border-blue-200 transition-all duration-300 font-medium group"
                   >
                     <User className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-colors duration-300" />
-                    Create an account
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                    {t('login.createAccount')}
+                    {isRTL ? <ArrowLeft className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" /> : <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />}
                   </Link>
                 </motion.div>
               </motion.form>

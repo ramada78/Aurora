@@ -8,9 +8,10 @@ import {
   Mail, 
   Send, 
   MapPin, 
-  Phone,
+  ChevronLeft,
   ChevronRight,
   ArrowRight,
+  ArrowLeft,
   ChevronDown,
   Sparkles,
   Heart,
@@ -26,6 +27,8 @@ import axios from 'axios';
 import { Backendurl } from '../App';
 import PropTypes from 'prop-types';
 import Client from '../../../backend/models/Client';
+import { useTranslation } from 'react-i18next';
+import logo from '../assets/images/logo.png';
 
 // Enhanced Animation Variants
 const containerVariants = {
@@ -156,6 +159,8 @@ const FooterColumn = ({ title, children, className = '', delay = 0, icon: Icon }
 
 // Footer Link Component
 const FooterLink = ({ href, children, icon: Icon }) => {
+  const { i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar' || i18n.dir() === 'rtl';
   return (
     <motion.a 
       href={href} 
@@ -166,54 +171,24 @@ const FooterLink = ({ href, children, icon: Icon }) => {
       <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
       <div className="relative z-10 flex items-center">
         {Icon && <Icon className="w-4 h-4 mr-3 text-blue-500 opacity-70 group-hover:opacity-100 transition-opacity duration-300" />}
-        <ChevronRight className="w-3 h-3 mr-2 text-blue-500 opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-x-2 group-hover:translate-x-0" />
+        {isRTL ? <ChevronLeft className="w-3 h-3 ml-2 mr-2 text-blue-500 opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-x-2 group-hover:translate-x-0" /> 
+        : <ChevronRight className="w-3 h-3 mr-2 text-blue-500 opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-x-2 group-hover:translate-x-0" />}
         <span className="font-medium">{children}</span>
       </div>
     </motion.a>
   );
 };
 
-// Social Links Component
-const socialLinks = [
-  { 
-    icon: Twitter, 
-    href: '#', 
-    label: 'Twitter', 
-    color: 'from-[#1DA1F2] to-[#0d8bd9]',
-    hoverColor: 'hover:shadow-[#1DA1F2]/25' 
-  },
-  { 
-    icon: Facebook, 
-    href: '#', 
-    label: 'Facebook', 
-    color: 'from-[#1877F2] to-[#0d65d9]',
-    hoverColor: 'hover:shadow-[#1877F2]/25' 
-  },
-  { 
-    icon: Instagram, 
-    href: '#', 
-    label: 'Instagram', 
-    color: 'from-[#fd5949] via-[#d6249f] to-[#285AEB]',
-    hoverColor: 'hover:shadow-pink-500/25' 
-  },
-  { 
-    icon: Github, 
-    href: 'https://github.com/AAYUSH412/Real-Estate-Website', 
-    label: 'GitHub', 
-    color: 'from-gray-800 to-gray-600',
-    hoverColor: 'hover:shadow-gray-800/25' 
-  },
-];
-
 // Newsletter Component
 const Newsletter = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
-      toast.error('Please enter your email');
+      toast.error(t('footer.enter_email'));
       return;
     }
 
@@ -221,14 +196,14 @@ const Newsletter = () => {
     try {
       const response = await axios.post(`${Backendurl || 'http://localhost:4000'}/news/newsdata`, { email });
       if (response.status === 200) {
-        toast.success('🎉 Successfully subscribed to our newsletter!');
+        toast.success(t('footer.subscribe_success'));
         setEmail('');
       } else {
-        toast.error('Failed to subscribe. Please try again.');
+        toast.error(t('footer.subscribe_fail'));
       }
     } catch (error) {
       console.error('Error subscribing to newsletter:', error);
-      toast.error('Failed to subscribe. Please try again.');
+      toast.error(t('footer.subscribe_fail'));
     } finally {
       setLoading(false);
     }
@@ -255,11 +230,11 @@ const Newsletter = () => {
         >
           <Mail className="w-5 h-5 text-white" />
         </motion.div>
-        <h3 className="text-xl font-bold text-gray-800">Stay Updated</h3>
+        <h3 className="text-xl font-bold text-gray-800">{t('footer.stay_updated')}</h3>
       </div>
       
       <p className="text-gray-600 mb-6 text-sm leading-relaxed">
-        Get the latest property listings, market insights, and exclusive deals delivered straight to your inbox.
+        {t('footer.newsletter_desc')}
       </p>
       
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -269,7 +244,7 @@ const Newsletter = () => {
             type="email"
             name="email"
             id="newsletter-email-footer"
-            placeholder="Enter your email address"
+            placeholder={t('footer.email_placeholder')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="pl-12 pr-4 py-4 w-full text-gray-700 placeholder-gray-400 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 shadow-sm"
@@ -286,12 +261,12 @@ const Newsletter = () => {
           {loading ? (
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Subscribing...</span>
+              <span>{t('footer.subscribing')}</span>
             </div>
           ) : (
             <div className="flex items-center gap-2">
               <Send className="w-5 h-5" />
-              <span>Subscribe Now</span>
+              <span>{t('footer.subscribe_now')}</span>
               <Zap className="w-4 h-4" />
             </div>
           )}
@@ -300,7 +275,7 @@ const Newsletter = () => {
 
       <p className="mt-4 text-xs text-gray-500 flex items-center gap-1">
         <Shield className="w-3 h-3" />
-        By subscribing, you agree to our <a href="#" className="underline hover:text-blue-600 transition-colors">Privacy Policy</a>.
+        {t('footer.privacy_agreement')} <a href="#" className="underline hover:text-blue-600 transition-colors">{t('footer.privacy_policy')}</a>.
       </p>
     </motion.div>
   );
@@ -308,34 +283,36 @@ const Newsletter = () => {
 
 // Main Footer Component
 const companyLinks = [
-  { name: 'Home', href: '/', icon: Home },
-  { name: 'Properties', href: '/properties', icon: MapPin },
-  { name: 'About Us', href: '/about', icon: Star },
-  { name: 'Contact', href: '/contact', icon: Mail },
-  { name: 'AI Property Hub', href: '/ai-agent', icon: Zap },
+  { name: 'footer.home', href: '/', icon: Home },
+  { name: 'footer.properties', href: '/properties', icon: MapPin },
+  { name: 'footer.about_us', href: '/about', icon: Star },
+  { name: 'footer.contact', href: '/contact', icon: Mail },
+  { name: 'footer.ai_property_hub', href: '/ai-agent', icon: Zap },
 ];
 
-const helpLinks = [
-  { name: 'Rama Dadeekhi', href: '/', icon: Sparkles },
-  { name: 'Seba Ismail', href: '/', icon: Sparkles },
-  { name: 'Mohannad Tarakji', href: '/', icon: Sparkles },
-  { name: 'Mahmoud Alsaied', href: '/', icon: Sparkles },
+const teamMembers = [
+  { name: 'footer.rama_dadeekhi', href: '/', icon: Sparkles },
+  { name: 'footer.seba_ismail', href: '/', icon: Sparkles },
+  { name: 'footer.mohannad_tarakji', href: '/', icon: Sparkles },
+  { name: 'footer.mahmoud_alsaied', href: '/', icon: Sparkles },
 ];
 
 const contactInfo = [
   { 
     icon: MapPin, 
-    text: 'Aleppo University, Informatics Engineering',
+    text: 'footer.aleppo_university',
     href: 'https:#' 
   },
   { 
     icon: Mail, 
-    text: 'Dr. Marwa Dahdouh',
+    text: 'footer.marwa_dahdouh',
     href: 'mailto:#' 
   },
 ];
 
 const Footer = () => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar' || i18n.dir() === 'rtl';
   return (
     <footer className="relative">
       {/* Decorative background elements */}
@@ -355,16 +332,16 @@ const Footer = () => {
           >
             <div className="flex items-center justify-center lg:justify-start mb-6">
               <motion.div 
-                className="p-3 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-lg"
+                className="p-1 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl shadow-lg"
                 animate={glowAnimation}
               >
-                <Home className="h-8 w-8 text-white" />
+                <img src={logo} alt="Aurora logo" className="w-10 h-10 brightness-0 invert" />
               </motion.div>
-              <div className="ml-4">
+              <div className={`${isRTL ? 'mr-4 text-right' : 'ml-4'}`}>
                 <span className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
-                  Aurora
+                  {t('navbar.aurora')}
                 </span>
-                <p className="text-sm text-gray-500 font-medium">Future Real Estate</p>
+                <p className="text-sm text-gray-500 font-medium">{t('navbar.future_real_estate')}</p>
               </div>
             </div>
             
@@ -374,7 +351,7 @@ const Footer = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.6 }}
             >
-              This website is designed & developed in order to serve our graduation project in Aleppo University - Informatics engineering.
+              {t('footer.brand_desc')}
             </motion.p>
           </motion.div>
 
@@ -382,7 +359,7 @@ const Footer = () => {
           <div className="hidden lg:grid grid-cols-12 gap-8 mb-12">
             {/* Quick Links Column */}
             <FooterColumn 
-              title="Quick Links" 
+              title={t('footer.quick_links')} 
               className="col-span-3" 
               delay={0.2}
               icon={Home}
@@ -391,7 +368,7 @@ const Footer = () => {
                 {companyLinks.map(link => (
                   <li key={link.name}>
                     <FooterLink href={link.href} icon={link.icon}>
-                      {link.name}
+                      {t(link.name)}
                     </FooterLink>
                   </li>
                 ))}
@@ -400,16 +377,16 @@ const Footer = () => {
 
             {/* Help Column */}
             <FooterColumn 
-              title="Team Members" 
+              title={t('footer.team_members')} 
               className="col-span-3" 
               delay={0.3}
               icon={Heart}
             >
               <ul className="space-y-3">
-                {helpLinks.map(link => (
+                {teamMembers.map(link => (
                   <li key={link.name}>
                     <FooterLink href={link.href} icon={link.icon}>
-                      {link.name}
+                      {t(link.name)}
                     </FooterLink>
                   </li>
                 ))}
@@ -418,7 +395,7 @@ const Footer = () => {
 
             {/* Contact Info */}
             <FooterColumn 
-              title="Credits" 
+              title={t('footer.credits')} 
               className="col-span-3" 
               delay={0.4}
               icon={MapPin}
@@ -433,10 +410,10 @@ const Footer = () => {
                       rel={item.icon === MapPin ? "noopener noreferrer" : undefined}
                       whileHover={{ x: 5 }}
                     >
-                      <div className="p-2 bg-blue-100 rounded-lg mr-4 group-hover:bg-blue-200 transition-colors duration-300">
+                      <div className={`p-2 bg-blue-100 rounded-lg ${isRTL ? 'ml-4' : 'mr-4'} group-hover:bg-blue-200 transition-colors duration-300`}>
                         <item.icon className="w-4 h-4 text-blue-600" />
                       </div>
-                      <span className="text-sm font-medium leading-relaxed">{item.text}</span>
+                      <span className="text-sm font-medium leading-relaxed">{t(item.text)}</span>
                     </motion.a>
                   </li>
                 ))}
@@ -457,31 +434,31 @@ const Footer = () => {
             whileInView="visible"
             viewport={{ once: true }}
           >
-            <MobileFooterSection title="Quick Links" icon={Home}>
+            <MobileFooterSection title={t('footer.quick_links')} icon={Home}>
               <ul className="space-y-2">
                 {companyLinks.map(link => (
                   <li key={link.name}>
                     <FooterLink href={link.href} icon={link.icon}>
-                      {link.name}
+                      {t(link.name)}
                     </FooterLink>
                   </li>
                 ))}
               </ul>
             </MobileFooterSection>
 
-            <MobileFooterSection title="Support" icon={Heart}>
+            <MobileFooterSection title={t('footer.support')} icon={Heart}>
               <ul className="space-y-2">
-                {helpLinks.map(link => (
+                {teamMembers.map(link => (
                   <li key={link.name}>
                     <FooterLink href={link.href} icon={link.icon}>
-                      {link.name}
+                      {t(link.name)}
                     </FooterLink>
                   </li>
                 ))}
               </ul>
             </MobileFooterSection>
 
-            <MobileFooterSection title="Contact Us" icon={MapPin}>
+            <MobileFooterSection title={t('footer.contact_us')} icon={MapPin}>
               <ul className="space-y-3">
                 {contactInfo.map((item, index) => (
                   <li key={index}>
@@ -492,7 +469,7 @@ const Footer = () => {
                       rel={item.icon === MapPin ? "noopener noreferrer" : undefined}
                     >
                       <item.icon className="w-4 h-4 mt-1 mr-3 flex-shrink-0 text-blue-500" />
-                      <span className="text-sm">{item.text}</span>
+                      <span className="text-sm">{t(item.text)}</span>
                     </motion.a>
                   </li>
                 ))}
@@ -519,9 +496,9 @@ const Footer = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <span>© {new Date().getFullYear()} Aurora. All Rights Reserved.</span>
+              <span>{t('footer.copyright', { year: new Date().getFullYear() })}</span>
               <Heart className="w-4 h-4 text-red-400 animate-pulse" />
-              <span className="text-gray-400">Made with love</span>
+              <span className="text-gray-400">{t('footer.made_with_love')}</span>
             </motion.p>
             
             <motion.a
@@ -534,8 +511,8 @@ const Footer = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
             >
               <Sparkles className="w-4 h-4" />
-              Explore Properties
-              <ArrowRight className="w-4 h-4" />
+              {t('footer.explore_properties')}
+              {isRTL ? <ArrowLeft className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
             </motion.a>
           </div>
         </div>

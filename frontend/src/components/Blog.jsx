@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Calendar, ArrowRight, Clock, Share2, Bookmark, BookmarkCheck, Search, Tag, ExternalLink, ChevronRight, TrendingUp, Eye } from 'lucide-react';
+import { Calendar, ArrowRight, ArrowLeft, Clock, Share2, Bookmark, BookmarkCheck, Search, Tag, ExternalLink, ChevronRight, ChevronLeft, TrendingUp, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { blogPosts } from '../assets/blogdata';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 // Animation variants
 const containerVariants = {
@@ -63,6 +64,8 @@ const floatingAnimation = {
 
 // BlogCard component
 const BlogCard = ({ post }) => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [views] = useState(Math.floor(Math.random() * 1000) + 100);
@@ -72,22 +75,22 @@ const BlogCard = ({ post }) => {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: post.title,
-          text: post.excerpt,
+          title: isRTL ? (post.title_ar || post.title) : post.title,
+          text: isRTL ? (post.excerpt_ar || post.excerpt) : post.excerpt,
           url: post.link
         });
-        toast.success("Post shared successfully! 🎉", {
+        toast.success(t('post_shared_successfully'), {
           style: { borderRadius: '12px', background: '#10B981', color: '#fff' }
         });
       } else {
         await navigator.clipboard.writeText(post.link);
-        toast.success("Link copied to clipboard! 📋", {
+        toast.success(t('link_copied_to_clipboard'), {
           style: { borderRadius: '12px', background: '#10B981', color: '#fff' }
         });
       }
     } catch (error) {
       console.error('Error sharing:', error);
-      toast.error("Unable to share post 😕", {
+      toast.error(t('unable_to_share_post'), {
         style: { borderRadius: '12px', background: '#EF4444', color: '#fff' }
       });
     }
@@ -98,11 +101,11 @@ const BlogCard = ({ post }) => {
     setIsBookmarked(!isBookmarked);
     
     if (!isBookmarked) {
-      toast.success(`Saved "${post.title}" to your reading list 💾`, {
+      toast.success(t('saved_to_reading_list', { title: isRTL ? (post.title_ar || post.title) : post.title }), {
         style: { borderRadius: '12px', background: '#3B82F6', color: '#fff' }
       });
     } else {
-      toast.info(`Removed "${post.title}" from your reading list 🗑️`, {
+      toast.info(t('removed_from_reading_list', { title: isRTL ? (post.title_ar || post.title) : post.title }), {
         style: { borderRadius: '12px', background: '#6B7280', color: '#fff' }
       });
     }
@@ -112,10 +115,22 @@ const BlogCard = ({ post }) => {
     window.open(post.link, '_blank', 'noopener,noreferrer');
   };
 
-  const estimatedReadTime = Math.ceil(post.excerpt.split(' ').length / 200);
+  const estimatedReadTime = Math.ceil((isRTL ? (post.excerpt_ar || post.excerpt) : post.excerpt).split(' ').length / 200);
   
   // Extract category from post (or use default)
-  const category = post.category || "Real Estate";
+  const category = post.category || t('real_estate');
+
+  // Map of known categories to translation keys
+  const categoriesMap = {
+    real_estate: t('real_estate'),
+    buying: t('buying'),
+    selling: t('selling'),
+    investment: t('investment'),
+    tips: t('tips'),
+    market_trends: t('market_trends'),
+  };
+  const categoryKey = post.category || 'real_estate';
+  const categoryLabel = categoriesMap[categoryKey] || categoryKey;
 
   return (
     <motion.div
@@ -133,8 +148,11 @@ const BlogCard = ({ post }) => {
       <div className="relative overflow-hidden aspect-w-16 aspect-h-9 bg-gradient-to-br from-blue-50 to-indigo-100">
         <img
           src={post.image}
-          alt={post.title}
+          alt={isRTL ? (post.title_ar || post.title) : post.title}
           className="w-full h-64 object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110"
+          onError={(e) => {
+            e.target.src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80';
+          }}
         />
         <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-all duration-500 ${isHovered ? 'opacity-90' : 'opacity-60'}`} />
         
@@ -144,7 +162,7 @@ const BlogCard = ({ post }) => {
           animate={floatingAnimation}
         >
           <span className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 backdrop-blur-md text-white text-xs font-semibold rounded-full shadow-lg border border-white/20">
-            {category}
+            {categoryLabel}
           </span>
         </motion.div>
 
@@ -170,7 +188,7 @@ const BlogCard = ({ post }) => {
                 }}
                 className="px-6 py-3 bg-white/95 backdrop-blur-sm text-blue-600 rounded-full flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-all duration-300 font-semibold text-sm shadow-xl border border-white/50 group-hover:scale-105"
               >
-                Read Full Article <ExternalLink className="w-4 h-4" />
+                {t('read_full_article')} <ExternalLink className="w-4 h-4" />
               </button>
             </motion.div>
           )}
@@ -207,26 +225,26 @@ const BlogCard = ({ post }) => {
         <div className="flex items-center justify-between text-gray-500 text-xs mb-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center">
-              <Calendar className="w-4 h-4 mr-2 text-blue-500" />
+              <Calendar className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'} text-blue-500`} />
               <span className="font-medium">{post.date}</span>
             </div>
             <div className="flex items-center">
-              <Clock className="w-4 h-4 mr-2 text-green-500" />
-              <span className="font-medium">{estimatedReadTime} min read</span>
+              <Clock className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'} text-green-500`} />
+              <span className="font-medium">{estimatedReadTime} {t('min_read')}</span>
             </div>
           </div>
           <div className="flex items-center text-orange-500">
-            <TrendingUp className="w-4 h-4 mr-1" />
-            <span className="text-xs font-medium">Trending</span>
+            <TrendingUp className={`w-4 h-4 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+            <span className="text-xs font-medium">{t('trending')}</span>
           </div>
         </div>
 
         <h3 className="text-xl font-bold text-gray-900 mb-4 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300 leading-tight">
-          {post.title}
+          {isRTL ? (post.title_ar || post.title) : post.title}
         </h3>
         
         <p className="text-gray-600 mb-6 line-clamp-3 text-sm leading-relaxed">
-          {post.excerpt}
+          {isRTL ? (post.excerpt_ar || post.excerpt) : post.excerpt}
         </p>
 
         <div className="flex items-center justify-between pt-6 border-t border-gray-100">
@@ -237,16 +255,10 @@ const BlogCard = ({ post }) => {
             }}
             className="inline-flex items-center text-blue-600 hover:text-blue-800 font-semibold transition-all duration-300 text-sm group/btn"
           >
-            Continue Reading
-            <ChevronRight className="w-4 h-4 ml-1 group-hover/btn:translate-x-1 transition-transform duration-300" />
+            {t('continue_reading')}
+            {isRTL ? <ChevronLeft className="w-4 h-4 mr-1 group-hover/btn:translate-x-1 transition-transform duration-300" /> : <ChevronRight className="w-4 h-4 ml-1 group-hover/btn:translate-x-1 transition-transform duration-300" />}
           </button>
 
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 text-xs text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
-              <Tag className="w-3 h-3 text-gray-400" />
-              <span className="font-medium">{post.tags?.[0] || "Property"}</span>
-            </div>
-          </div>
         </div>
       </div>
     </motion.div>
@@ -255,17 +267,34 @@ const BlogCard = ({ post }) => {
 
 // Main Blog component
 const Blog = () => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   
-  const categories = ['All', 'Buying', 'Selling', 'Investment', 'Tips', 'Market Trends'];
+  // Use category keys, not translated labels
+  const categories = [
+    { key: 'all', label: t('all') },
+    { key: 'buying', label: t('buying') },
+    { key: 'selling', label: t('selling') },
+    { key: 'investment', label: t('investment') },
+    { key: 'tips', label: t('tips') },
+    { key: 'market_trends', label: t('market_trends') },
+    { key: 'real_estate', label: t('real_estate') },
+  ];
   
+  // Filtering logic uses keys
   const filteredPosts = blogPosts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || (post.category || 'Real Estate') === selectedCategory;
-    
+    const matchesSearch = (i18n.language === 'ar'
+      ? (post.title_ar || post.title)
+      : post.title
+    ).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (i18n.language === 'ar'
+        ? (post.excerpt_ar || post.excerpt)
+        : post.excerpt
+      ).toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || (post.category || 'real_estate') === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -291,15 +320,15 @@ const Blog = () => {
             transition={{ duration: 2, repeat: Infinity }}
           >
             <TrendingUp className="w-4 h-4" />
-            Latest Real Estate Insights
+            {t('latest_real_estate_insights')}
           </motion.div>
           
           <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 relative">
             <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-              Expert Insights
+              {t('expert_insights')}
             </span>
             <br />
-            <span className="text-gray-900">& Market Updates</span>
+            <span className="text-gray-900">& {t('market_updates')}</span>
             <motion.div 
               className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"
               initial={{ width: 0 }}
@@ -308,8 +337,7 @@ const Blog = () => {
             />
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Stay ahead of the market with our curated collection of expert advice, 
-            market trends, and insider tips for your real estate journey.
+            {t('stay_ahead_of_market')}
           </p>
         </motion.div>
         
@@ -327,7 +355,7 @@ const Blog = () => {
               >
                 <input
                   type="text"
-                  placeholder="Search articles, topics, tips..."
+                  placeholder={t('search_articles_topics_tips')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
@@ -349,22 +377,22 @@ const Blog = () => {
             </div>
             
             <div className="flex flex-wrap gap-3 justify-center lg:justify-end">
-              {categories.map((category, index) => (
+              {categories.map((cat, index) => (
                 <motion.button
-                  key={category}
+                  key={cat.key}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * index }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedCategory(category)}
+                  onClick={() => setSelectedCategory(cat.key)}
                   className={`px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 shadow-lg ${
-                    selectedCategory === category
+                    selectedCategory === cat.key
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/25 transform scale-105'
                       : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 border border-gray-200'
                   }`}
                 >
-                  {category}
+                  {cat.label}
                 </motion.button>
               ))}
             </div>
@@ -397,21 +425,20 @@ const Blog = () => {
               >
                 <Search className="w-8 h-8 text-white" />
               </motion.div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">No articles found</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-4">{t('no_articles_found')}</h3>
               <p className="text-gray-600 max-w-md mx-auto mb-8 leading-relaxed">
-                {`We couldn't find any articles matching your search criteria. 
-                Try different keywords or explore our categories.`}
+                {`${t('couldnt_find_any_articles')}`}
               </p>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   setSearchTerm('');
-                  setSelectedCategory('All');
+                  setSelectedCategory('all');
                 }}
                 className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full font-semibold shadow-lg hover:shadow-xl transition-all"
               >
-                Clear Filters
+                {t('clear_filters')}
               </motion.button>
             </div>
           </motion.div>
@@ -431,14 +458,14 @@ const Blog = () => {
               shadow-2xl hover:shadow-blue-500/25 transition-all font-bold text-lg inline-flex items-center group relative overflow-hidden"
           >
             <span className="relative z-10 flex items-center">
-              Explore All Articles
-              <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform duration-300" />
+              {t('explore_all_articles')}
+              {isRTL ? <ArrowLeft className="w-5 h-5 mr-3 group-hover:translate-x-1 transition-transform duration-300" /> : <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform duration-300" />}
             </span>
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </motion.button>
           
           <p className="text-gray-500 mt-4 text-sm">
-            Join thousands of readers staying informed about real estate trends
+            {t('join_thousands_of_readers')}
           </p>
         </motion.div>
       </div>

@@ -19,8 +19,10 @@ import {
 import PropTypes from 'prop-types';
 import { Backendurl } from '../../App.jsx';
 import { getWishlist, addToWishlist, removeFromWishlist } from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
+  const { t, i18n } = useTranslation();
   const isGrid = viewType === 'grid';
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -90,6 +92,12 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
       setCurrentImageIndex((prev) => (prev - 1 + imagesCount) % imagesCount);
     }
   };
+
+  // Fallback logic for dynamic content
+  const title = property.title_ar || property.title_en || property.title;
+  const description = property.description_ar || property.description_en || property.description;
+  const city = property.city?.city_name_ar || property.city?.city_name_en || property.city?.city_name;
+  const propertyType = property.propertyType?.type_name_ar || property.propertyType?.type_name_en || property.propertyType?.type_name;
 
   return (
     <motion.div
@@ -166,7 +174,7 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
             className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg flex items-center gap-1"
           >
             <Home className="w-4 h-4 mr-1" />
-            {property.propertyType?.type_name}
+            {propertyType}
           </motion.span>
         </div>
         <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white/80 px-2 py-1 rounded-full shadow text-gray-700 text-xs font-medium">
@@ -180,11 +188,11 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center text-gray-500 text-sm">
             <MapPin className="w-4 h-4 mr-2 text-blue-500" />
-            {property.city?.city_name ||''}
+            {city || ''}
           </div>
         </div>
         <h3 className="text-xl font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
-          {property.title}
+          {title}
         </h3>
         <div className="flex items-center gap-2">
           <div className="flex-1">
@@ -239,8 +247,8 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
         {/* Edit/Delete Buttons (only for owner or admin) */}
         {canEdit && (
           <div className="flex gap-2 mt-4">
-            <button className="px-3 py-1 bg-yellow-500 text-white rounded">Edit</button>
-            <button className="px-3 py-1 bg-red-500 text-white rounded">Delete</button>
+            <button className="px-3 py-1 bg-yellow-500 text-white rounded">{t('edit')}</button>
+            <button className="px-3 py-1 bg-red-500 text-white rounded">{t('delete')}</button>
           </div>
         )}
       </div>

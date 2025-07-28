@@ -1,24 +1,18 @@
 import { useState, useEffect } from "react";
-import { Search, MapPin, ArrowRight, Star, Users, Home, Shield, Sparkles, TrendingUp, Filter, Eye, HandshakeIcon } from "lucide-react";
+import { Search, MapPin, ArrowRight, ArrowLeft, Star, Users, Home, Shield, Sparkles, TrendingUp, Filter, Eye, HandshakeIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import heroimage from "../assets/images/heroimage.png";
+import heroimage from "../assets/images/hero_bg.png";
 import { RadialGradient } from "react-text-gradients";
 import { getPropertyTypeCounts, getAdminStats, getTotalPropertyViews, getCompletedTransactions } from "../services/api";
 import { useRef } from "react";
+import { useTranslation } from 'react-i18next';
 
 const popularLocations = [
   "Aleppo",
   "Damascus", 
   "Latakia",
   "Tartus"
-];
-
-const stats = [
-  { icon: Users, value: "50K+", label: "Happy Customers", color: "from-blue-500 to-cyan-500" },
-  { icon: Home, value: "25K+", label: "Properties Listed", color: "from-green-500 to-emerald-500" },
-  { icon: Star, value: "4.9", label: "Average Rating", color: "from-yellow-500 to-orange-500" },
-  { icon: Shield, value: "100%", label: "Verified Properties", color: "from-purple-500 to-pink-500" }
 ];
 
 // Enhanced animation variants
@@ -74,11 +68,13 @@ const Hero = () => {
   const [propertyType, setPropertyType] = useState("All");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [quickFilters, setQuickFilters] = useState([]);
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
   const [stats, setStats] = useState([
-    { icon: Home, value: "-", label: "Total Properties", color: "from-blue-500 to-cyan-500" },
-    { icon: HandshakeIcon, value: "-", label: "Completed Deals", color: "from-green-500 to-emerald-500" },
-    { icon: Eye, value: "-", label: "Total Properties Views", color: "from-purple-500 to-pink-500"},
-    { icon: Star, value: "4.9", label: "Average Rating", color: "from-yellow-500 to-orange-500"}
+    { icon: Home, value: "-", label: "total_properties", color: "from-blue-500 to-cyan-500" },
+    { icon: HandshakeIcon, value: "-", label: "completed_deals", color: "from-green-500 to-emerald-500" },
+    { icon: Eye, value: "-", label: "total_properties_views", color: "from-purple-500 to-pink-500"},
+    { icon: Star, value: "4.9", label: "average_rating", color: "from-yellow-500 to-orange-500"}
   ]);
   const searchRef = useRef(null);
 
@@ -160,11 +156,12 @@ const Hero = () => {
           style={{
             backgroundImage: `url(${heroimage})`,
             backgroundSize: "cover",
-            backgroundPosition: "center",
+            backgroundPosition: "center 0%",
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/10" />
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/10 via-transparent to-purple-900/10" />
+          {/* Darker and more transparent overlays for clarity */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/90" />
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/40 via-transparent to-gray-900/50" />
         </motion.div>
 
         {/* Floating background elements */}
@@ -212,7 +209,7 @@ const Hero = () => {
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Top spacing */}
-        <div className="pt-24 lg:pt-32"></div>
+        <div className="pt-20 lg:pt-20"></div>
         
         {/* Hero Content */}
         <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -229,7 +226,7 @@ const Hero = () => {
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white/90 backdrop-blur-md text-blue-700 rounded-full text-sm font-semibold mb-8 shadow-lg border border-blue-100"
               >
                 <Shield className="w-4 h-4" />
-                <span>Trusted by Syrians</span>
+                <span>{t('trusted_by_syrians')}</span>
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
@@ -239,32 +236,34 @@ const Hero = () => {
 
               {/* Main Heading */}
               <motion.div variants={itemVariants} className="mb-8">
-                <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold mb-6 leading-[0.9]">
-                  <RadialGradient
-                    gradient={["circle, rgba(63,94,251,1) 0%, rgba(252,70,107,1) 100%"]}
-                  >
-                    Find Your Perfect
-                  </RadialGradient>
-                  <br />
+                <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold mb-6">
+                  <span className="text-white bg-gradient-to-r from-gray-800 via-gray-900 to-black bg-clip-text text-transparent">
+                    {t('find_your_perfect')}
+                  </span>
+                  <div className={`${isRTL ? 'h-8' : 'h-4'}`}></div>
                   <span className="text-gray-900 bg-gradient-to-r from-gray-800 via-gray-900 to-black bg-clip-text text-transparent">
-                    Dream Home
+                    <RadialGradient
+                      gradient={["circle, rgba(63,94,251,1) 0%, rgb(254, 104, 249) 100%"]}
+                    >
+                      {t('dream_home')}
+                    </RadialGradient>
                   </span>
                 </h1>
 
                 <motion.p 
                   variants={itemVariants}
-                  className="text-gray-700 text-xl sm:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed font-medium"
+                  className="text-white text-xl sm:text-2xl mb-12 max-w-3xl mx-auto leading-relaxed font-light"
                 >
-                  Discover exceptional properties with our 
-                  <span className="text-blue-600 font-semibold"> AI-powered search</span> and 
-                  <span className="text-purple-600 font-semibold"> AR/VR property view experience </span>
+                  {t('discover_exceptional_properties')} 
+                  <span className="text-white">{t('ai_powered_search')}</span> <span>{t('and')}</span> 
+                  <span className="text-white">{t('ar_vr_property_view_experience')}</span>
                 </motion.p>
               </motion.div>
 
               {/* Enhanced Search Section */}
               <motion.div
                 variants={itemVariants}
-                className="relative max-w-4xl mx-auto mb-16 z-50"
+                className="relative max-w-4xl mx-auto mb-10 z-50"
                 ref={searchRef}
               >
                 <div className="bg-white/95 backdrop-blur-md rounded-3xl p-6 shadow-2xl border border-white/50">
@@ -304,7 +303,7 @@ const Hero = () => {
                           setIsSearchFocused(true);
                         }}
                         onBlur={() => setIsSearchFocused(false)}
-                        placeholder="Enter desired city..."
+                        placeholder={t('enter_desired_city')}
                         className="w-full pl-12 pr-6 py-4 rounded-2xl border-2 border-gray-200 bg-white/90 
                           focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 
                           text-lg placeholder-gray-500 font-medium"
@@ -321,8 +320,8 @@ const Hero = () => {
                           font-bold text-lg shadow-xl w-full lg:w-auto"
                       >
                         <Search className="w-5 h-5" />
-                        <span>Search Properties</span>
-                        <ArrowRight className="w-5 h-5" />
+                        <span>{t('search_properties')}</span>
+                        {isRTL ? <ArrowLeft className="w-5 h-5" /> : <ArrowRight className="w-5 h-5" />}
                       </motion.button>
                     </div>
                   </div>
@@ -342,9 +341,9 @@ const Hero = () => {
                           <div className="flex items-center justify-between mb-4">
                             <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                               <TrendingUp className="w-5 h-5 text-orange-500" />
-                              Popular Locations
+                              {t('popular_locations')}
                             </h3>
-                            <span className="text-sm text-gray-500">Choose from trending areas</span>
+                            <span className="text-sm text-gray-500">{t('choose_from_trending_areas')}</span>
                           </div>
                           
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -384,7 +383,7 @@ const Hero = () => {
               {/* Stats Section */}
               <motion.div
                 variants={containerVariants}
-                className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto"
+                className="grid grid-cols-2 lg:grid-cols-4 mb-4 gap-6 max-w-5xl mx-auto"
               >
                 {stats.map((stat, index) => (
                   <motion.div
@@ -399,7 +398,7 @@ const Hero = () => {
                       <stat.icon className="w-7 h-7 text-white" />
                     </div>
                     <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
-                    <div className="text-sm text-gray-600 font-medium">{stat.label}</div>
+                    <div className="text-sm text-gray-600 font-medium">{t(stat.label)}</div>
                   </motion.div>
                 ))}
               </motion.div>

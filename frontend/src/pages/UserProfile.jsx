@@ -3,11 +3,12 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Backendurl } from '../App';
 import { Eye, EyeOff, Loader, CheckCircle, XCircle, User } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const availableRoles = [
-  { value: 'client', label: 'Client', color: 'bg-blue-500' },
-  { value: 'seller', label: 'Seller', color: 'bg-green-500' },
-  { value: 'agent', label: 'Agent', color: 'bg-purple-500' }
+  { value: 'client', label: 'Client', label_ar: 'عميل', color: 'bg-blue-500' },
+  { value: 'seller', label: 'Seller', label_ar: 'بائع', color: 'bg-green-500' },
+  { value: 'agent', label: 'Agent', label_ar: 'وكيل', color: 'bg-purple-500' }
 ];
 
 const UserProfile = () => {
@@ -20,6 +21,8 @@ const UserProfile = () => {
   const [message, setMessage] = useState(null);
   const [validation, setValidation] = useState({});
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
 
   useEffect(() => {
     if (user) {
@@ -35,18 +38,18 @@ const UserProfile = () => {
   }, [user]);
 
   if (loading) return <div className="flex items-center justify-center min-h-screen"><Loader className="w-8 h-8 animate-spin text-blue-500" /></div>;
-  if (!user) return <div>Not logged in.</div>;
+  if (!user) return <div className="text-center py-10">{t('userProfile.notLoggedIn')}</div>;
 
   const validate = (fields = form) => {
     const errors = {};
-    if (!fields.name.trim()) errors.name = 'Name is required';
-    if (!fields.email.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(fields.email)) errors.email = 'Valid email required';
-    if (fields.phone && !/^\+?[0-9]{10,15}$/.test(fields.phone)) errors.phone = 'Valid phone required';
+    if (!fields.name.trim()) errors.name = t('userProfile.validation.nameRequired');
+    if (!fields.email.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(fields.email)) errors.email = t('userProfile.validation.emailInvalid');
+    if (fields.phone && !/^\+?[0-9]{10,15}$/.test(fields.phone)) errors.phone = t('userProfile.validation.phoneInvalid');
     if (fields.password) {
-      if (fields.password.length < 6) errors.password = 'Password must be at least 6 characters';
-      if (fields.password !== fields.confirmPassword) errors.confirmPassword = 'Passwords do not match';
+      if (fields.password.length < 6) errors.password = t('userProfile.validation.passwordLength');
+      if (fields.password !== fields.confirmPassword) errors.confirmPassword = t('userProfile.validation.passwordsMismatch');
     }
-    if (!fields.roles.length) errors.roles = 'Select at least one role';
+    if (!fields.roles.length) errors.roles = t('userProfile.validation.roleRequired');
     return errors;
   };
 
@@ -99,92 +102,107 @@ const UserProfile = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.data.success) {
-        setMessage({ type: 'success', text: 'Profile updated successfully.' });
+        setMessage({ type: 'success', text: t('userProfile.updateSuccess') });
         setEditMode(false);
       } else {
-        setMessage({ type: 'error', text: res.data.message || 'Update failed.' });
+        setMessage({ type: 'error', text: res.data.message || t('userProfile.updateError') });
       }
     } catch (err) {
-      setMessage({ type: 'error', text: 'Error updating profile.' });
+      setMessage({ type: 'error', text: t('userProfile.updateErrorGeneric') });
     } finally {
       setSaving(false);
     }
   };
 
+  const passwordStrengthText = () => {
+    if (passwordStrength >= 4) return t('userProfile.passwordStrength.strong');
+    if (passwordStrength >= 2) return t('userProfile.passwordStrength.medium');
+    return t('userProfile.passwordStrength.weak');
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
-      <div className="bg-white rounded-2xl shadow-xl p-8">
-        <div className="flex items-center gap-3 mb-8">
-          <User className="w-8 h-8 text-blue-500" />
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent tracking-tight drop-shadow">My Profile</h2>
+      <div className={`bg-white rounded-2xl shadow-xl p-8 ${isRTL ? 'text-right' : ''}`}>
+        <div className={`flex items-center gap-3 mb-8 ${isRTL ? 'flex-row-reverse justify-end' : ''}`}>
+          {isRTL ? (
+            <>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent tracking-tight drop-shadow leading-[2]">{t('userProfile.title')}</h2>
+            <User className="w-8 h-8 text-blue-500" />
+          </>
+          ) : (
+            <>
+            <User className="w-8 h-8 text-blue-500" />
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent tracking-tight drop-shadow leading-[2]">{t('userProfile.title')}</h2>
+          </>
+          )}
         </div>
         {message && (
-          <div className={`mb-4 p-3 rounded flex items-center gap-2 ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          <div className={`mb-4 p-3 rounded flex items-center gap-2 ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} ${isRTL ? 'flex-row-reverse' : ''}`}>
             {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
             {message.text}
           </div>
         )}
         {!editMode ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-4">
+            <div className={`flex items-center gap-4 ${isRTL ? ' text-right' : ''}`}>
               <div className="text-2xl font-bold text-gray-900">{user.name}</div>
               <div className="flex gap-2">
                 {user.roles.map(role => {
                   const meta = availableRoles.find(r => r.value === role);
-                  return <span key={role} className={`px-2 py-1 rounded text-xs text-white ${meta?.color || 'bg-gray-400'}`}>{meta?.label || role}</span>;
+                  return <span key={role} className={`px-2 py-1 rounded text-xs text-white ${meta?.color || 'bg-gray-400'}`}>{isRTL ? meta?.label_ar : meta?.label || role}</span>;
                 })}
               </div>
             </div>
-            <div className="text-gray-700"><span className="font-semibold">Email:</span> {user.email}</div>
-            <div className="text-gray-700"><span className="font-semibold">Phone:</span> {user.phone || <span className="text-gray-400">Not set</span>}</div>
-            <button className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition" onClick={() => setEditMode(true)}>Edit Profile</button>
+            <div className={`text-gray-700 ${isRTL ? 'text-right' : ''}`}><span className="font-semibold">{t('userProfile.emailLabel')}:</span> {user.email}</div>
+            <div className={`text-gray-700 ${isRTL ? 'text-right' : ''}`}><span className="font-semibold">{t('userProfile.phoneLabel')}:</span> {user.phone || <span className="text-gray-400">{t('userProfile.notSet')}</span>}</div>
+            <button className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold shadow hover:bg-blue-700 transition" onClick={() => setEditMode(true)}>{t('userProfile.editProfile')}</button>
           </div>
         ) : (
           <form onSubmit={handleSave} className="space-y-6 animate-fade-in">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
-                <input type="text" name="name" value={form.name} onChange={handleChange} className={`w-full px-4 py-2 rounded-lg border ${validation.name ? 'border-red-400' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-blue-200`} />
+                <label className="block text-sm font-medium mb-1">{t('userProfile.nameLabel')}</label>
+                <input type="text" name="name" value={form.name} onChange={handleChange} className={`w-full px-4 py-2 rounded-lg border ${validation.name ? 'border-red-400' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-blue-200 ${isRTL ? 'text-right' : ''}`} />
                 {validation.name && <div className="text-xs text-red-500 mt-1">{validation.name}</div>}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input type="email" name="email" value={form.email} onChange={handleChange} className={`w-full px-4 py-2 rounded-lg border ${validation.email ? 'border-red-400' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-blue-200`} />
+                <label className="block text-sm font-medium mb-1">{t('userProfile.emailLabel')}</label>
+                <input type="email" name="email" value={form.email} onChange={handleChange} className={`w-full px-4 py-2 rounded-lg border ${validation.email ? 'border-red-400' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-blue-200 ${isRTL ? 'text-right' : ''}`} />
                 {validation.email && <div className="text-xs text-red-500 mt-1">{validation.email}</div>}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Phone</label>
-                <input type="tel" name="phone" value={form.phone} onChange={handleChange} className={`w-full px-4 py-2 rounded-lg border ${validation.phone ? 'border-red-400' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-blue-200`} />
+                <label className="block text-sm font-medium mb-1">{t('userProfile.phoneLabel')}</label>
+                <input type="tel" name="phone" value={form.phone} onChange={handleChange} className={`w-full px-4 py-2 rounded-lg border ${validation.phone ? 'border-red-400' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-blue-200 ${isRTL ? 'text-right' : ''}`} />
                 {validation.phone && <div className="text-xs text-red-500 mt-1">{validation.phone}</div>}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Password <span className="text-gray-400 text-xs">(leave blank to keep current)</span></label>
+                <label className="block text-sm font-medium mb-1">{t('userProfile.passwordLabel')} <span className="text-gray-400 text-xs">{t('userProfile.passwordHint')}</span></label>
                 <div className="relative">
-                  <input type={showPassword ? 'text' : 'password'} name="password" value={form.password} onChange={handleChange} className={`w-full px-4 py-2 rounded-lg border ${validation.password ? 'border-red-400' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-blue-200`} autoComplete="new-password" />
-                  <button type="button" className="absolute right-3 top-2.5 text-gray-400" onClick={() => setShowPassword(v => !v)}>{showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}</button>
+                  <input type={showPassword ? 'text' : 'password'} name="password" value={form.password} onChange={handleChange} className={`w-full px-4 py-2 rounded-lg border ${validation.password ? 'border-red-400' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-blue-200 ${isRTL ? 'text-right' : ''}`} autoComplete="new-password" />
+                  <button type="button" className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-2.5 text-gray-400`} onClick={() => setShowPassword(v => !v)}>{showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}</button>
                 </div>
                 {form.password && (
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className={`flex items-center gap-2 mt-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
                     <div className={`h-2 w-24 rounded-full ${passwordStrength >= 4 ? 'bg-green-400' : passwordStrength >= 2 ? 'bg-yellow-400' : 'bg-red-400'}`}></div>
-                    <span className="text-xs text-gray-500">{passwordStrength >= 4 ? 'Strong' : passwordStrength >= 2 ? 'Medium' : 'Weak'}</span>
+                    <span className="text-xs text-gray-500">{passwordStrengthText()}</span>
                   </div>
                 )}
                 {validation.password && <div className="text-xs text-red-500 mt-1">{validation.password}</div>}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Confirm Password</label>
+                <label className="block text-sm font-medium mb-1">{t('userProfile.confirmPasswordLabel')}</label>
                 <div className="relative">
-                  <input type={showConfirm ? 'text' : 'password'} name="confirmPassword" value={form.confirmPassword} onChange={handleChange} className={`w-full px-4 py-2 rounded-lg border ${validation.confirmPassword ? 'border-red-400' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-blue-200`} autoComplete="new-password" />
-                  <button type="button" className="absolute right-3 top-2.5 text-gray-400" onClick={() => setShowConfirm(v => !v)}>{showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}</button>
+                  <input type={showConfirm ? 'text' : 'password'} name="confirmPassword" value={form.confirmPassword} onChange={handleChange} className={`w-full px-4 py-2 rounded-lg border ${validation.confirmPassword ? 'border-red-400' : 'border-gray-200'} focus:outline-none focus:ring-2 focus:ring-blue-200 ${isRTL ? 'text-right' : ''}`} autoComplete="new-password" />
+                  <button type="button" className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-2.5 text-gray-400`} onClick={() => setShowConfirm(v => !v)}>{showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}</button>
                 </div>
                 {validation.confirmPassword && <div className="text-xs text-red-500 mt-1">{validation.confirmPassword}</div>}
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Roles <span className="text-gray-400 text-xs">(at least one)</span></label>
-              <div className="flex gap-4 flex-wrap">
+              <label className="block text-sm font-medium mb-2">{t('userProfile.rolesLabel')} <span className="text-gray-400 text-xs">{t('userProfile.rolesHint')}</span></label>
+              <div className={`flex gap-4 flex-wrap ${isRTL ? '' : ''}`}>
                 {availableRoles.map(role => (
-                  <label key={role.value} className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer ${form.roles.includes(role.value) ? role.color + ' text-white border-transparent' : 'border-gray-200 bg-gray-50 text-gray-700'}`}>
+                  <label key={role.value} className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer ${form.roles.includes(role.value) ? role.color + ' text-white border-transparent' : 'border-gray-200 bg-gray-50 text-gray-700'} ${isRTL ? 'flex-row-reverse' : ''}`}>
                     <input
                       type="checkbox"
                       name="roles"
@@ -193,15 +211,15 @@ const UserProfile = () => {
                       onChange={handleChange}
                       className="accent-blue-600"
                     />
-                    {role.label}
+                    {isRTL ? role.label_ar : role.label}
                   </label>
                 ))}
               </div>
               {validation.roles && <div className="text-xs text-red-500 mt-1">{validation.roles}</div>}
             </div>
-            <div className="flex gap-4 mt-6">
-              <button type="submit" disabled={saving} className="px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition disabled:opacity-60">{saving ? 'Saving...' : 'Save Changes'}</button>
-              <button type="button" className="px-6 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition" onClick={() => { setEditMode(false); setMessage(null); setValidation({}); setForm({ ...form, password: '', confirmPassword: '' }); }}>Cancel</button>
+            <div className={`flex gap-4 mt-6 ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <button type="submit" disabled={saving} className="px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition disabled:opacity-60">{saving ? t('userProfile.saving') : t('userProfile.saveChanges')}</button>
+              <button type="button" className="px-6 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition" onClick={() => { setEditMode(false); setMessage(null); setValidation({}); setForm({ ...form, password: '', confirmPassword: '' }); }}>{t('userProfile.cancel')}</button>
             </div>
           </form>
         )}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
@@ -19,11 +19,19 @@ import {
   Zap,
   Crown,
   Calendar,
+  Globe,
+  Flag,
+  User,
+  Building,
+  Info,
+  Phone,
+  Brain,
 } from "lucide-react";
-import logo from "../assets/home-regular-24.png";
+import logo from "../assets/images/logo.png";
 import { useAuth } from "../context/AuthContext";
 import PropTypes from "prop-types";
 import axios from "axios";
+import { useTranslation } from 'react-i18next';
 
 // Enhanced Animation Variants
 const navVariants = {
@@ -88,6 +96,7 @@ const sparkleVariants = {
 };
 
 const Navbar = () => {
+  const { t, i18n } = useTranslation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -98,6 +107,9 @@ const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [notifLoading, setNotifLoading] = useState(false);
   const notifRef = useRef(null);
+  const { i18n: i18nContext, t: tContext } = useTranslation();
+  const { user: userContext, isLoggedIn: isLoggedInContext, logout: logoutContext } = useAuth();
+  const navigate = useNavigate();
 
   // Fetch notifications
   const fetchNotifications = () => {
@@ -190,6 +202,16 @@ const Navbar = () => {
     setIsDropdownOpen(false);
   };
 
+  const handleLanguageChange = () => {
+    const nextLang = i18n.language === 'ar' ? 'en' : 'ar';
+    i18n.changeLanguage(nextLang);
+    if (nextLang === 'ar') {
+      document.body.style.fontFamily = "'Tajawal', Arial, sans-serif";
+    } else {
+      document.body.style.fontFamily = "'Poppins', Arial, sans-serif";
+    }
+  };
+
   const getInitials = (name) => {
     if (!name) return "U";
     return name
@@ -198,6 +220,9 @@ const Navbar = () => {
       .join("")
       .toUpperCase();
   };
+
+  const isRTL = i18n.language === 'ar';
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   return (
     <motion.nav
@@ -213,10 +238,10 @@ const Navbar = () => {
       {/* Premium gradient border */}
       <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Enhanced Logo */}
-          <Link to="/" className="flex items-center space-x-3 group">
+      <div className="max-w-7xl mx-auto mt-2 mb-1 px-2 sm:px-6 lg:px-10">
+        <div className="flex items-center justify-between h-14 md:h-16 gap-2 md:gap-4">
+          {/* Logo */}
+          <Link to="/" className="flex flex-col items-center justify-center group mr-2 md:flex-row md:items-center md:space-x-3 md:mr-4 min-w-[60px]">
             <motion.div
               variants={logoVariants}
               whileHover={{ 
@@ -225,9 +250,9 @@ const Navbar = () => {
                 ...glowAnimation
               }}
               transition={{ duration: 0.5 }}
-              className="relative p-2.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg group-hover:shadow-blue-500/30"
+              className={`relative p-1 md:p-0.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg group-hover:shadow-blue-500/30 ${isRTL ? 'ml-2 md:ml-4' : 'mr-2'}`}
             >
-              <img src={logo} alt="Aurora logo" className="w-6 h-6 brightness-0 invert" />
+              <img src={logo} alt="Aurora logo" className="w-10 h-10 md:w-18 md:h-18 brightness-0 invert mx-auto" />
               {/* Floating sparkles */}
               <motion.div
                 animate={floatingAnimation}
@@ -236,308 +261,286 @@ const Navbar = () => {
                 <Sparkles className="w-3 h-3 text-yellow-300" />
               </motion.div>
             </motion.div>
-            <div className="flex flex-col">
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent group-hover:from-indigo-600 group-hover:via-blue-600 group-hover:to-purple-600 transition-all duration-500">
-                Aurora
+            <div className="flex flex-col items-center md:items-start mt-1 md:mt-0 hidden md:flex">
+              <span className="text-lg md:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent group-hover:from-indigo-600 group-hover:via-blue-600 group-hover:to-purple-600 transition-all duration-500">
+                {t('navbar.aurora')}
               </span>
-              <span className="text-xs text-gray-500 font-medium -mt-1">
-                Future Real Estate
+              <span className="text-[10px] md:text-xs text-gray-500 font-medium -mt-0.5 md:-mt-1">
+                {t('navbar.future_real_estate')}
               </span>
             </div>
           </Link>
-
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <NavLinks currentPath={location.pathname} />
-
-            {/* Enhanced Auth Section */}
-            <div className="flex items-center space-x-4">
-              {isLoggedIn ? (
-                <div className="flex items-center space-x-3">
-                  {/* Enhanced Notification Bell */}
-                  <div className="relative" ref={notifRef}>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="relative p-2.5 rounded-xl hover:bg-gray-100 transition-all duration-200 group"
-                      onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
+          <div className="items-center hidden md:flex">
+            <NavLinks currentPath={location.pathname} navItemClass="font-medium" />
+          </div>
+          {/* Notification Bell, Language Switcher, and User Avatar */}
+          <div className="flex items-center gap-1 md:gap-3">
+            {/* Notification Bell - Only show when logged in */}
+            {isLoggedIn && (
+              <div className="relative" ref={notifRef}>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative p-2.5 rounded-xl hover:bg-gray-100 transition-all duration-200 group"
+                  onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
+                >
+                  <Bell className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                  {unreadCount > 0 && (
+                    <motion.span 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg"
                     >
-                      <Bell className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
-                      {unreadCount > 0 && (
-                        <motion.span 
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg"
-                        >
-                          {unreadCount > 99 ? '99+' : unreadCount}
-                        </motion.span>
-                      )}
-                    </motion.button>
-                    
-                    <AnimatePresence>
-                      {notifDropdownOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                          transition={{ duration: 0.2, ease: "easeOut" }}
-                          className="absolute right-0 mt-3 w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50"
-                        >
-                          {/* Header */}
-                          <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-2">
-                                <Bell className="w-5 h-5 text-blue-600" />
-                                <span className="font-bold text-gray-900">Notifications</span>
-                                {unreadCount > 0 && (
-                                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
-                                    {unreadCount} new
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <button 
-                                  onClick={fetchNotifications}
-                                  className="text-xs text-gray-500 hover:text-blue-600 transition-colors p-1 rounded hover:bg-gray-100"
-                                  title="Refresh notifications"
-                                >
-                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                  </svg>
-                                </button>
-                                {unreadCount > 0 && (
-                                  <button 
-                                    onClick={markAllRead}
-                                    className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
-                                  >
-                                    Mark all read
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Notifications List */}
-                          <div className="max-h-96 overflow-y-auto">
-                            {notifLoading ? (
-                              <div className="p-8 text-center">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                                <p className="text-gray-500 mt-2 text-sm">Loading notifications...</p>
-                              </div>
-                            ) : notifications.length === 0 ? (
-                              <div className="p-8 text-center">
-                                <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                                <p className="text-gray-500 text-sm">No notifications yet</p>
-                                <p className="text-gray-400 text-xs mt-1">We'll notify you when something happens</p>
-                              </div>
-                            ) : (
-                              <div className="divide-y divide-gray-50">
-                                {notifications.map((notif, idx) => (
-                                  <motion.div
-                                    key={idx}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: idx * 0.05 }}
-                                    className={`group relative px-6 py-4 hover:bg-gray-50 transition-colors duration-200 ${
-                                      !notif.read ? 'bg-blue-50/50' : ''
-                                    }`}
-                                  >
-                                    {/* Unread indicator */}
-                                    {!notif.read && (
-                                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-blue-600"></div>
-                                    )}
-                                    
-                                    <div className="flex items-start space-x-3">
-                                      {/* Icon */}
-                                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                                        notif.type === 'appointment' ? 'bg-blue-100 text-blue-600' :
-                                        notif.type === 'system' ? 'bg-gray-100 text-gray-600' :
-                                        notif.type === 'message' ? 'bg-green-100 text-green-600' :
-                                        'bg-purple-100 text-purple-600'
-                                      }`}>
-                                        {notif.type === 'appointment' && <Calendar className="w-4 h-4" />}
-                                        {notif.type === 'system' && <Settings className="w-4 h-4" />}
-                                        {notif.type === 'message' && <MessageCircle className="w-4 h-4" />}
-                                        {notif.type === 'other' && <Bell className="w-4 h-4" />}
-                                      </div>
-                                      
-                                      {/* Content */}
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-sm text-gray-800 leading-relaxed">
-                                          {notif.message}
-                                        </p>
-                                        <div className="flex items-center justify-between mt-2">
-                                          <span className="text-xs text-gray-400">
-                                            {new Date(notif.createdAt).toLocaleDateString('en-US', {
-                                              month: 'short',
-                                              day: 'numeric',
-                                              hour: '2-digit',
-                                              minute: '2-digit'
-                                            })}
-                                          </span>
-                                          {notif.link && (
-                                            <Link 
-                                              to={notif.link}
-                                              className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
-                                              onClick={() => setNotifDropdownOpen(false)}
-                                            >
-                                              View →
-                                            </Link>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </motion.div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Footer */}
-                          {false && notifications.length > 0 && (
-                            <div className="px-6 py-3 border-t border-gray-100 bg-gray-50">
-                              <button 
-                                onClick={clearAllNotifications}
-                                className="text-xs text-gray-500 hover:text-red-600 font-medium transition-colors"
-                              >
-                                Clear all notifications →
-                              </button>
-                            </div>
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </motion.span>
+                  )}
+                </motion.button>
+              
+              <AnimatePresence>
+                {notifDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="absolute right-0 mt-3 w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50"
+                  >
+                    {/* Header */}
+                    <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Bell className="w-5 h-5 text-blue-600" />
+                          <span className="font-bold text-gray-900">{t('notifications')}</span>
+                          {unreadCount > 0 && (
+                            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                              {unreadCount} {t('new_notifications')}
+                            </span>
                           )}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* User Profile Dropdown */}
-                  <div className="relative" ref={dropdownRef}>
-                    <motion.button
-                      whileTap={{ scale: 0.97 }}
-                      onClick={toggleDropdown}
-                      className="flex items-center space-x-3 p-1.5 rounded-xl hover:bg-gray-50 transition-all duration-200 focus:outline-none"
-                      aria-label="User menu"
-                      aria-expanded={isDropdownOpen}
-                    >
-                      <div className="relative">
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-500/30"
-                        >
-                          {getInitials(user?.name)}
-                        </motion.div>
-                        <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-400 border-2 border-white rounded-full flex items-center justify-center">
-                          <div className="w-1.5 h-1.5 bg-green-600 rounded-full" />
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button 
+                            onClick={fetchNotifications}
+                            className="text-xs text-gray-500 hover:text-blue-600 transition-colors p-1 rounded hover:bg-gray-100"
+                            title={t('refresh_notifications')}
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          </button>
+                          {unreadCount > 0 && (
+                            <button 
+                              onClick={markAllRead}
+                              className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
+                            >
+                              {t('mark_all_read')}
+                            </button>
+                          )}
                         </div>
                       </div>
-                      <div className="hidden lg:flex flex-col items-start">
-                        <span className="text-sm font-semibold text-gray-700">{user?.name}</span>
-                        <span className="text-xs text-gray-500">Premium Member</span>
-                      </div>
-                      <motion.div
-                        animate={{ rotate: isDropdownOpen ? 180 : 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <ChevronDown className="w-4 h-4 text-gray-400" />
-                      </motion.div>
-                    </motion.button>
-
-                    {/* Enhanced Dropdown Menu */}
-                    <AnimatePresence>
-                      {isDropdownOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                          transition={{ duration: 0.2 }}
-                          className="absolute right-0 mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
-                        >
-                          {/* Header */}
-                          <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-lg">
-                                {getInitials(user?.name)}
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-sm font-bold text-gray-900">{user?.name}</p>
-                                <p className="text-xs text-gray-600 truncate">{user?.email}</p>
-                                <div className="flex items-center gap-1 mt-1">
-                                  <Crown className="w-3 h-3 text-yellow-500" />
-                                  <span className="text-xs text-yellow-600 font-medium">Premium</span>
+                    </div>
+                    
+                    {/* Notifications List */}
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifLoading ? (
+                        <div className="p-8 text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                          <p className="text-gray-500 mt-2 text-sm">{t('loading_notifications')}</p>
+                        </div>
+                      ) : notifications.length === 0 ? (
+                        <div className="p-8 text-center">
+                          <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                          <p className="text-gray-500 text-sm">{t('no_notifications')}</p>
+                          <p className="text-gray-400 text-xs mt-1">{t('notify_when_something_happens')}</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-gray-50">
+                          {notifications.map((notif, idx) => (
+                            <motion.div
+                              key={idx}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.05 }}
+                              className={`group relative px-6 py-4 hover:bg-gray-50 transition-colors duration-200 ${
+                                !notif.read ? 'bg-blue-50/50' : ''
+                              }`}
+                            >
+                              {/* Unread indicator */}
+                              {!notif.read && (
+                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-blue-600"></div>
+                              )}
+                              
+                              <div className="flex items-start space-x-3">
+                                {/* Icon */}
+                                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                                  notif.type === 'appointment' ? 'bg-blue-100 text-blue-600' :
+                                  notif.type === 'system' ? 'bg-gray-100 text-gray-600' :
+                                  notif.type === 'message' ? 'bg-green-100 text-green-600' :
+                                  'bg-purple-100 text-purple-600'
+                                }`}>
+                                  {notif.type === 'appointment' && <Calendar className="w-4 h-4" />}
+                                  {notif.type === 'system' && <Settings className="w-4 h-4" />}
+                                  {notif.type === 'message' && <MessageCircle className="w-4 h-4" />}
+                                  {notif.type === 'other' && <Bell className="w-4 h-4" />}
+                                </div>
+                                
+                                {/* Content */}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-gray-800 leading-relaxed">
+                                    {notif.message}
+                                  </p>
+                                  <div className="flex items-center justify-between mt-2">
+                                    <span className="text-xs text-gray-400">
+                                      {new Date(notif.createdAt).toLocaleDateString('en-US', {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </span>
+                                    {notif.link && (
+                                      <Link 
+                                        to={notif.link}
+                                        className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
+                                        onClick={() => setNotifDropdownOpen(false)}
+                                      >
+                                        {t('view_link')}
+                                      </Link>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
+                    
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            )}
+            {/* Language Switcher */}
+            <button
+              onClick={handleLanguageChange}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-blue-200 bg-white text-blue-700 text-xs font-semibold shadow-sm hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 focus:outline-none"
+              aria-label={i18n.language === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
+              style={{ minWidth: 40 }}
+            >
+              <Globe className="w-4 h-4" />
+              {i18n.language === 'ar' ? 'En' : 'Ar'}
+            </button>
+            {/* Conditional Auth Section */}
+            {isLoggedIn ? (
+              /* User Avatar and Dropdown */
+              <div className="relative md:flex" ref={dropdownRef}>
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={toggleDropdown}
+                  className="flex items-center p-1.5 rounded-xl hover:bg-gray-50 transition-all duration-200 focus:outline-none"
+                  aria-label={t('user_menu')}
+                  aria-expanded={isDropdownOpen}
+                >
+                  <div className="relative">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-500/30"
+                    >
+                      <User className="w-5 h-5" />
+                    </motion.div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-400 border-2 border-white rounded-full flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 bg-green-600 rounded-full" />
+                    </div>
+                  </div>
+                  <motion.div
+                    animate={{ rotate: isDropdownOpen ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                  </motion.div>
+                </motion.button>
+                {/* Enhanced Dropdown Menu */}
+                <AnimatePresence>
+                  {isDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className={`absolute ${isRTL ? 'left-0' : 'right-0'} mt-3 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden`}
+                    >
+                      {/* Header */}
+                      <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100">
+                        <div className={`flex items-center ${isRTL ? 'gap-6' : 'space-x-3'}`}>
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold shadow-lg">
+                            <User className="w-6 h-6" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold text-gray-900">{user?.name}</p>
+                            <p className="text-xs text-gray-600 truncate">{user?.email}</p>
+                            <div className="flex items-center gap-1 mt-1">
+                              <Crown className="w-3 h-3 text-yellow-500" />
+                              <span className="text-xs text-yellow-600 font-medium">{t('premium')}</span>
                             </div>
                           </div>
+                        </div>
+                      </div>
 
-                          {/* Menu Items */}
-                          <div className="py-2">
-                            <Link to="/dashboard/profile" onClick={() => setIsDropdownOpen(false)} className="w-full px-6 py-3 text-left text-sm text-gray-700 hover:text-blue-600 flex items-center space-x-3 transition-colors">
-                              <UserCircle className="w-4 h-4" />
-                              <span>My Profile</span>
-                            </Link>
-                            <Link to="/dashboard/saved-properties" onClick={() => setIsDropdownOpen(false)} className="w-full px-6 py-3 text-left text-sm text-gray-700 hover:text-blue-600 flex items-center space-x-3 transition-colors">
-                              <Heart className="w-4 h-4" />
-                              <span>Saved Properties</span>
-                            </Link>
-                            <Link to="/dashboard/appointments" onClick={() => setIsDropdownOpen(false)} className="w-full px-6 py-3 text-left text-sm text-gray-700 hover:text-blue-600 flex items-center space-x-3 transition-colors">
-                              <Settings className="w-4 h-4" />
-                              <span>Appointments</span>
-                            </Link>
-                            <div className="border-t border-gray-100 my-2" />
-                            <motion.button
-                              whileHover={{ x: 4, backgroundColor: "rgb(254 242 242)" }}
-                              onClick={handleLogout}
-                              className="w-full px-6 py-3 text-left text-sm text-red-600 hover:text-red-700 flex items-center space-x-3 transition-colors"
-                            >
-                              <LogOut className="w-4 h-4" />
-                              <span>Sign out</span>
-                            </motion.button>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-4">
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Link
-                      to="/login"
-                      className="text-gray-700 hover:text-blue-600 font-medium transition-colors px-4 py-2 rounded-lg hover:bg-blue-50"
-                    >
-                      Sign in
-                    </Link>
-                  </motion.div>
-                  <motion.div
-                    whileHover={{ scale: 1.05, ...glowAnimation }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Link
-                      to="/signup"
-                      className="relative bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white px-6 py-2.5 rounded-xl hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl shadow-blue-500/30 font-semibold overflow-hidden"
-                    >
-                      <span className="relative z-10">Get Started</span>
-                      <motion.div
-                        animate={sparkleVariants.animate}
-                        className="absolute top-1 right-1"
-                      >
-                        <Sparkles className="w-3 h-3 text-yellow-300" />
-                      </motion.div>
-                    </Link>
-                  </motion.div>
-                </div>
-              )}
-            </div>
+                      {/* Menu Items */}
+                      <div className="py-2">
+                        <Link to="/dashboard/profile" onClick={() => setIsDropdownOpen(false)} className="w-full px-6 py-3 text-left text-sm text-gray-700 hover:text-blue-600 flex items-center transition-colors">
+                          <UserCircle className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                          <span>{t('my_profile')}</span>
+                        </Link>
+                        <Link to="/dashboard/saved-properties" onClick={() => setIsDropdownOpen(false)} className="w-full px-6 py-3 text-left text-sm text-gray-700 hover:text-blue-600 flex items-center transition-colors">
+                          <Heart className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                          <span>{t('saved_properties')}</span>
+                        </Link>
+                        <Link to="/dashboard/appointments" onClick={() => setIsDropdownOpen(false)} className="w-full px-6 py-3 text-left text-sm text-gray-700 hover:text-blue-600 flex items-center transition-colors">
+                          <Settings className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                          <span>{t('appointments')}</span>
+                        </Link>
+                        <div className="border-t border-gray-100 my-2" />
+                        <motion.button
+                          whileHover={{ x: 4, backgroundColor: "rgb(254 242 242)" }}
+                          onClick={handleLogout}
+                          className="w-full px-6 py-3 text-left text-sm text-red-600 hover:text-red-700 flex items-center transition-colors"
+                        >
+                          <LogOut className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                          <span>{t('sign_out')}</span>
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              /* Sign In and Get Started Buttons */
+              <div className="hidden md:flex items-center gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                >
+                  <Link to="/login">{t('sign_in')}</Link>
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-medium shadow-lg shadow-blue-500/30"
+                >
+                  <Link to="/signup">{t('get_started')}</Link>
+                </motion.button>
+              </div>
+            )}
           </div>
-
           {/* Enhanced Mobile menu button */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={toggleMobileMenu}
             className="md:hidden relative p-2.5 rounded-xl hover:bg-gray-100 transition-colors focus:outline-none"
-            aria-label="Toggle menu"
+            aria-label={t('toggle_menu')}
             aria-expanded={isMobileMenuOpen}
           >
             <motion.div
@@ -592,36 +595,38 @@ const Navbar = () => {
   );
 };
 
-const NavLinks = ({ currentPath }) => {
+const NavLinks = ({ currentPath, navItemClass }) => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   // Enhanced NavLinks with modern styling
   const navLinks = [
     { 
-      name: "Home", 
+      name: t('home'), 
       path: "/", 
       icon: Home, 
       color: "from-blue-500 to-cyan-500",
-      description: "Welcome home"
+      description: t('welcome_home')
     },
     { 
-      name: "Properties", 
+      name: t('properties'), 
       path: "/properties", 
       icon: Search, 
       color: "from-green-500 to-emerald-500",
-      description: "Find your dream"
+      description: t('find_your_dream')
     },
     { 
-      name: "About Us", 
+      name: t('about_us'), 
       path: "/about", 
       icon: Users, 
       color: "from-purple-500 to-pink-500",
-      description: "Our story"
+      description: t('our_story')
     },
     { 
-      name: "Contact", 
+      name: t('contact'), 
       path: "/contact", 
       icon: MessageCircle, 
       color: "from-orange-500 to-red-500",
-      description: "Get in touch"
+      description: t('get_in_touch')
     },
   ];
 
@@ -642,7 +647,7 @@ const NavLinks = ({ currentPath }) => {
     <div className="flex space-x-2 items-center">
       {navLinks.map(({ name, path, icon: Icon, color, description }) => {
         const isActive = path === "/" ? currentPath === path : currentPath.startsWith(path);
-
+        const isAIHub = name === t('ai_property_hub');
         return (
           <motion.div
             key={name}
@@ -651,7 +656,8 @@ const NavLinks = ({ currentPath }) => {
           >
             <Link
               to={path}
-              className={`relative group font-medium transition-all duration-300 flex items-center gap-2 px-4 py-2.5 rounded-xl
+              className={`relative group transition-all duration-300 flex items-center ${isRTL ? 'gap-1 text-[15px] whitespace-nowrap' : 'gap-2'} px-4 py-2.5 rounded-xl
+                ${isAIHub ? 'font-normal' : navItemClass || ''}
                 ${isActive
                   ? `text-white bg-gradient-to-r ${color} shadow-lg shadow-blue-500/30`
                   : "text-gray-700 hover:text-blue-600 hover:bg-blue-50/80"
@@ -659,7 +665,7 @@ const NavLinks = ({ currentPath }) => {
               `}
             >
               <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-600 group-hover:text-blue-600'}`} />
-              <span className="font-semibold">{name}</span>
+              <span className={isAIHub ? 'font-normal' : navItemClass || ''}>{name}</span>
               
               {/* Tooltip */}
               <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
@@ -712,7 +718,7 @@ const NavLinks = ({ currentPath }) => {
               <Sparkles className="w-3 h-3 text-yellow-400" />
             </motion.div>
           </div>
-          <span>AI Property Hub</span>
+          <span>{t('ai_property_hub')}</span>
           
           {/* Animated background */}
           <motion.div
@@ -733,7 +739,7 @@ const NavLinks = ({ currentPath }) => {
           {/* Tooltip */}
           <div className="absolute -bottom-14 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
             <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap">
-              AI-powered property recommendations
+              {t('ai_powered_recommendations')}
               <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
             </div>
           </div>
@@ -751,35 +757,37 @@ const MobileNavLinks = ({
   currentPath,
   notifications,
 }) => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   // Enhanced navigation links with colors and descriptions
   const navLinks = [
     { 
-      name: "Home", 
+      name: t('home'), 
       path: "/", 
       icon: Home, 
       color: "from-blue-500 to-cyan-500",
-      description: "Welcome home"
+      description: t('welcome_home')
     },
     { 
-      name: "Properties", 
+      name: t('properties'), 
       path: "/properties", 
       icon: Search, 
       color: "from-green-500 to-emerald-500",
-      description: "Find your dream"
+      description: t('find_your_dream')
     },
     { 
-      name: "About Us", 
+      name: t('about_us'), 
       path: "/about", 
       icon: Users, 
       color: "from-purple-500 to-pink-500",
-      description: "Our story"
+      description: t('our_story')
     },
     { 
-      name: "Contact", 
+      name: t('contact'), 
       path: "/contact", 
       icon: MessageCircle, 
       color: "from-orange-500 to-red-500",
-      description: "Get in touch"
+      description: t('get_in_touch')
     },
   ];
 
@@ -830,9 +838,9 @@ const MobileNavLinks = ({
             </motion.div>
           </div>
           <div className="flex-1">
-            <div className="font-bold text-lg">AI Property Hub</div>
+            <div className="font-bold text-lg">{t('ai_property_hub')}</div>
             <div className={`text-sm ${isAIHubActive ? "text-indigo-100" : "text-indigo-500"}`}>
-              Smart property recommendations
+              {t('smart_property_recommendations')}
             </div>
           </div>
           
@@ -848,7 +856,7 @@ const MobileNavLinks = ({
       {/* Elegant separator */}
       <div className="flex items-center gap-4 px-2">
         <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-        <span className="text-xs text-gray-400 font-medium">Navigation</span>
+        <span className="text-xs text-gray-400 font-medium">{t('navigation')}</span>
         <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
       </div>
 
@@ -865,7 +873,7 @@ const MobileNavLinks = ({
           >
             <Link
               to={path}
-              className={`flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 group ${
+              className={`flex items-center ${isRTL ? 'gap-2 text-[15px] whitespace-nowrap' : 'gap-4'} px-4 py-3.5 rounded-xl transition-all duration-300 group ${
                 isActive
                   ? `bg-gradient-to-r ${color} text-white shadow-lg`
                   : "text-gray-700 hover:bg-gray-50 active:scale-95"
@@ -876,12 +884,8 @@ const MobileNavLinks = ({
                 <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-600 group-hover:text-blue-600'}`} />
               </div>
               <div className="flex-1">
-                <div className={`font-semibold ${isActive ? 'text-white' : 'text-gray-900'}`}>
-                  {name}
-                </div>
-                <div className={`text-sm ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
-                  {description}
-                </div>
+                <div className={`font-semibold ${isActive ? 'text-white' : 'text-gray-900'}`}>{name}</div>
+                <div className={`text-sm ${isActive ? "text-white/80" : "text-gray-500"}`}>{description}</div>
               </div>
               {isActive && (
                 <motion.div
@@ -899,7 +903,7 @@ const MobileNavLinks = ({
       <div className="pt-4 mt-2">
         <div className="flex items-center gap-4 px-2 mb-4">
           <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-          <span className="text-xs text-gray-400 font-medium">Account</span>
+          <span className="text-xs text-gray-400 font-medium">{t('account')}</span>
           <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
         </div>
 
@@ -937,7 +941,7 @@ const MobileNavLinks = ({
                   <p className="text-sm text-gray-600 truncate">{user?.email}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <Crown className="w-4 h-4 text-yellow-500" />
-                    <span className="text-xs text-yellow-600 font-semibold">Premium Member</span>
+                    <span className="text-xs text-yellow-600 font-semibold">{t('premium_member')}</span>
                   </div>
                 </div>
               </div>
@@ -952,14 +956,14 @@ const MobileNavLinks = ({
                 className="flex items-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all"
               >
                 <Heart className="w-5 h-5 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Saved</span>
+                <span className="text-sm font-medium text-gray-700">{t('saved')}</span>
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 className="flex items-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all"
               >
                 <Settings className="w-5 h-5 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Settings</span>
+                <span className="text-sm font-medium text-gray-700">{t('settings')}</span>
               </motion.button>
             </div>
 
@@ -973,7 +977,7 @@ const MobileNavLinks = ({
               className="w-full flex items-center justify-center gap-3 px-4 py-4 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-xl transition-all font-semibold"
             >
               <LogOut className="w-5 h-5" />
-              <span>Sign out</span>
+              <span>{t('sign_out')}</span>
             </motion.button>
           </motion.div>
         ) : (
@@ -988,7 +992,7 @@ const MobileNavLinks = ({
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full flex items-center justify-center px-6 py-4 border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-semibold"
               >
-                Sign in
+                {t('sign_in')}
               </Link>
             </motion.div>
             <motion.div whileTap={{ scale: 0.97 }}>
@@ -997,7 +1001,7 @@ const MobileNavLinks = ({
                 onClick={() => setMobileMenuOpen(false)}
                 className="relative w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 transition-all font-semibold shadow-lg shadow-blue-500/30 overflow-hidden"
               >
-                <span className="relative z-10">Create account</span>
+                <span className="relative z-10">{t('create_account')}</span>
                 <motion.div
                   animate={sparkleVariants.animate}
                   className="absolute top-2 right-2"

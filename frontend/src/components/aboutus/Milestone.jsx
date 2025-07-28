@@ -2,23 +2,30 @@ import React from 'react';
 import { motion, useInView, useMotionValue, useSpring } from 'framer-motion';
 import { Building2, Home, Target } from 'lucide-react';
 import CountUp from './Contup';
+import { useTranslation } from 'react-i18next';
 
-const milestones = [
+const milestonesData = [
   {
     icon: Home,
-    title: 'Properties Listed',
     value: 5000,
-    description: 'And growing daily',
+    key: 'properties',
   },
   {
     icon: Target,
-    title: 'Happy Clients',
     value: 10000,
-    description: 'Satisfied customers',
+    key: 'clients',
   },
 ];
 
 export default function Milestones() {
+  const { t } = useTranslation();
+
+  const milestones = milestonesData.map(milestone => ({
+    ...milestone,
+    title: t(`about.milestones.${milestone.key}.title`),
+    description: t(`about.milestones.${milestone.key}.description`),
+  }));
+
   return (
     <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,10 +35,10 @@ export default function Milestones() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">Our Journey So Far</h2>
+          <h2 className="text-4xl font-bold mb-4">{t('about.milestones.title')}</h2>
           <div className="w-24 h-1 bg-blue-600 mx-auto mb-6"></div>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-            Milestones that mark our growth and success
+            {t('about.milestones.subtitle')}
           </p>
         </motion.div>
 

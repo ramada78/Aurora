@@ -1,7 +1,8 @@
 import  { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Sparkles, TrendingUp, Award, ChevronRight } from "lucide-react";
+import { ArrowRight, ArrowLeft, Sparkles, TrendingUp, Award, ChevronRight, ChevronLeft } from "lucide-react";
 import { features } from "../assets/featuredata";
+import { useTranslation } from 'react-i18next';
 
 // Enhanced animation variants
 const containerVariants = {
@@ -61,6 +62,8 @@ const floatingAnimation = {
 };
 
 const Features = () => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const [hoveredCard, setHoveredCard] = useState(null);
 
   return (
@@ -87,14 +90,14 @@ const Features = () => {
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 rounded-full text-sm font-semibold tracking-wide mb-6 shadow-lg border border-blue-200/50"
           >
             <Sparkles className="w-4 h-4" />
-            OUR PREMIUM FEATURES
+            {t('our_premium_features')}
             <Sparkles className="w-4 h-4" />
           </motion.div>
           
           <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-6 leading-tight">
-            Why Choose{' '}
+            {t('why_choose_excellence')}
             <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-              Excellence
+              {t('excellence')}
             </span>
           </h2>
           
@@ -106,8 +109,10 @@ const Features = () => {
           </div>
           
           <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed font-light">
-            Experience unparalleled service with our innovative approach to finding your{' '}
-            <span className="text-blue-600 font-semibold">perfect home</span>
+            {t('experience_unparalleled_service')}
+            <span className="text-blue-600 font-semibold">
+              {t('perfect_home')}
+            </span>
           </p>
 
           {/* Trust indicators */}
@@ -119,15 +124,15 @@ const Features = () => {
           >
             <div className="flex items-center gap-2">
               <Award className="w-5 h-5 text-yellow-500" />
-              <span className="font-medium">Award Winning Service</span>
+              <span className="font-medium">{t('award_winning_service')}</span>
             </div>
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-green-500" />
-              <span className="font-medium">98% Success Rate</span>
+              <span className="font-medium">{t('success_rate')}</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              <span className="font-medium">Trusted by 10K+ Families</span>
+              <span className="font-medium">{t('trusted_by_families')}</span>
             </div>
           </motion.div>
         </motion.div>
@@ -184,11 +189,11 @@ const Features = () => {
                 </motion.div>
                 
                 <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors duration-300">
-                  {feature.title}
+                  {t(`features.${feature.key}.title`)}
                 </h3>
                 
                 <p className="text-gray-600 leading-relaxed mb-8 text-sm">
-                  {feature.description}
+                  {t(`features.${feature.key}.description`)}
                 </p>
                 
                 {/* Enhanced Learn More Link */}
@@ -200,20 +205,28 @@ const Features = () => {
                     className="inline-flex items-center text-blue-600 text-sm font-semibold hover:text-blue-800 transition-colors group/link"
                     whileHover={{ x: 5 }}
                   >
-                    Explore Feature
-                    <ChevronRight className="ml-2 h-4 w-4 group-hover/link:translate-x-1 transition-transform duration-300" />
+                    {t('explore_feature')}
+                    {isRTL ? (
+                      <ChevronLeft className="ml-2 h-4 w-4 group-hover/link:translate-x-1 transition-transform duration-300" />
+                    ) : (
+                      <ChevronRight className="ml-2 h-4 w-4 group-hover/link:translate-x-1 transition-transform duration-300" />
+                    )}
                   </motion.a>
                   
                   <motion.div
                     className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300"
                     whileHover={{ scale: 1.1 }}
                   >
-                    <ArrowRight className="w-4 h-4 text-blue-600" />
+                    {isRTL ? (
+                      <ArrowLeft className="w-4 h-4 text-blue-600" />
+                    ) : (
+                      <ArrowRight className="w-4 h-4 text-blue-600" />
+                    )}
                   </motion.div>
                 </motion.div>
 
                 {/* Number indicator */}
-                <div className="absolute top-6 right-6 w-8 h-8 bg-gray-100 group-hover:bg-blue-100 rounded-full flex items-center justify-center text-sm font-bold text-gray-600 group-hover:text-blue-600 transition-all duration-300">
+                <div className={`absolute top-6 ${isRTL ? 'left-6' : 'right-6'} w-8 h-8 bg-gray-100 group-hover:bg-blue-100 rounded-full flex items-center justify-center text-sm font-bold text-gray-600 group-hover:text-blue-600 transition-all duration-300`}>
                   {String(index + 1).padStart(2, '0')}
                 </div>
               </div>
@@ -238,14 +251,14 @@ const Features = () => {
             </motion.div>
             
             <h3 className="text-3xl font-bold text-gray-900 mb-4">
-              Ready to Find Your{' '}
+              {t('ready_to_find_your_dream_home')}
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                Dream Home?
+                {t('dream_home')}
               </span>
             </h3>
             
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join thousands of satisfied customers who found their perfect home with our premium features and personalized service.
+              {t('join_satisfied_customers')}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -256,8 +269,12 @@ const Features = () => {
                 className="px-8 py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white font-bold rounded-2xl shadow-2xl hover:shadow-blue-500/25 transition-all text-lg inline-flex items-center group relative overflow-hidden"
               >
                 <span className="relative z-10 flex items-center">
-                  Browse Properties
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                  {t('browse_properties')}
+                  {isRTL ? (
+                    <ArrowLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                  ) : (
+                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                  )}
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </motion.a>
@@ -268,9 +285,13 @@ const Features = () => {
                 whileTap={{ scale: 0.98 }}
                 className="px-8 py-4 bg-white text-gray-700 font-bold rounded-2xl shadow-lg hover:shadow-xl border border-gray-200 hover:border-blue-300 transition-all text-lg inline-flex items-center group"
               >
-                Contact Expert
-                <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
-              </motion.a>
+                {t('contact_expert')}
+                {isRTL ? (
+                  <ChevronLeft className="mr-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                ) : (
+                  <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-300" />
+                )}
+                  </motion.a>
             </div>
             
             {/* Stats Row */}
@@ -282,15 +303,15 @@ const Features = () => {
             >
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="font-medium">100% Happy Customers</span>
+                <span className="font-medium">{t('happy_customers')}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                <span className="font-medium">5-Star Average Rating</span>
+                <span className="font-medium">{t('five_star_average_rating')}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                <span className="font-medium">24/7 Premium Support</span>
+                <span className="font-medium">{t('premium_support')}</span>
               </div>
             </motion.div>
           </div>

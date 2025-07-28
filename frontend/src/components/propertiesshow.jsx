@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { 
-  ArrowRight, 
+  HomeIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropertyCard from './properties/Propertycard.jsx';
 import { Backendurl } from '../App';
 import { getPropertyTypes } from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 
 const PropertiesShow = () => {
@@ -17,9 +18,10 @@ const PropertiesShow = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [propertyTypes, setPropertyTypes] = useState([]);
   const navigate = useNavigate();
-
+  const { t } = useTranslation();
+  
   const categories = [
-    { id: 'all', label: 'All Properties' },
+    { id: 'all', label: t('all_properties') },
     ...propertyTypes.map(type => ({ id: type.type_name, label: type.type_name }))
   ];
   
@@ -141,13 +143,13 @@ const PropertiesShow = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="text-blue-600 font-semibold tracking-wide uppercase text-sm">Explore Properties</span>
+          <span className="text-blue-600 font-semibold tracking-wide uppercase text-sm">{t('explore_properties')}</span>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mt-2 mb-4">
-            Featured Properties
+            {t('featured_properties')}
           </h2>
           <div className="w-24 h-1 bg-blue-600 mx-auto mb-6"></div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Discover our handpicked selection of Future Real Estate designed to match your lifestyle needs
+            {t('featured_properties_desc')}
           </p>
         </motion.div>
 
@@ -201,11 +203,11 @@ const PropertiesShow = () => {
             onClick={viewAllProperties}
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20 font-medium"
           >
-            Browse All Properties
-            <ArrowRight className="ml-2 w-4 h-4" />
+            {t('browse_all_properties')}
+            <HomeIcon className="ml-2 mr-2 w-4 h-4" />
           </button>
           <p className="text-gray-600 mt-4 text-sm">
-            Discover our complete collection of Future Real Estate
+            {t('featured_properties_full_desc')}
           </p>
         </motion.div>
       </div>

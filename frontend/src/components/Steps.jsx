@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { steps } from '../assets/stepsdata';
-import { ArrowRight, Sparkles, Star, CheckCircle2, Zap } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Sparkles, Star, CheckCircle2, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 // Enhanced Animation variants
 const containerVariants = {
@@ -86,6 +87,8 @@ const glowAnimation = {
 };
 
 function Step({ icon: Icon, title, description, stepNumber }) {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -98,8 +101,8 @@ function Step({ icon: Icon, title, description, stepNumber }) {
     >
       {/* Step number indicator */}
       <motion.div 
-        className="absolute -top-4 -left-4 w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 
-          rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg z-10"
+        className={`absolute -top-4 ${isRTL ? 'right-8' : 'left-4'} w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 
+          rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg z-10`}
         animate={pulseAnimation}
       >
         {stepNumber}
@@ -150,19 +153,19 @@ function Step({ icon: Icon, title, description, stepNumber }) {
       {/* Content with enhanced typography */}
       <div className="text-center space-y-3 max-w-sm">
         <motion.h3 
-          className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 
+          className="text-2xl bg-gradient-to-r from-gray-900 to-gray-700 
             bg-clip-text text-transparent group-hover:from-blue-600 group-hover:to-indigo-600 
             transition-all duration-300"
           animate={isHovered ? { scale: 1.05 } : { scale: 1 }}
         >
-          {title}
+          {t(title)}
         </motion.h3>
         
         <motion.p 
           className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors duration-300"
           animate={isHovered ? { y: -2 } : { y: 0 }}
         >
-          {description}
+          {t(description)}
         </motion.p>
       </div>
       
@@ -197,6 +200,8 @@ Step.propTypes = {
 };
 
 export default function HowItWorks() {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const [activeStep, setActiveStep] = useState(null);
 
   return (
@@ -236,7 +241,7 @@ export default function HowItWorks() {
             animate={pulseAnimation}
           >
             <Zap className="w-4 h-4" />
-            Simple Process
+            {t('simple_process')}
             <Sparkles className="w-4 h-4" />
           </motion.span>
           
@@ -255,7 +260,7 @@ export default function HowItWorks() {
               backgroundClip: "text",
             }}
           >
-            How It Works
+            {t('how_it_works')}
           </motion.h2>
           
           {/* Decorative line */}
@@ -280,8 +285,8 @@ export default function HowItWorks() {
             whileInView={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            Finding your perfect property is easy with our{" "}
-            <span className="font-semibold text-blue-600">three-step</span> process
+            {t('finding_your_perfect_property')}
+            <span className="font-semibold text-blue-600">{t('three_step_process')}</span>
           </motion.p>
           
         </motion.div>
@@ -321,7 +326,7 @@ export default function HowItWorks() {
               {/* Enhanced connection arrows - desktop */}
               {index < steps.length - 1 && (
                 <div className="hidden lg:block absolute" 
-                  style={{ left: `${(index + 0.68) * (100 / 3) + 3}%`, top: '11%' }}>
+                  style={{ right: `${(index + 0.68) * (100 / 3) + 3}%`, top: '11%' }}>
                   <motion.div
                     animate={{
                       x: [0, 8, 0],
@@ -335,7 +340,7 @@ export default function HowItWorks() {
                       activeStep === index ? 'text-indigo-600' : 'text-blue-500'
                     }`}
                   >
-                    <ArrowRight className="h-8 w-8" />
+                    {isRTL ? <ArrowLeft className="h-5 w-8" /> : <ArrowRight className="h-5 w-8" />}
                   </motion.div>
                 </div>
               )}
@@ -369,12 +374,12 @@ export default function HowItWorks() {
               transition={{ duration: 2, repeat: Infinity }}
             />
             
-            <span className="relative z-10">Start Your Journey</span>
+            <span className="relative z-10">{t('start_your_journey')}</span>
             <motion.div
               animate={{ x: [0, 4, 0] }}
               transition={{ duration: 1.5, repeat: Infinity }}
             >
-              <ArrowRight className="w-5 h-5 relative z-10" />
+              {isRTL ? <ArrowLeft className="w-5 h-5 relative z-10" /> : <ArrowRight className="w-5 h-5 relative z-10" />}
             </motion.div>
           </motion.a>
           
@@ -386,7 +391,7 @@ export default function HowItWorks() {
             transition={{ delay: 0.8 }}
           >
             <CheckCircle2 className="w-4 h-4 text-green-500" />
-            No registration required to surf our properties • Free to sign-up
+            {t('no_registration_required')} • {t('free_to_sign_up')}
           </motion.p>
         </motion.div>
       </div>

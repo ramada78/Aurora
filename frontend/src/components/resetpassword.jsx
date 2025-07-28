@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Backendurl } from "../App";
+import { useTranslation } from "react-i18next";
 
 // Enhanced Animation Variants
 const containerVariants = {
@@ -100,6 +101,8 @@ const ResetPassword = () => {
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [isSuccess, setIsSuccess] = useState(false);
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
 
   // Password strength calculation
   const calculatePasswordStrength = (password) => {
@@ -139,53 +142,50 @@ const ResetPassword = () => {
     switch (passwordStrength) {
       case 0:
       case 1:
-        return "Weak";
+        return t('resetPassword.strength.weak');
       case 2:
-        return "Fair";
+        return t('resetPassword.strength.fair');
       case 3:
-        return "Good";
+        return t('resetPassword.strength.good');
       case 4:
       case 5:
-        return "Strong";
+        return t('resetPassword.strength.strong');
       default:
         return "";
     }
   };
 
   const passwordsMatch = password && confirmPassword && password === confirmPassword;
-  const isFormValid = password && confirmPassword && passwordsMatch && passwordStrength >= 3;
+
+  const isFormValid = password.length >= 8 && passwordsMatch;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!isFormValid) {
-      toast.error("Please ensure passwords match and meet strength requirements.");
+      toast.error(t('resetPassword.validation.formInvalid'));
       return;
     }
-
     setLoading(true);
     try {
       const response = await axios.post(`${Backendurl}/api/users/reset/${token}`, { password });
       if (response.data.success) {
         setIsSuccess(true);
-        toast.success("Password reset successful!");
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
+        toast.success(t('resetPassword.successMessage'));
+        setTimeout(() => navigate("/login"), 3000);
       } else {
-        toast.error(response.data.message);
+        toast.error(response.data.message || t('resetPassword.errorMessage'));
       }
     } catch (error) {
       console.error("Error resetting password:", error);
-      toast.error("Failed to reset password. Please try again.");
+      toast.error(t('resetPassword.errorMessage'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Animated Background Elements */}
+    <div className={`relative min-h-screen font-sans flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 ${isRTL ? 'rtl' : 'ltr'}`}>
+      {/* Background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div 
           animate={floatingAnimation}
@@ -264,8 +264,8 @@ const ResetPassword = () => {
               <Key className="w-8 h-8 text-white" />
             </motion.div>
             
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Reset Password</h2>
-            <p className="text-gray-600">Create a new secure password for your account</p>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('resetPassword.title')}</h2>
+            <p className="text-gray-600">{t('resetPassword.subtitle')}</p>
           </motion.div>
 
           <motion.form 
@@ -275,114 +275,99 @@ const ResetPassword = () => {
           >
             {/* New Password Field */}
             <motion.div variants={inputVariants}>
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
-                New Password
+              <label 
+                htmlFor="password" 
+                className={`flex items-center justify-between mb-2 text-sm font-medium text-gray-700 ${isRTL ? 'flex-row-reverse' : ''}`}
+              >
+                {t('resetPassword.newPasswordLabel')}
+                {password && (
+                  <span className="text-xs font-semibold" style={{ color: getPasswordStrengthColor().replace('bg-', '') }}>
+                    {getPasswordStrengthText()}
+                  </span>
+                )}
               </label>
-              <div className="relative group">
-                <motion.div
-                  animate={passwordFocused ? { scale: 1.1, color: "#3B82F6" } : { scale: 1, color: "#9CA3AF" }}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10"
-                >
-                  <Lock className="h-5 w-5" />
-                </motion.div>
-                <input
+              <div className="relative">
+                <motion.input
                   type={showPassword ? "text" : "password"}
-                  name="password"
                   id="password"
-                  required
                   value={password}
                   onChange={handlePasswordChange}
                   onFocus={() => setPasswordFocused(true)}
                   onBlur={() => setPasswordFocused(false)}
-                  className="w-full pl-11 pr-12 py-3.5 rounded-xl bg-gray-50/50 border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 text-gray-800 placeholder-gray-400 group-hover:border-gray-300"
-                  placeholder="Enter new password"
+                  required
+                  className={`w-full py-3 rounded-xl bg-gray-50/80 border-2 transition-all duration-300 placeholder-gray-400 focus:ring-4 focus:outline-none ${isRTL ? 'pr-12 text-right' : 'pl-12'} ${passwordFocused ? 'border-blue-500 focus:border-blue-500 focus:ring-blue-500/20' : 'border-transparent'}`}
+                  placeholder={t('resetPassword.newPasswordPlaceholder')}
                 />
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                <motion.div
+                  className={`absolute top-1/2 -translate-y-1/2 text-gray-400 ${isRTL ? 'right-4' : 'left-4'}`}
+                  animate={passwordFocused ? { scale: 1.1, color: '#3B82F6' } : {}}
+                >
+                  <Lock className="w-5 h-5" />
+                </motion.div>
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10"
+                  className={`absolute top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 p-1 rounded-full transition-colors ${isRTL ? 'left-4' : 'right-4'}`}
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </motion.button>
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
-
-              {/* Password Strength Indicator */}
-              {password && (
+              <div className="w-full bg-gray-200 rounded-full h-1 mt-2">
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-3"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-gray-600">Password Strength</span>
-                    <span className={`text-xs font-bold ${passwordStrength >= 3 ? 'text-green-600' : passwordStrength >= 2 ? 'text-yellow-600' : 'text-red-600'}`}>
-                      {getPasswordStrengthText()}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(passwordStrength / 5) * 100}%` }}
-                      className={`h-2 rounded-full transition-all duration-500 ${getPasswordStrengthColor()}`}
-                    />
-                  </div>
-                </motion.div>
-              )}
+                  className={`h-1 rounded-full ${getPasswordStrengthColor()}`}
+                  initial={{ width: '0%' }}
+                  animate={{ width: `${passwordStrength * 20}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
             </motion.div>
 
             {/* Confirm Password Field */}
             <motion.div variants={inputVariants}>
-              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
-                Confirm Password
+              <label htmlFor="confirm-password" className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'text-right' : ''}`}>
+                {t('resetPassword.confirmPasswordLabel')}
               </label>
-              <div className="relative group">
-                <motion.div
-                  animate={confirmPasswordFocused ? { scale: 1.1, color: "#3B82F6" } : { scale: 1, color: "#9CA3AF" }}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10"
-                >
-                  <Shield className="h-5 w-5" />
-                </motion.div>
-                <input
+              <div className="relative">
+                <motion.input
                   type={showConfirmPassword ? "text" : "password"}
-                  name="confirmPassword"
-                  id="confirmPassword"
-                  required
+                  id="confirm-password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   onFocus={() => setConfirmPasswordFocused(true)}
                   onBlur={() => setConfirmPasswordFocused(false)}
-                  className="w-full pl-11 pr-12 py-3.5 rounded-xl bg-gray-50/50 border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 text-gray-800 placeholder-gray-400 group-hover:border-gray-300"
-                  placeholder="Confirm new password"
+                  required
+                  className={`w-full py-3 rounded-xl bg-gray-50/80 border-2 transition-all duration-300 placeholder-gray-400 focus:ring-4 focus:outline-none ${isRTL ? 'pr-12 text-right' : 'pl-12'} ${confirmPasswordFocused ? 'border-blue-500 focus:border-blue-500 focus:ring-blue-500/20' : 'border-transparent'}`}
+                  placeholder={t('resetPassword.confirmPasswordPlaceholder')}
                 />
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                <motion.div
+                  className={`absolute top-1/2 -translate-y-1/2 text-gray-400 ${isRTL ? 'right-4' : 'left-4'}`}
+                  animate={confirmPasswordFocused ? { scale: 1.1, color: '#3B82F6' } : {}}
+                >
+                  <Lock className="w-5 h-5" />
+                </motion.div>
+                <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors z-10"
+                  className={`absolute top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 p-1 rounded-full transition-colors ${isRTL ? 'left-4' : 'right-4'}`}
                 >
-                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </motion.button>
+                  {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
-
-              {/* Password Match Indicator */}
               {confirmPassword && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-2 flex items-center space-x-2"
+                  className={`mt-2 flex items-center space-x-2 ${isRTL ? 'flex-row-reverse' : ''}`}
                 >
                   {passwordsMatch ? (
                     <>
                       <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-xs text-green-600 font-medium">Passwords match</span>
+                      <span className="text-xs text-green-600 font-medium">{t('resetPassword.passwordsMatch')}</span>
                     </>
                   ) : (
                     <>
                       <AlertCircle className="w-4 h-4 text-red-500" />
-                      <span className="text-xs text-red-600 font-medium">Passwords don&apos;t match</span>
+                      <span className="text-xs text-red-600 font-medium">{t('resetPassword.passwordsDontMatch')}</span>
                     </>
                   )}
                 </motion.div>
@@ -411,7 +396,7 @@ const ResetPassword = () => {
               ) : (
                 <>
                   <Key className="w-5 h-5" />
-                  <span>Reset Password</span>
+                  <span>{t('resetPassword.buttonText')}</span>
                 </>
               )}
             </motion.button>
@@ -425,12 +410,12 @@ const ResetPassword = () => {
                 className="inline-flex items-center justify-center text-sm text-gray-600 hover:text-gray-800 transition-colors group"
               >
                 <motion.div
-                  whileHover={{ x: -5 }}
-                  className="mr-2"
+                  whileHover={{ x: isRTL ? 5 : -5 }}
+                  className={isRTL ? 'ml-2' : 'mr-2'}
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className={isRTL ? 'transform rotate-180' : ''} />
                 </motion.div>
-                <span className="group-hover:underline">Back to login</span>
+                <span className="group-hover:underline">{t('resetPassword.backToLogin')}</span>
               </Link>
             </motion.div>
           </motion.form>

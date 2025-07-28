@@ -6,11 +6,14 @@ import PropTypes from "prop-types";
 import AiHubSEO from "../components/SEO/AiHubSEO";
 import StructuredData from "../components/SEO/StructuredData";
 import { Brain, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const AIPropertyHub = () => {
   const [recommendations, setRecommendations] = useState([]);
   const [recLoading, setRecLoading] = useState(true);
   const { isLoggedIn } = useAuth();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -55,8 +58,8 @@ const AIPropertyHub = () => {
       <StructuredData type="aiHub" />
       <div className="max-w-7xl mx-auto px-4">
         {/* Hero/Intro section */}
-        <div className="mb-8 sm:mb-12 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl sm:rounded-2xl p-5 sm:p-8 shadow-lg sm:shadow-xl relative overflow-hidden">
-          <div className="absolute -top-10 right-0 opacity-30 pointer-events-none select-none">
+        <div className={`mb-8 sm:mb-12 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl sm:rounded-2xl p-5 sm:p-8 shadow-lg sm:shadow-xl relative overflow-hidden ${isRTL ? 'text-right' : 'text-center'}`}>
+          <div className={`absolute -top-10 ${isRTL ? 'left-0' : 'right-0'} opacity-30 pointer-events-none select-none`}>
             <Sparkles className="w-32 h-32 text-blue-200" />
           </div>
           <div className="max-w-3xl mx-auto text-center relative z-10">
@@ -66,20 +69,20 @@ const AIPropertyHub = () => {
               </span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3 sm:mb-4 bg-gradient-to-r from-cyan-200 via-blue-100 to-indigo-200 bg-clip-text text-transparent">
-              AI-Powered Property Recommendations
+              {t('aiAgent.title')}
             </h1>
             <p className="text-blue-100 text-lg sm:text-xl mb-6 sm:mb-8">
-              Discover properties tailored to your preferences using advanced AI algorithms. We analyze your recent searches and filters to suggest homes you’ll love—automatically!
+              {t('aiAgent.description')}
             </p>
           </div>
         </div>
         {/* Recommendations section */}
         <div className="mt-10">
-          <h2 className="text-2xl font-bold mb-4 text-blue-700 flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-blue-400" /> Recommended For You
+          <h2 className={`text-2xl font-bold mb-4 text-blue-700 flex items-center gap-2 ${isRTL ? '' : ''}`}>
+            <Sparkles className="w-6 h-6 text-blue-400" /> {t('aiAgent.recommendedForYou')}
           </h2>
           {recLoading ? (
-            <div className="text-gray-500">Loading recommendations...</div>
+            <div className="text-gray-500">{t('aiAgent.loadingRecommendations')}</div>
           ) : recommendations.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {recommendations.map((property) => (
@@ -87,7 +90,7 @@ const AIPropertyHub = () => {
               ))}
             </div>
           ) : (
-            <div className="text-gray-500">No recommendations found. Try searching for properties to get personalized suggestions!</div>
+            <div className="text-gray-500">{t('aiAgent.noRecommendations')}</div>
           )}
         </div>
         {/* Decorative Aurora Pattern at Bottom */}

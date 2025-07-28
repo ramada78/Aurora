@@ -29,8 +29,10 @@ import ScheduleViewing from "./ScheduleViewing";
 import { getPropertyTypes, getCities } from "../../services/api";
 import PropertyReviews from './PropertyReviews';
 import VR360Embed from "../VR360Embed.jsx";
+import { useTranslation } from 'react-i18next';
 
 const PropertyDetails = () => {
+  const { t, i18n } = useTranslation();
   const { id } = useParams();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -157,6 +159,12 @@ const PropertyDetails = () => {
 
   const DEMO_VR_TOUR_URL = "https://my.matterport.com/show/?m=zEWsxhZpGba&play=1&qs=1";
 
+  // Fallback logic for dynamic content
+  const title = property?.title_ar || property?.title_en || property?.title;
+  const description = property?.description_ar || property?.description_en || property?.description;
+  const city = property?.city?.city_name_ar || property?.city?.city_name_en || property?.city?.city_name || cityName;
+  const propertyType = property?.propertyType?.type_name_ar || property?.propertyType?.type_name_en || propertyTypeName;
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -242,19 +250,19 @@ const PropertyDetails = () => {
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {property.title}
+                  {title}
                 </h1>
                 <div className="flex items-center text-gray-600 gap-4">
-                  {cityName && (
+                  {city && (
                     <span className="flex items-center bg-blue-100 px-2 py-1 rounded text-xs ml-2">
                       <MapPin className="w-4 h-4 mr-1 text-blue-600" />
-                      {cityName}
+                      {city}
                     </span>
                   )}
-                  {propertyTypeName && (
+                  {propertyType && (
                     <span className="flex items-center bg-blue-100 px-2 py-1 rounded text-xs ml-2">
                       <Home className="w-4 h-4 mr-1 text-blue-600" />
-                      {propertyTypeName}
+                      {propertyType}
                     </span>
                   )}
                 </div>
@@ -270,7 +278,7 @@ const PropertyDetails = () => {
             {/* Property Status Badge */}
             <div className="flex items-center gap-2 mb-4">
               <span className={`px-3 py-1 rounded-full text-xs font-medium ${property.status === 'available' ? 'bg-green-100 text-green-800' : property.status === 'rented' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                {property.status ? property.status.charAt(0).toUpperCase() + property.status.slice(1) : 'Available'}
+                {property.status ? property.status.charAt(0).toUpperCase() + property.status.slice(1) : t('available')}
               </span>
             </div>
 
@@ -289,13 +297,13 @@ const PropertyDetails = () => {
                   <div className="bg-gray-50 p-4 rounded-lg text-center">
                     <BedDouble className="w-6 h-6 text-blue-600 mx-auto mb-2" />
                     <p className="text-sm text-gray-600">
-                      {property.beds} {property.beds > 1 ? 'Beds' : 'Bed'}
+                      {property.beds} {property.beds > 1 ? t('beds') : t('bed')}
                     </p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg text-center">
                     <Bath className="w-6 h-6 text-blue-600 mx-auto mb-2" />
                     <p className="text-sm text-gray-600">
-                      {property.baths} {property.baths > 1 ? 'Baths' : 'Bath'}
+                      {property.baths} {property.baths > 1 ? t('baths') : t('bath')}
                     </p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg text-center">
@@ -317,20 +325,20 @@ const PropertyDetails = () => {
 
               <div>
                 <div className="mb-6">
-                  <h2 className="text-xl font-semibold mb-4">Listing Type</h2>
+                  <h2 className="text-xl font-semibold mb-4">{t('listingType')}</h2>
                   <p className="text-gray-600 leading-relaxed">
                     {property.availability.charAt(0).toUpperCase() + property.availability.slice(1)}
                   </p>
                 </div>
                 <div className="mb-6">
-                  <h2 className="text-xl font-semibold mb-4">Description</h2>
+                  <h2 className="text-xl font-semibold mb-4">{t('description')}</h2>
                   <p className="text-gray-600 leading-relaxed">
-                    {property.description}
+                    {description}
                   </p>
                 </div>
 
                 <div className="mb-6">
-                  <h2 className="text-xl font-semibold mb-4">Amenities</h2>
+                  <h2 className="text-xl font-semibold mb-4">{t('amenities')}</h2>
                   <div className="grid grid-cols-2 gap-4">
                     {property.amenities.map((amenity, index) => (
                       <div 
@@ -383,14 +391,14 @@ const PropertyDetails = () => {
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
                     <div className="relative z-10">
                       <SparkleIcon className="w-12 h-12 text-white mx-auto mb-4 opacity-80" />
-                      <h2 className="text-3xl font-bold text-white mb-2">Immersive 360° Tour</h2>
-                      <p className="text-white/80 mb-6">Step inside and explore this property from every angle.</p>
+                      <h2 className="text-3xl font-bold text-white mb-2">{t('immersiveTour')}</h2>
+                      <p className="text-white/80 mb-6">{t('stepInside')}</p>
                       <button
                         onClick={() => setShowVR(true)}
                         className="inline-flex items-center gap-3 px-8 py-4 bg-white text-blue-600 font-bold rounded-lg shadow-lg hover:bg-gray-100 hover:scale-105 transition-all"
                       >
                         <Compass className="w-6 h-6" />
-                        Launch Virtual Tour
+                        {t('launchVirtualTour')}
                       </button>
                     </div>
                   </div>
@@ -405,7 +413,7 @@ const PropertyDetails = () => {
           <div className="flex items-center gap-2 text-black-600 mb-4">
           <Compass className="w-5 h-5" />
           <h3 className="text-lg font-semibold">
-            {property.city?.city_name || cityName || ''}
+            {city}
             </h3>
           </div>
           {property.mapUrl ? (
@@ -416,17 +424,17 @@ const PropertyDetails = () => {
               className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
             >
               <ArrowRight className="w-4 h-4" />
-              View Exact Location on Map
+              {t('viewExactLocation')}
             </a>
           ) : (
             <a
-              href={`https://maps.google.com/?q=${encodeURIComponent(property.city?.city_name || '')}`}
+              href={`https://maps.google.com/?q=${encodeURIComponent(city || '')}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
             >
               <ArrowRight className="w-4 h-4" />
-              View Exact Location on Map
+              {t('viewExactLocation')}
             </a>
           )}
         </div>

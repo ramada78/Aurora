@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { User, Building, UserCheck, Settings, Heart, Loader, CalendarCheck2, Star } from 'lucide-react';
@@ -18,12 +19,14 @@ const roleColors = {
 };
 
 const sidebarLinks = [
-  { to: '/dashboard/profile', label: 'Profile', icon: User },
-  { to: '/dashboard/saved-properties', label: 'Saved Properties', icon: Heart },
-  { to: '/dashboard/appointments', label: 'Appointments', icon: CalendarCheck2 },
+  { to: '/dashboard/profile', label: 'dashboard.profile', icon: User },
+  { to: '/dashboard/saved-properties', label: 'dashboard.saved_properties', icon: Heart },
+  { to: '/dashboard/appointments', label: 'dashboard.appointments', icon: CalendarCheck2 },
 ];
 
 const UserDashboard = () => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ saved: 0, appointments: 0 });
@@ -92,14 +95,14 @@ const UserDashboard = () => {
   return (
     <div className="min-h-screen flex pt-32 pb-32 bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-100">
       {/* Sidebar */}
-      <aside className="w-72 bg-white/90 shadow-xl rounded-r-3xl p-8 flex flex-col gap-8 sticky top-0 h-[calc(100vh-4rem)] max-h-[900px] z-20">
+      <aside className={`w-72 bg-white/90 shadow-xl p-8 flex flex-col gap-8 sticky top-0 h-[calc(100vh-4rem)] max-h-[900px] z-20 ${isRTL ? 'rounded-l-3xl' : 'rounded-r-3xl'} hidden md:flex`}>
         <div className="mb-6">
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold text-gray-900 mb-1 tracking-tight">Dashboard</motion.div>
-          <div className="text-sm text-gray-500 mb-2">Welcome, <span className="font-semibold text-blue-700">{userData.name}</span></div>
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-2xl font-bold text-gray-900 mb-1 tracking-tight">{t('dashboard.title')}</motion.div>
+          <div className="text-sm text-gray-500 mb-2">{t('dashboard.welcome')}, <span className="font-semibold text-blue-700">{userData.name}</span></div>
           <div className="flex gap-2 flex-wrap">
             {userData.roles.map(role => {
               const meta = roleColors[role] || 'bg-gray-400';
-              return <span key={role} className={`px-2 py-1 rounded text-xs text-white font-semibold ${meta}`}>{role.charAt(0).toUpperCase() + role.slice(1)}</span>;
+              return <span key={role} className={`px-2 py-1 rounded text-xs text-white font-semibold ${meta}`}>{t(`dashboard.role_${role}`)}</span>;
             })}
           </div>
         </div>
@@ -114,7 +117,7 @@ const UserDashboard = () => {
               <motion.span initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
                 {link.icon && React.createElement(link.icon, { className: 'w-5 h-5' })}
               </motion.span>
-              <span>{link.label}</span>
+              <span>{t(link.label)}</span>
             </Link>
           ))}
         </nav>
@@ -123,7 +126,7 @@ const UserDashboard = () => {
         </div>
       </aside>
       {/* Main Content */}
-      <main className="flex-1 px-8 py-10">
+      <main className="flex-1 w-full px-2 md:px-8 py-10">
         <AnimatePresence mode="wait">
           {location.pathname === '/dashboard' && (
             <motion.div
@@ -134,22 +137,22 @@ const UserDashboard = () => {
               transition={{ duration: 0.4 }}
               className="max-w-3xl mx-auto bg-white/90 rounded-2xl shadow-xl p-10 mb-10 flex flex-col gap-6"
             >
-              <div className="text-2xl font-bold text-blue-700 mb-2">Welcome back, {userData.name}!</div>
+              <div className="text-2xl font-bold text-blue-700 mb-2">{t('dashboard.welcome_back', { name: userData.name })}</div>
               <div className="flex gap-8 flex-wrap">
                 <div className="flex flex-col items-center">
                   <Save className="w-7 h-7 text-pink-500 mb-1" />
                   <div className="text-lg font-bold">{stats.saved}</div>
-                  <div className="text-xs text-gray-500">Saved Properties</div>
+                  <div className="text-xs text-gray-500">{t('dashboard.saved_properties')}</div>
                 </div>
                 <div className="flex flex-col items-center">
                   <CalendarCheck2 className="w-7 h-7 text-green-500 mb-1" />
                   <div className="text-lg font-bold">{stats.appointments}</div>
-                  <div className="text-xs text-gray-500">Appointments</div>
+                  <div className="text-xs text-gray-500">{t('dashboard.appointments')}</div>
                 </div>
                 <div className="flex flex-col items-center">
                   <Star className="w-7 h-7 text-yellow-400 mb-1" />
                   <div className="text-lg font-bold">{userData.roles.length}</div>
-                  <div className="text-xs text-gray-500">Roles</div>
+                  <div className="text-xs text-gray-500">{t('dashboard.roles')}</div>
                 </div>
               </div>
             </motion.div>

@@ -1,19 +1,30 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import heroAbout from '../../assets/images/about_enhanced.jpg';
 
 export default function Hero() {
+  const { t } = useTranslation();
+
   return (
     <div className="mt-16">
       <div className="relative h-[80vh] flex items-center justify-center overflow-hidden">
-        {/* Animated gradient background */}
-        <div className="absolute inset-0 z-0">
+        {/* Hero background image */}
+        <img
+          src={heroAbout}
+          alt="Los Angeles Skyline"
+          className="absolute inset-0 w-full h-full object-cover z-0"
+          style={{ filter: 'brightness(0.7)' }}
+        />
+        {/* Animated gradient background (darker and more transparent) */}
+        <div className="absolute inset-0 z-10">
           <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800"
+            className="absolute inset-0 bg-gradient-to-br from-blue-900/70 via-indigo-900/60 to-purple-900/70"
             animate={{
               background: [
-                'linear-gradient(to bottom right, rgba(37, 99, 235, 1), rgba(79, 70, 229, 1), rgba(124, 58, 237, 0.8))',
-                'linear-gradient(to bottom right, rgba(79, 70, 229, 1), rgba(124, 58, 237, 0.8), rgba(37, 99, 235, 1))',
-                'linear-gradient(to bottom right, rgba(124, 58, 237, 0.8), rgba(37, 99, 235, 1), rgba(79, 70, 229, 1))'
+                'linear-gradient(to bottom right, rgba(37, 99, 235, 0.7), rgba(79, 70, 229, 0.6), rgba(124, 58, 237, 0.7))',
+                'linear-gradient(to bottom right, rgba(79, 70, 229, 0.6), rgba(124, 58, 237, 0.7), rgba(37, 99, 235, 0.7))',
+                'linear-gradient(to bottom right, rgba(124, 58, 237, 0.7), rgba(37, 99, 235, 0.7), rgba(79, 70, 229, 0.6))'
               ]
             }}
             transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
@@ -63,11 +74,10 @@ export default function Hero() {
           transition={{ delay: 0.2, duration: 0.8 }}
           className="relative text-center text-white px-4 max-w-4xl mx-auto z-10"
         >
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-8 leading-tight">
-            Building Your Future,<br />One Home at a Time
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-8 leading-tight" dangerouslySetInnerHTML={{ __html: t('about.hero.title') }}>
           </h1>
           <p className="text-xl md:text-2xl leading-relaxed font-light">
-            We're more than just a property platform - we're your partner in finding the perfect place to call home.
+            {t('about.hero.subtitle')}
           </p>
           
           {/* Decorative line */}

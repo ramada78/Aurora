@@ -13,6 +13,7 @@ import {
   Shield, 
   Star,
   ArrowRight,
+  ArrowLeft,
   User,
   Key,
   Home,
@@ -20,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Backendurl } from '../App';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 // Enhanced Animation Variants
 const containerVariants = {
@@ -111,12 +113,14 @@ const Signup = () => {
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [validationErrors, setValidationErrors] = useState({});
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
 
   // Available roles
   const availableRoles = [
-    { value: 'client', label: 'Client', description: 'I want to buy properties' },
-    { value: 'seller', label: 'Seller', description: 'I want to sell properties' },
-    { value: 'agent', label: 'Agent', description: 'I want to help others buy/sell' }
+    { value: 'client', label: t('signup.roles.client.label'), description: t('signup.roles.client.description') },
+    { value: 'seller', label: t('signup.roles.seller.label'), description: t('signup.roles.seller.description') },
+    { value: 'agent', label: t('signup.roles.agent.label'), description: t('signup.roles.agent.description') }
   ];
 
   // Password strength calculation
@@ -131,165 +135,114 @@ const Signup = () => {
 
   // Real-time validation
   const validateField = (name, value) => {
-    const errors = {};
-    
+    let error = '';
     switch (name) {
       case 'name':
-        if (!value.trim()) errors.name = 'Name is required';
-        else if (value.trim().length < 2) errors.name = 'Name must be at least 2 characters';
+        if (!value) error = t('signup.validation.nameRequired');
         break;
-      case 'email': {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!value) errors.email = 'Email is required';
-        else if (!emailRegex.test(value)) errors.email = 'Please enter a valid email';
+      case 'email':
+        if (!value) error = t('signup.validation.emailRequired');
+        else if (!/\S+@\S+\.\S+/.test(value)) error = t('signup.validation.emailInvalid');
         break;
-      }
       case 'password':
-        if (!value) errors.password = 'Password is required';
-        else if (value.length < 6) errors.password = 'Password must be at least 6 characters';
+        if (!value) error = t('signup.validation.passwordRequired');
+        else if (value.length < 8) error = t('signup.validation.passwordLength');
         break;
-      case 'phone':
-        if (value && !/^\+?[0-9]{10,15}$/.test(value)) errors.phone = 'Please enter a valid phone number (e.g., +1234567890 or 1234567890)';
+      case 'confirmPassword':
+        if (value !== formData.password) error = t('signup.validation.passwordsMismatch');
         break;
-      case 'roles':
-        if (formData.roles.length === 0) errors.roles = 'Please select at least one role';
+      default:
         break;
     }
-    
-    setValidationErrors(prev => ({ ...prev, ...errors }));
-    return Object.keys(errors).length === 0;
+    setValidationErrors(prev => ({ ...prev, [name]: error }));
+    return !error;
   };
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    
-    if (name === 'roles') {
-      // Handle role checkbox selection
-      const updatedRoles = checked
-        ? [...formData.roles, value]
-        : formData.roles.filter(role => role !== value);
-      
-      setFormData(prev => ({
-        ...prev,
-        roles: updatedRoles
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    validateField(name, value);
 
-    // Clear validation error when user starts typing
-    if (validationErrors[name]) {
-      setValidationErrors(prev => ({ ...prev, [name]: '' }));
-    }
-
-    // Calculate password strength
     if (name === 'password') {
       setPasswordStrength(calculatePasswordStrength(value));
+      if (formData.confirmPassword) {
+        validateField('confirmPassword', formData.confirmPassword);
+      }
     }
-
-    // Real-time validation
-    validateField(name, value);
   };
 
-  const handleFocus = (fieldName) => {
-    setFieldFocus(prev => ({ ...prev, [fieldName]: true }));
+  const handleFocus = (field) => {
+    setFieldFocus(prev => ({ ...prev, [field]: true }));
   };
 
-  const handleBlur = (fieldName) => {
-    setFieldFocus(prev => ({ ...prev, [fieldName]: false }));
-    validateField(fieldName, formData[fieldName]);
+  const handleBlur = (field) => {
+    setFieldFocus(prev => ({ ...prev, [field]: false }));
+    validateField(field, formData[field]);
+  };
+
+  const handleRoleChange = (role) => {
+    setFormData(prev => {
+      const roles = prev.roles.includes(role)
+        ? prev.roles.filter(r => r !== role)
+        : [...prev.roles, role];
+      return { ...prev, roles };
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validate roles before submission
-    if (formData.roles.length === 0) {
-      toast.error('Please select at least one role');
+    const isNameValid = validateField('name', formData.name);
+    const isEmailValid = validateField('email', formData.email);
+    const isPasswordValid = validateField('password', formData.password);
+    const isConfirmPasswordValid = validateField('confirmPassword', formData.confirmPassword);
+
+    if (!isNameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid || formData.roles.length === 0) {
+      if(formData.roles.length === 0) toast.error(t('signup.validation.roleRequired'));
       return;
     }
     
     setLoading(true);
     try {
       const response = await axios.post(
-        `${Backendurl}/api/users/register`, 
+        `${Backendurl}/api/users/signup`,
         formData
       );
-      
       if (response.data.success) {
-        localStorage.setItem('token', response.data.token);
-        toast.success('Account created successfully! You can now switch between your roles.');
-        navigate('/');
+        toast.success(t('signup.success'));
+        navigate('/login');
       } else {
-        toast.error(response.data.message || 'Registration failed');
+        toast.error(response.data.message);
       }
     } catch (error) {
       console.error('Error signing up:', error);
-      
-      // More detailed error handling
-      if (error.response) {
-        // Server responded with error status
-        toast.error(error.response.data.message || 'Server error occurred');
-      } else if (error.request) {
-        // Request was made but no response received
-        toast.error('Network error. Please check your connection.');
-      } else {
-        // Something else happened
-        toast.error('An unexpected error occurred. Please try again.');
-      }
+      toast.error(t('signup.error'));
     } finally {
       setLoading(false);
     }
   };
 
+  const getPasswordStrengthColor = () => {
+    if (passwordStrength >= 75) return 'bg-green-500';
+    if (passwordStrength >= 50) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
+    <div dir={isRTL ? 'rtl' : 'ltr'} className={`relative min-h-screen font-sans ${isRTL ? 'font-[Tajawal]' : ''} ${isRTL ? 'rtl' : 'ltr'}`}>
+      {/* Background elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 -z-10">
+        <motion.div 
           animate={floatingAnimation}
-          className="absolute top-20 left-10 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl"
+          className="absolute top-1/4 left-1/4 w-48 h-48 bg-blue-200 rounded-full opacity-30 filter blur-xl" 
         />
-        <motion.div
-          animate={{
-            y: [5, -5, 5],
-            transition: { duration: 6, repeat: Infinity, ease: "easeInOut" }
-          }}
-          className="absolute top-40 right-20 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl"
+        <motion.div 
+          animate={{ ...floatingAnimation, y: floatingAnimation.y.map(y => y * -1) }}
+          className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-indigo-200 rounded-full opacity-30 filter blur-xl" 
         />
         <motion.div
           animate={sparkleAnimation}
-          className="absolute bottom-20 left-1/3 w-64 h-64 bg-purple-400/10 rounded-full blur-3xl"
+          className="absolute top-1/2 left-1/2 w-32 h-32 bg-purple-200 rounded-full opacity-20 filter blur-2xl"
         />
-      </div>
-
-      {/* Floating Sparkles */}
-      <div className="absolute inset-0 pointer-events-none">
-        {[...Array(6)].map((_, i) => (
-          <motion.div
-            key={i}
-            animate={{
-              y: [-20, 20, -20],
-              x: [-10, 10, -10],
-              rotate: [0, 360],
-              opacity: [0.3, 0.8, 0.3],
-            }}
-            transition={{
-              duration: 4 + i,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: i * 0.5
-            }}
-            className={`absolute w-2 h-2 bg-blue-400 rounded-full ${
-              i % 2 === 0 ? 'top-1/4' : 'top-3/4'
-            } ${
-              i % 3 === 0 ? 'left-1/4' : i % 3 === 1 ? 'left-1/2' : 'left-3/4'
-            }`}
-          />
-        ))}
       </div>
 
       <div className="relative z-10 flex items-center justify-center min-h-screen px-4 py-20">
@@ -313,7 +266,7 @@ const Signup = () => {
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex items-center justify-center space-x-2"
+                  className={`flex items-center justify-center ${isRTL ? 'space-x-reverse space-x-2' : 'space-x-2'}`}
                 >
                   <motion.div
                     animate={pulseAnimation}
@@ -328,22 +281,22 @@ const Signup = () => {
               </Link>
               
               <div className="space-y-2">
-                <h2 className="text-2xl font-bold text-gray-800">Create Your Account</h2>
-                <p className="text-gray-600">Join thousands of property enthusiasts</p>
+                <h2 className="text-2xl font-bold text-gray-800">{t('signup.title')}</h2>
+                <p className="text-gray-600">{t('signup.subtitle')}</p>
                 
                 {/* Stats */}
                 <div className="flex items-center justify-center space-x-6 mt-4 text-sm text-gray-500">
                   <div className="flex items-center space-x-1">
-                    <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                    <span>4.9 Rating</span>
+                    <Star className={`w-4 h-4 text-yellow-500 fill-current ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                    <span>{t('signup.rating')}</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <Shield className="w-4 h-4 text-green-500" />
-                    <span>Secure</span>
+                    <Shield className={`w-4 h-4 text-green-500 ${isRTL ? 'mr-6 ml-2' : 'mr-2'}`} />
+                    <span>{t('signup.secure')}</span>
                   </div>
                   <div className="flex items-center space-x-1">
-                    <User className="w-4 h-4 text-blue-500" />
-                    <span>50K+ Users</span>
+                    <User className={`w-4 h-4 text-blue-500 ${isRTL ? 'ml-2' : 'mr-2'}`}/>
+                    <span>{t('signup.users')}</span>
                   </div>
                 </div>
               </div>
@@ -352,11 +305,11 @@ const Signup = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Name Field */}
               <motion.div variants={inputVariants}>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name
+                <label htmlFor="name" className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'text-right font-[Tajawal]' : ''}`}>
+                  {t('signup.nameLabel')}
                 </label>
                 <div className="relative group">
-                  <div className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
+                  <div className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                     fieldFocus.name ? 'text-blue-500' : 'text-gray-400'
                   }`}>
                     <User className="h-5 w-5" />
@@ -370,31 +323,22 @@ const Signup = () => {
                     onChange={handleChange}
                     onFocus={() => handleFocus('name')}
                     onBlur={() => handleBlur('name')}
-                    className={`w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50/50 border-2 transition-all duration-200 placeholder-gray-400 ${
+                    className={`w-full ${isRTL ? 'pr-10 pl-4 text-right font-[Tajawal]' : 'pl-10 pr-4'} py-3 rounded-xl bg-gray-50/50 border-2 transition-all duration-200 placeholder-gray-400 ${
                       validationErrors.name
                         ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
                         : fieldFocus.name
                         ? 'border-blue-500 focus:border-blue-500 focus:ring-blue-500/20'
                         : 'border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
                     } focus:ring-4 focus:outline-none`}
-                    placeholder="Enter your full name"
+                    placeholder={t('signup.namePlaceholder')}
                   />
                   {validationErrors.name && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2`}
                     >
                       <AlertCircle className="h-5 w-5 text-red-500" />
-                    </motion.div>
-                  )}
-                  {formData.name && !validationErrors.name && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
-                    >
-                      <CheckCircle className="h-5 w-5 text-green-500" />
                     </motion.div>
                   )}
                 </div>
@@ -404,7 +348,7 @@ const Signup = () => {
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="mt-1 text-sm text-red-600"
+                      className={`mt-1 text-sm text-red-600 ${isRTL ? 'text-right' : ''}`}
                     >
                       {validationErrors.name}
                     </motion.p>
@@ -414,11 +358,11 @@ const Signup = () => {
 
               {/* Email Field */}
               <motion.div variants={inputVariants}>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
+                <label htmlFor="email" className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'text-right font-[Tajawal]' : ''}`}>
+                  {t('signup.emailLabel')}
                 </label>
                 <div className="relative group">
-                  <div className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
+                  <div className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                     fieldFocus.email ? 'text-blue-500' : 'text-gray-400'
                   }`}>
                     <Mail className="h-5 w-5" />
@@ -432,31 +376,22 @@ const Signup = () => {
                     onChange={handleChange}
                     onFocus={() => handleFocus('email')}
                     onBlur={() => handleBlur('email')}
-                    className={`w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50/50 border-2 transition-all duration-200 placeholder-gray-400 ${
+                    className={`w-full ${isRTL ? 'pr-10 pl-4 text-right font-[Tajawal]' : 'pl-10 pr-4'} py-3 rounded-xl bg-gray-50/50 border-2 transition-all duration-200 placeholder-gray-400 ${
                       validationErrors.email
                         ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
                         : fieldFocus.email
                         ? 'border-blue-500 focus:border-blue-500 focus:ring-blue-500/20'
                         : 'border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
                     } focus:ring-4 focus:outline-none`}
-                    placeholder="name@company.com"
+                    placeholder={t('signup.emailPlaceholder')}
                   />
                   {validationErrors.email && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2`}
                     >
                       <AlertCircle className="h-5 w-5 text-red-500" />
-                    </motion.div>
-                  )}
-                  {formData.email && !validationErrors.email && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
-                    >
-                      <CheckCircle className="h-5 w-5 text-green-500" />
                     </motion.div>
                   )}
                 </div>
@@ -466,7 +401,7 @@ const Signup = () => {
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="mt-1 text-sm text-red-600"
+                      className={`mt-1 text-sm text-red-600 ${isRTL ? 'text-right' : ''}`}
                     >
                       {validationErrors.email}
                     </motion.p>
@@ -476,11 +411,11 @@ const Signup = () => {
 
               {/* Phone Field */}
               <motion.div variants={inputVariants}>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number <span className="text-gray-400 text-xs">(Optional)</span>
+                <label htmlFor="phone" className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'text-right font-[Tajawal]' : ''}`}>
+                  {t('signup.phoneLabel')}
                 </label>
                 <div className="relative group">
-                  <div className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
+                  <div className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                     fieldFocus.phone ? 'text-blue-500' : 'text-gray-400'
                   }`}>
                     <Phone className="h-5 w-5" />
@@ -493,14 +428,14 @@ const Signup = () => {
                     onChange={handleChange}
                     onFocus={() => handleFocus('phone')}
                     onBlur={() => handleBlur('phone')}
-                    className={`w-full pl-10 pr-4 py-3 rounded-xl bg-gray-50/50 border-2 transition-all duration-200 placeholder-gray-400 ${
+                    className={`w-full ${isRTL ? 'pr-10 pl-4 text-right font-[Tajawal]' : 'pl-10 pr-4'} py-3 rounded-xl bg-gray-50/50 border-2 transition-all duration-200 placeholder-gray-400 ${
                       validationErrors.phone
                         ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
                         : fieldFocus.phone
                         ? 'border-blue-500 focus:border-blue-500 focus:ring-blue-500/20'
                         : 'border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
                     } focus:ring-4 focus:outline-none`}
-                    placeholder="Enter your phone number (optional)"
+                    placeholder={t('signup.phonePlaceholder')}
                   />
                 </div>
                 <AnimatePresence>
@@ -519,11 +454,11 @@ const Signup = () => {
 
               {/* Password Field */}
               <motion.div variants={inputVariants}>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
+                <label htmlFor="password" className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'text-right font-[Tajawal]' : ''}`}>
+                  {t('signup.passwordLabel')}
                 </label>
                 <div className="relative group">
-                  <div className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
+                  <div className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                     fieldFocus.password ? 'text-blue-500' : 'text-gray-400'
                   }`}>
                     <Key className="h-5 w-5" />
@@ -537,23 +472,23 @@ const Signup = () => {
                     onChange={handleChange}
                     onFocus={() => handleFocus('password')}
                     onBlur={() => handleBlur('password')}
-                    className={`w-full pl-10 pr-12 py-3 rounded-xl bg-gray-50/50 border-2 transition-all duration-200 placeholder-gray-400 ${
+                    className={`w-full ${isRTL ? 'pr-10 pl-10 text-right font-[Tajawal]' : 'pl-10 pr-10'} py-3 rounded-xl bg-gray-50/50 border-2 transition-all duration-200 placeholder-gray-400 ${
                       validationErrors.password
                         ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
                         : fieldFocus.password
                         ? 'border-blue-500 focus:border-blue-500 focus:ring-blue-500/20'
                         : 'border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
                     } focus:ring-4 focus:outline-none`}
-                    placeholder="Create a strong password"
+                    placeholder={t('signup.passwordPlaceholder')}
                   />
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
+                    className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100`}
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </motion.button>
                 </div>
                 
@@ -567,13 +502,13 @@ const Signup = () => {
                       className="mt-2"
                     >
                       <div className="flex items-center space-x-2 mb-1">
-                        <span className="text-sm text-gray-600">Password strength:</span>
+                        <span className="text-sm text-gray-600">{t('signup.passwordStrength.label')}:</span>
                         <span className={`text-sm font-medium ${
                           passwordStrength < 50 ? 'text-red-500' : 
                           passwordStrength < 75 ? 'text-yellow-500' : 'text-green-500'
                         }`}>
-                          {passwordStrength < 50 ? 'Weak' : 
-                           passwordStrength < 75 ? 'Medium' : 'Strong'}
+                          {passwordStrength < 50 ? t('signup.passwordStrength.weak') : 
+                           passwordStrength < 75 ? t('signup.passwordStrength.medium') : t('signup.passwordStrength.strong')}
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -597,7 +532,7 @@ const Signup = () => {
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="mt-1 text-sm text-red-600"
+                      className={`mt-1 text-sm text-red-600 ${isRTL ? 'text-right' : ''}`}
                     >
                       {validationErrors.password}
                     </motion.p>
@@ -607,87 +542,80 @@ const Signup = () => {
 
               {/* Role Selection */}
               <motion.div variants={inputVariants} className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800">Select Your Role</h3>
-                <p className="text-sm text-gray-600">Choose one or more roles that best describe your interests.</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {availableRoles.map((role) => (
-                    <label
+                <h3 className="text-lg font-semibold text-gray-800">{t('signup.selectRole')}</h3>
+                <p className="text-sm text-gray-600">{t('signup.roleDescription')}</p>
+                <div className="grid grid-cols-1 gap-4">
+                  {availableRoles.map(role => (
+                    <motion.div
                       key={role.value}
-                      className={`flex items-center p-3 rounded-xl border-2 transition-all duration-200 cursor-pointer ${
-                        formData.roles.includes(role.value)
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                     >
-                      <input
-                        type="checkbox"
-                        name="roles"
-                        value={role.value}
-                        checked={formData.roles.includes(role.value)}
-                        onChange={handleChange}
-                        className="mr-3 h-5 w-5 text-blue-600 focus:ring-blue-500/20"
-                      />
-                      <div>
-                        <p className="text-base font-medium text-gray-800">{role.label}</p>
-                        <p className="text-xs text-gray-500">{role.description}</p>
-                      </div>
-                    </label>
+                      <button
+                        type="button"
+                        onClick={() => handleRoleChange(role.value)}
+                        className={`w-full ${isRTL ? 'text-right' : 'text-left'} p-4 rounded-xl border-2 transition-all duration-200 flex items-center ${
+                          formData.roles.includes(role.value)
+                            ? 'bg-blue-50 border-blue-500 shadow-lg shadow-blue-500/10'
+                            : 'bg-white hover:bg-gray-50 border-gray-200'
+                        }`}
+                      >
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${isRTL ? 'ml-4' : 'mr-4'} flex-shrink-0 ${
+                          formData.roles.includes(role.value)
+                            ? 'bg-blue-500 border-blue-500'
+                            : 'border-gray-300'
+                        }`}>
+                          {formData.roles.includes(role.value) && <CheckCircle className="w-4 h-4 text-white" />}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-800">{role.label}</p>
+                          <p className="text-sm text-gray-500">{role.description}</p>
+                        </div>
+                      </button>
+                    </motion.div>
                   ))}
                 </div>
-                {formData.roles.length === 0 && (
-                  <motion.p className="mt-1 text-sm text-red-600">
-                    Please select at least one role.
-                  </motion.p>
+              </motion.div>
+
+              <motion.button
+                type="submit"
+                disabled={loading}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-semibold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin" />
+                    <span>{t('signup.creatingAccount')}</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className={`w-5 h-5 ${isRTL? 'ml-2' : ''}`} />
+                    <span>{t('signup.createAccount')}</span>
+                  </>
                 )}
-              </motion.div>
-
-              {/* Submit Button */}
-              <motion.div variants={inputVariants}>
-                <motion.button
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="submit"
-                  disabled={loading || Object.keys(validationErrors).some(key => validationErrors[key])}
-                  className={`w-full py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg ${
-                    loading || Object.keys(validationErrors).some(key => validationErrors[key])
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/25 hover:shadow-blue-500/40'
-                  }`}
-                >
-                  {loading ? (
-                    <>
-                      <Loader className="w-5 h-5 animate-spin" />
-                      <span>Creating Account...</span>
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="w-5 h-5" />
-                      <span>Create Account</span>
-                      <ArrowRight className="w-5 h-5" />
-                    </>
-                  )}
-                </motion.button>
-              </motion.div>
-
-              {/* Features */}
+              </motion.button>
+              
+              {/* Features section */}
               <motion.div variants={inputVariants} className="grid grid-cols-3 gap-4 py-4">
                 <div className="text-center">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
                     <Shield className="w-4 h-4 text-blue-600" />
                   </div>
-                  <p className="text-xs text-gray-600">Secure</p>
+                  <p className="text-xs text-gray-600">{t('signup.featureSecure')}</p>
                 </div>
                 <div className="text-center">
                   <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
                     <CheckCircle className="w-4 h-4 text-green-600" />
                   </div>
-                  <p className="text-xs text-gray-600">Verified</p>
+                  <p className="text-xs text-gray-600">{t('signup.featureVerified')}</p>
                 </div>
                 <div className="text-center">
                   <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
                     <Sparkles className="w-4 h-4 text-purple-600" />
                   </div>
-                  <p className="text-xs text-gray-600">Premium</p>
+                  <p className="text-xs text-gray-600">{t('signup.featurePremium')}</p>
                 </div>
               </motion.div>
 
@@ -697,19 +625,19 @@ const Signup = () => {
                   <div className="w-full border-t border-gray-200"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">Already have an account?</span>
+                  <span className="px-4 bg-white text-gray-500">{t('signup.alreadyHaveAccount')}</span>
                 </div>
               </motion.div>
 
               {/* Sign In Link */}
               <motion.div variants={inputVariants}>
-                <Link
-                  to="/login"
-                  className="group w-full flex items-center justify-center px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-medium"
-                >
-                  <span className="group-hover:mr-2 transition-all duration-200">Sign in to your account</span>
-                  <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all duration-200 ml-1" />
-                </Link>
+                                  <Link
+                    to="/login"
+                    className="group w-full flex items-center justify-center px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-medium"
+                  >
+                    <span className="group-hover:mr-2 transition-all duration-200">{t('signup.signInToAccount')}</span>
+                    {isRTL ? <ArrowLeft className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all duration-200 mr-1" /> : <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all duration-200 ml-1" />}
+                  </Link>
               </motion.div>
             </form>
           </motion.div>

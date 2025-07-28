@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import React from 'react';
 import { motion } from 'framer-motion';
 
 export default function Hero() {
+  const { t } = useTranslation();
   return (
     <div className="relative h-[50vh] flex items-center justify-center my-6 mx-6 rounded-2xl overflow-hidden">
       {/* Animated gradient background */}
@@ -53,11 +55,10 @@ export default function Hero() {
         className="relative text-center text-white px-4 max-w-4xl mx-auto z-10"
       >
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 leading-tight">
-          Get in Touch With Us
+          {t('get_in_touch_with_us')}
         </h1>
         <p className="text-lg md:text-xl leading-relaxed font-light">
-          Have questions about our properties? Need assistance with finding your perfect home?
-          Our team is here to help you every step of the way.
+          {t('contact_hero_subtitle')}
         </p>
         
         {/* Decorative line */}

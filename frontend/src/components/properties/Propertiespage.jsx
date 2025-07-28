@@ -8,8 +8,10 @@ import PropertyCard from "./Propertycard.jsx";
 import { Backendurl } from "../../App.jsx";
 import { getPropertyTypes, getCities, saveLastSearch as saveLastSearchAPI } from "../../services/api";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 
 const PropertiesPage = () => {
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const [viewState, setViewState] = useState({
     isGridView: true,
@@ -270,11 +272,11 @@ const PropertiesPage = () => {
           </div>
           
           <h3 className="text-2xl font-bold text-gray-800 mb-3 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Loading Properties
+            {t('loading_properties')}
           </h3>
           
           <p className="text-gray-600 mb-5 max-w-xs text-center">
-            {`We're finding the perfect homes that match your preferences...`}
+            {t('finding_perfect_homes')}
           </p>
           
           {/* Progress bar with animated gradient */}
@@ -299,7 +301,7 @@ const PropertiesPage = () => {
               transition={{ duration: 1.5, repeat: Infinity }}
               className="w-1.5 h-1.5 bg-blue-600 rounded-full mr-2"
             />
-            <span>Please wait while we curate properties for you</span>
+            <span>{t('please_wait_curate_properties')}</span>
           </div>
         </motion.div>
       </div>
@@ -314,13 +316,13 @@ const PropertiesPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center text-red-600 p-6 rounded-lg bg-red-50 max-w-md"
         >
-          <p className="font-medium mb-4">{propertyState.error}</p>
+          <p className="font-medium mb-4">{t('failed_to_fetch_properties')}</p>
           <button
             onClick={fetchProperties}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
               transition-colors duration-200"
           >
-            Try Again
+            {t('try_again')}
           </button>
         </motion.div>
       </div>
@@ -340,10 +342,10 @@ const PropertiesPage = () => {
           className="text-center mb-12"
         >
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Find Your Perfect Property
+            {t('find_your_perfect_property')}
           </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-            Discover a curated collection of Future Real Estate
+            {t('discover_curated_collection')}
           </p>
         </motion.header>
 
@@ -391,10 +393,10 @@ const PropertiesPage = () => {
                     }))}
                     className="px-3 py-2 border rounded-lg text-sm"
                   >
-                    <option value="">Sort By</option>
-                    <option value="price-asc">Price: Low to High</option>
-                    <option value="price-desc">Price: High to Low</option>
-                    <option value="newest">Newest First</option>
+                    <option value="">{t('sort_by')}</option>
+                    <option value="price-asc">{t('price_low_to_high')}</option>
+                    <option value="price-desc">{t('price_high_to_low')}</option>
+                    <option value="newest">{t('newest_first')}</option>
                   </select>
 
                   <div className="flex items-center gap-2">
@@ -404,7 +406,7 @@ const PropertiesPage = () => {
                         showFilters: !prev.showFilters
                       }))}
                       className="p-2 rounded-lg hover:bg-gray-100"
-                      title="Toggle Filters"
+                      title={t('toggle_filters')}
                     >
                       <SlidersHorizontal className="w-5 h-5" />
                     </button>
@@ -455,10 +457,10 @@ const PropertiesPage = () => {
                   >
                     <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      No properties found
+                      {t('no_properties_found')}
                     </h3>
                     <p className="text-gray-600">
-                      Try adjusting your filters or search criteria
+                      {t('try_adjusting_filters_or_search_criteria')}
                     </p>
                   </motion.div>
                 )}
