@@ -107,17 +107,17 @@ const Appointments = () => {
         {stepsToRender.map((step, i) => {
           const idx = isRTL ? steps.length - 1 - i : i;
           return (
-            <React.Fragment key={step}>
+          <React.Fragment key={step}>
               <div className={`flex items-center gap-1 ${isRTL ? '' : ''} ${idx <= currentIdx && status !== cancelledStep ? 'text-blue-600' : 'text-gray-300'}`}>
-                {statusMeta[step]?.icon}
-                <span className="text-xs">{t(`appointmentsPage.status.${step}`)}</span>
-              </div>
+              {statusMeta[step]?.icon}
+              <span className="text-xs">{t(`appointmentsPage.status.${step}`)}</span>
+            </div>
               {i < stepsToRender.length - 1 && (
                 isRTL
                   ? <ArrowRight className="w-4 h-4 rotate-180" />
                   : <ArrowRight className="w-4 h-4" />
               )}
-            </React.Fragment>
+          </React.Fragment>
           );
         })}
         {status === cancelledStep && (

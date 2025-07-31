@@ -631,13 +631,13 @@ const Signup = () => {
 
               {/* Sign In Link */}
               <motion.div variants={inputVariants}>
-                                  <Link
-                    to="/login"
-                    className="group w-full flex items-center justify-center px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-medium"
-                  >
-                    <span className="group-hover:mr-2 transition-all duration-200">{t('signup.signInToAccount')}</span>
+                <Link
+                  to="/login"
+                  className="group w-full flex items-center justify-center px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-medium"
+                >
+                  <span className="group-hover:mr-2 transition-all duration-200">{t('signup.signInToAccount')}</span>
                     {isRTL ? <ArrowLeft className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all duration-200 mr-1" /> : <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all duration-200 ml-1" />}
-                  </Link>
+                </Link>
               </motion.div>
             </form>
           </motion.div>

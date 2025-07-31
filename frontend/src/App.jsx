@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { HelmetProvider } from 'react-helmet-async';
 import Navbar from './components/Navbar'
+import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
 import Properties from './pages/Properties'
 import PropertyDetails from './components/properties/propertydetail';
@@ -46,6 +47,7 @@ const App = () => {
     <HelmetProvider>
     <AuthProvider>
     <Router>
+      <ScrollToTop />
       {/* Language Switcher */}
       <div style={{ textAlign: 'right', padding: '0.5rem 1rem' }}>
         <button onClick={() => handleLanguageChange('ar')} disabled={i18n.language === 'ar'}>

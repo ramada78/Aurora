@@ -468,43 +468,54 @@ const Testimonials = () => {
           </div>
 
           {/* Enhanced Navigation Controls */}
-          <div className="flex justify-center items-center mt-12 space-x-6">
+          <div className="flex justify-center items-center mt-12">
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              onClick={handlePrev}
+              onClick={isRTL ? handleNext : handlePrev}
               className="group p-4 rounded-full bg-white/80 backdrop-blur-sm border border-white/20 text-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
-              aria-label="Previous testimonial"
+              aria-label={isRTL ? "Next testimonial" : "Previous testimonial"}
             >
-              <ArrowLeft className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-200" />
+              {isRTL ? (
+                <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-200" />
+              ) : (
+                <ArrowLeft className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-200" />
+              )}
             </motion.button>
 
             {/* Dot Indicators */}
-            <div className="flex space-x-2">
-              {testimonials.map((_, index) => (
-                <motion.button
-                  key={index}
-                  whileHover={{ scale: 1.2 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => handleDotClick(index)}
-                  className={`rounded-full transition-all duration-300 ${
-                    index === activeIndex 
-                      ? 'w-8 h-3 bg-blue-600 shadow-lg' 
-                      : 'w-3 h-3 bg-gray-300 hover:bg-gray-400'
-                  }`}
-                  aria-label={`Go to testimonial ${index + 1}`}
-                />
-              ))}
+            <div className={`flex space-x-4 mr-2 ml-2 min-w-[170px] ${isRTL ? 'flex-row-reverse' : ''}`}>
+              {(isRTL ? [...testimonials].reverse() : testimonials).map((_, index) => {
+                const actualIndex = isRTL ? testimonials.length - 1 - index : index;
+                return (
+                  <motion.button
+                    key={actualIndex}
+                    whileHover={{ scale: 1.2 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => handleDotClick(actualIndex)}
+                    className={`rounded-full transition-all duration-300 ${
+                      actualIndex === activeIndex 
+                        ? 'w-8 h-3 bg-blue-600 shadow-lg' 
+                        : 'w-3 h-3 bg-gray-300 hover:bg-gray-400'
+                    }`}
+                    aria-label={`Go to testimonial ${actualIndex + 1}`}
+                  />
+                );
+              })}
             </div>
 
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              onClick={handleNext}
+              onClick={isRTL ? handlePrev : handleNext}
               className="group p-4 rounded-full bg-white/80 backdrop-blur-sm border border-white/20 text-gray-700 hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl"
-              aria-label="Next testimonial"
+              aria-label={isRTL ? "Previous testimonial" : "Next testimonial"}
             >
-              <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-200" />
+              {isRTL ? (
+                <ArrowLeft className="w-5 h-5 transform group-hover:-translate-x-1 transition-transform duration-200" />
+              ) : (
+                <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-200" />
+              )}
             </motion.button>
           </div>
         </div>

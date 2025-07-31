@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next';
 
 const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
   const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
   const isGrid = viewType === 'grid';
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -167,41 +168,43 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
           </motion.span>
         </div>
         {/* Property type badge: bottom left */}
-        <div className="absolute bottom-4 left-4 z-10">
+        <div className={`absolute bottom-4 z-10 ${isRTL ? 'right-4' : 'left-4'}`}>
           <motion.span 
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: isRTL ? 20 : -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg flex items-center gap-1"
+            className={`bg-gradient-to-r from-blue-600 to-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}
           >
-            <Home className="w-4 h-4 mr-1" />
+            <Home className={`w-4 h-4 ${isRTL ? 'ml-1' : 'mr-1'}`} />
             {propertyType}
           </motion.span>
         </div>
-        <div className="absolute bottom-4 right-4 flex items-center gap-1 bg-white/80 px-2 py-1 rounded-full shadow text-gray-700 text-xs font-medium">
-                    <Eye className="w-4 h-4 mr-1 text-blue-500" />
-                    {Math.floor(property.views || 0)}
-                  </div>
+        <div className={`absolute bottom-4 flex items-center gap-1 bg-white/80 px-2 py-1 rounded-full shadow text-gray-700 text-xs font-medium ${isRTL ? 'left-4' : 'right-4'}`}>
+          <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <Eye className={`w-4 h-4 text-blue-500 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+            {Math.floor(property.views || 0)}
+          </div>
+        </div>
       </div>
 
       {/* Content Section */}
       <div className={`flex-1 p-6 ${isGrid ? '' : 'flex flex-col justify-between'}`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center text-gray-500 text-sm">
-            <MapPin className="w-4 h-4 mr-2 text-blue-500" />
+        <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <div className={`flex items-center text-gray-500 text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <MapPin className={`w-4 h-4 text-blue-500 ${isRTL ? 'ml-2' : 'mr-2'}`} />
             {city || ''}
           </div>
         </div>
         <h3 className="text-xl font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
           {title}
         </h3>
-        <div className="flex items-center gap-2">
+        <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
           <div className="flex-1">
-            <div className="flex items-center gap-1">
+            <div className={`flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <DollarSign className="w-5 h-5 text-blue-600" />
               <span className="text-2xl font-bold text-blue-600">
                 {Number(property.price).toLocaleString('en-US')}
               </span>
-              <span className="ml-3 bg-gradient-to-r from-green-600 to-green-500 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
+              <span className={`bg-gradient-to-r from-green-600 to-green-500 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg ${isRTL ? 'mr-3' : 'ml-3'}`}>
                 {property.availability}
               </span>
             </div>
@@ -211,19 +214,19 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
         <div className="grid grid-cols-3 gap-3 mt-6">
           <div className="flex flex-col items-center gap-1 bg-blue-50 p-2 rounded-lg">
             <BedDouble className="w-5 h-5 text-blue-600" />
-            <span className="text-sm font-medium text-gray-600">
+            <span className="text-sm font-medium text-gray-600 text-center">
               {property.beds} {property.beds > 1 ? 'Beds' : 'Bed'}
             </span>
           </div>
           <div className="flex flex-col items-center gap-1 bg-blue-50 p-2 rounded-lg">
             <Bath className="w-5 h-5 text-blue-600" />
-            <span className="text-sm font-medium text-gray-600">
+            <span className="text-sm font-medium text-gray-600 text-center">
               {property.baths} {property.baths > 1 ? 'Baths' : 'Bath'}
             </span>
           </div>
           <div className="flex flex-col items-center gap-1 bg-blue-50 p-2 rounded-lg">
             <Maximize className="w-5 h-5 text-blue-600" />
-            <span className="text-sm font-medium text-gray-600">
+            <span className="text-sm font-medium text-gray-600 text-center">
               {property.sqft} sqft
             </span>
           </div>
@@ -232,8 +235,8 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
         {property.amenities && property.amenities.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">
             {property.amenities.slice(0, 3).map((amenity, idx) => (
-              <span key={amenity._id || idx} className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                <SparkleIcon className="w-3 h-3 mr-1" />
+              <span key={amenity._id || idx} className={`inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded ${isRTL ? 'flex-row-reverse' : ''}`}>
+                <SparkleIcon className={`w-3 h-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
                 {amenity.name}
               </span>
             ))}
