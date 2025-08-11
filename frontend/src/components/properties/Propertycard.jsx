@@ -20,6 +20,7 @@ import PropTypes from 'prop-types';
 import { Backendurl } from '../../App.jsx';
 import { getWishlist, addToWishlist, removeFromWishlist } from '../../services/api';
 import { useTranslation } from 'react-i18next';
+import { getLocalizedText } from '../../utils/i18nHelpers';
 
 const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
   const { t, i18n } = useTranslation();
@@ -71,8 +72,8 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: property.title,
-          text: `Check out this property: ${property.title}`,
+          title: title,
+          text: `Check out this property: ${title}`,
           url: window.location.href
         });
       } else {
@@ -95,10 +96,10 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
   };
 
   // Fallback logic for dynamic content
-  const title = property.title_ar || property.title_en || property.title;
-  const description = property.description_ar || property.description_en || property.description;
-  const city = property.city?.city_name_ar || property.city?.city_name_en || property.city?.city_name;
-  const propertyType = property.propertyType?.type_name_ar || property.propertyType?.type_name_en || property.propertyType?.type_name;
+  const title = getLocalizedText(property.title);
+  const description = getLocalizedText(property.description);
+  const city = getLocalizedText(property.city?.city_name);
+  const propertyType = getLocalizedText(property.propertyType?.type_name);
 
   return (
     <motion.div
@@ -120,7 +121,7 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
           <motion.img
             key={currentImageIndex}
             src={property.image[currentImageIndex]?.startsWith('/uploads/') ? `${Backendurl}${encodeURI(property.image[currentImageIndex])}` : property.image[currentImageIndex]}
-            alt={property.title}
+            alt={title}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -164,7 +165,7 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
             animate={{ opacity: 1, x: 0 }}
             className={`px-3 py-1 rounded-full text-xs font-medium shadow-lg ${property.status === 'available' ? 'bg-green-500 text-white' : property.status === 'rented' ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'}`}
           >
-            {property.status ? property.status.charAt(0).toUpperCase() + property.status.slice(1) : 'Available'}
+            {property.status ? t(`property.status.${property.status}`) : t('property.status.available')}
           </motion.span>
         </div>
         {/* Property type badge: bottom left */}
@@ -172,14 +173,14 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
           <motion.span 
             initial={{ opacity: 0, x: isRTL ? 20 : -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className={`bg-gradient-to-r from-blue-600 to-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}
+            className={`bg-gradient-to-r from-blue-600 to-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg flex items-center gap-1 ${isRTL ? '' : ''}`}
           >
             <Home className={`w-4 h-4 ${isRTL ? 'ml-1' : 'mr-1'}`} />
             {propertyType}
           </motion.span>
         </div>
         <div className={`absolute bottom-4 flex items-center gap-1 bg-white/80 px-2 py-1 rounded-full shadow text-gray-700 text-xs font-medium ${isRTL ? 'left-4' : 'right-4'}`}>
-          <div className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+          <div className={`flex items-center ${isRTL ? '' : ''}`}>
             <Eye className={`w-4 h-4 text-blue-500 ${isRTL ? 'ml-1' : 'mr-1'}`} />
             {Math.floor(property.views || 0)}
           </div>
@@ -188,8 +189,8 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
 
       {/* Content Section */}
       <div className={`flex-1 p-6 ${isGrid ? '' : 'flex flex-col justify-between'}`}>
-        <div className={`flex items-center justify-between ${isRTL ? 'flex-row-reverse' : ''}`}>
-          <div className={`flex items-center text-gray-500 text-sm ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <div className={`flex items-center justify-between ${isRTL ? '' : ''}`}>
+          <div className={`flex items-center text-gray-500 text-sm ${isRTL ? '' : ''}`}>
             <MapPin className={`w-4 h-4 text-blue-500 ${isRTL ? 'ml-2' : 'mr-2'}`} />
             {city || ''}
           </div>
@@ -197,15 +198,15 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
         <h3 className="text-xl font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
           {title}
         </h3>
-        <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <div className={`flex items-center gap-2 ${isRTL ? '' : ''}`}>
           <div className="flex-1">
-            <div className={`flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <div className={`flex items-center gap-1 ${isRTL ? '' : ''}`}>
               <DollarSign className="w-5 h-5 text-blue-600" />
               <span className="text-2xl font-bold text-blue-600">
                 {Number(property.price).toLocaleString('en-US')}
               </span>
               <span className={`bg-gradient-to-r from-green-600 to-green-500 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg ${isRTL ? 'mr-3' : 'ml-3'}`}>
-                {property.availability}
+                {property.availability ? t(`property.availability.${property.availability}`) : t('property.availability.for_sale')}
               </span>
             </div>
           </div>
@@ -215,19 +216,19 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
           <div className="flex flex-col items-center gap-1 bg-blue-50 p-2 rounded-lg">
             <BedDouble className="w-5 h-5 text-blue-600" />
             <span className="text-sm font-medium text-gray-600 text-center">
-              {property.beds} {property.beds > 1 ? 'Beds' : 'Bed'}
+              {property.beds} {property.beds > 1 ? t('property.beds') : t('property.bed')}
             </span>
           </div>
           <div className="flex flex-col items-center gap-1 bg-blue-50 p-2 rounded-lg">
             <Bath className="w-5 h-5 text-blue-600" />
             <span className="text-sm font-medium text-gray-600 text-center">
-              {property.baths} {property.baths > 1 ? 'Baths' : 'Bath'}
+              {property.baths} {property.baths > 1 ? t('property.baths') : t('property.bath')}
             </span>
           </div>
           <div className="flex flex-col items-center gap-1 bg-blue-50 p-2 rounded-lg">
             <Maximize className="w-5 h-5 text-blue-600" />
             <span className="text-sm font-medium text-gray-600 text-center">
-              {property.sqft} sqft
+              {property.sqft} {t('property.sqftUnit')}
             </span>
           </div>
         </div>
@@ -235,14 +236,14 @@ const PropertyCard = ({ property, viewType, propertyTypeName, cityName }) => {
         {property.amenities && property.amenities.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">
             {property.amenities.slice(0, 3).map((amenity, idx) => (
-              <span key={amenity._id || idx} className={`inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded ${isRTL ? 'flex-row-reverse' : ''}`}>
+              <span key={amenity._id || idx} className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
                 <SparkleIcon className={`w-3 h-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
-                {amenity.name}
+                {getLocalizedText(amenity.name)}
               </span>
             ))}
             {property.amenities.length > 3 && (
               <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                +{property.amenities.length - 3} more
+                +{property.amenities.length - 3} {t('property.more')}
               </span>
             )}
           </div>

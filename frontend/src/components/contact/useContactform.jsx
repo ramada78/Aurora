@@ -55,8 +55,6 @@ export default function useContactForm() {
         toast.error('Error submitting form. Please try again.');
         console.error('Error submitting form:', error);
       }
-    } else {
-      console.log('Validation errors:', errors); // Debugging log
     }
   };
 

@@ -166,7 +166,6 @@ export const aggregatePreferences = (searches) => {
   const counts = {};
   const sums = {};
   const nums = {};
-  let n = 0;
   searches.forEach(s => {
     fields.forEach(f => {
       const val = s[f];
@@ -227,9 +226,70 @@ export const aggregatePreferences = (searches) => {
   return result;
 };
 
+// Helper function to map Arabic display text back to English for backend compatibility
+const translateToBackendFormat = (preferences) => {
+  const arabicToEnglishMap = {
+    // Cities
+    'حلب': 'Aleppo',
+    'دمشق': 'Damascus', 
+    'اللاذقية': 'Latakia',
+    'طرطوس': 'Tartus',
+    'حمص': 'Homs',
+    'حماة': 'Hama',
+    'درعا': 'Daraa',
+    'دير الزور': 'Deir ez-Zor',
+    'الرقة': 'Raqqa',
+    'السويداء': 'As-Suwayda',
+    'القنيطرة': 'Quneitra',
+    'إدلب': 'Idlib',
+    
+    // Property Types
+    'شقة': 'Apartment',
+    'فيلا': 'Villa', 
+    'منزل': 'House',
+    'استوديو': 'Studio',
+    'بنتهاوس': 'Penthouse',
+    'دوبلكس': 'Duplex',
+    'تاون هاوس': 'Townhouse',
+    'أرض': 'Land',
+    'مكتب': 'Office',
+    'محل تجاري': 'Shop',
+    'مستودع': 'Warehouse',
+    
+    // Availability
+    'إيجار': 'rent',
+    'شراء': 'buy',
+    'بيع': 'sell',
+    'للإيجار': 'rent',
+    'للبيع': 'buy'
+  };
+
+  const translated = { ...preferences };
+  
+  // Translate city if it's in Arabic
+  if (translated.city && arabicToEnglishMap[translated.city]) {
+    translated.city = arabicToEnglishMap[translated.city];
+  }
+  
+  // Translate propertyType if it's in Arabic
+  if (translated.propertyType && arabicToEnglishMap[translated.propertyType]) {
+    translated.propertyType = arabicToEnglishMap[translated.propertyType];
+  }
+  
+  // Translate availability if it's in Arabic
+  if (translated.availability && arabicToEnglishMap[translated.availability]) {
+    translated.availability = arabicToEnglishMap[translated.availability];
+  }
+  
+  return translated;
+};
+
 export const recommendProperties = async (preferences) => {
   try {
-    const response = await api.post('/api/properties/recommend', preferences);
+    // Translate Arabic display text to English backend format
+    const backendPreferences = translateToBackendFormat(preferences);
+    
+    const response = await api.post('/api/properties/recommend', backendPreferences);
     return response.data.recommended || [];
   } catch (error) {
     console.error('Error getting recommendations:', error);

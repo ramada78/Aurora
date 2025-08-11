@@ -2,18 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { saveLastSearch as saveLastSearchAPI } from '../../services/api';
+import { useTranslation } from 'react-i18next';
 
 const SearchBar = ({ onSearch, className }) => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
   const [searchQuery, setSearchQuery] = useState('');
   const [recentSearches, setRecentSearches] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const dropdownRef = useRef(null);
 
-  // Popular locations suggestion
-  const popularLocations = [
-   'Aleppo','Damascus'
-  ];
+  // Popular locations suggestion  
+  const popularLocations = i18n.language === 'ar' 
+    ? ['حلب', 'دمشق', 'اللاذقية', 'حمص']
+    : ['Aleppo', 'Damascus', 'Latakia', 'Homs'];
 
   useEffect(() => {
     // Load recent searches from localStorage
@@ -47,12 +50,12 @@ const SearchBar = ({ onSearch, className }) => {
   };
 
   const parseSearchQuery = (query) => {
-    // Very basic parsing for demo: look for known city/type keywords
+    // Basic parsing for demo: look for known city/type keywords in both languages
     const lower = query.toLowerCase();
-    const cities = ['aleppo', 'damascus']; // Add more as needed
-    const types = ['apartment', 'villa', 'house', 'flat', 'studio']; // Add more as needed
-    let city = cities.find(c => lower.includes(c));
-    let propertyType = types.find(t => lower.includes(t));
+    const cities = ['aleppo', 'damascus', 'latakia', 'homs', 'حلب', 'دمشق', 'اللاذقية', 'حمص'];
+    const types = ['apartment', 'villa', 'house', 'flat', 'studio', 'شقة', 'فيلا', 'منزل', 'استوديو'];
+    let city = cities.find(c => lower.includes(c.toLowerCase()));
+    let propertyType = types.find(t => lower.includes(t.toLowerCase()));
     return {
       city: city ? city.charAt(0).toUpperCase() + city.slice(1) : '',
       propertyType: propertyType ? propertyType.charAt(0).toUpperCase() + propertyType.slice(1) : '',
@@ -101,21 +104,22 @@ const SearchBar = ({ onSearch, className }) => {
       <form onSubmit={handleSubmit} className="relative">
         <input
           type="text"
-          placeholder="Search by title, city, property type..."
+          placeholder={t('search_by_title_city_property')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => setShowSuggestions(true)}
           onKeyDown={handleKeyDown}
-          className="w-full pl-12 pr-20 py-3 rounded-lg border border-gray-200 
+          className={`w-full ${isRTL ? 'pr-12 pl-20' : 'pl-12 pr-20'} py-3 rounded-lg border border-gray-200 
             focus:border-blue-500 focus:ring-2 focus:ring-blue-200 
-            transition-all text-gray-800 placeholder-gray-400"
+            transition-all text-gray-800 placeholder-gray-400 ${isRTL ? 'text-right' : 'text-left'}`}
+          dir={isRTL ? 'rtl' : 'ltr'}
         />
         <Search 
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 
-            text-gray-400 h-5 w-5" 
+          className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 transform -translate-y-1/2 
+            text-gray-400 h-5 w-5`} 
         />
         
-        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+        <div className={`absolute ${isRTL ? 'left-2' : 'right-2'} top-1/2 transform -translate-y-1/2 flex items-center gap-2`}>
           {searchQuery && (
             <motion.button
               initial={{ scale: 0 }}
@@ -135,7 +139,7 @@ const SearchBar = ({ onSearch, className }) => {
               hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
             <Search className="h-4 w-4" />
-            Search
+            {t('search')}
           </button>
         </div>
       </form>
@@ -153,7 +157,7 @@ const SearchBar = ({ onSearch, className }) => {
             {recentSearches.length > 0 && (
               <div className="p-2">
                 <h3 className="text-xs font-medium text-gray-500 px-3 mb-2">
-                  Recent Searches
+                  {t('recent_searches')}
                 </h3>
                 {recentSearches.map((query, index) => (
                   <button
@@ -162,8 +166,8 @@ const SearchBar = ({ onSearch, className }) => {
                       setSearchQuery(query);
                       handleSearch(query);
                     }}
-                    className="w-full text-left px-3 py-2 hover:bg-gray-50 
-                      rounded-md flex items-center gap-2 text-gray-700"
+                    className={`w-full ${isRTL ? 'text-right' : 'text-left'} px-3 py-2 hover:bg-gray-50 
+                      rounded-md flex items-center gap-2 text-gray-700 ${isRTL ? 'flex-row-reverse' : ''}`}
                   >
                     <Search className="h-4 w-4 text-gray-400" />
                     {query}
@@ -174,7 +178,7 @@ const SearchBar = ({ onSearch, className }) => {
 
             <div className="border-t border-gray-100 p-2">
               <h3 className="text-xs font-medium text-gray-500 px-3 mb-2">
-                Popular Locations
+                {t('popular_locations')}
               </h3>
               {popularLocations.map((location, index) => (
                 <button
@@ -183,8 +187,8 @@ const SearchBar = ({ onSearch, className }) => {
                     setSearchQuery(location);
                     handleSearch(location);
                   }}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-50 
-                    rounded-md flex items-center gap-2 text-gray-700"
+                  className={`w-full ${isRTL ? 'text-right' : 'text-left'} px-3 py-2 hover:bg-gray-50 
+                    rounded-md flex items-center gap-2 text-gray-700 ${isRTL ? 'flex-row-reverse' : ''}`}
                 >
                   <MapPin className="h-4 w-4 text-gray-400" />
                   {location}

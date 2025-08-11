@@ -8,12 +8,7 @@ import { getPropertyTypeCounts, getAdminStats, getTotalPropertyViews, getComplet
 import { useRef } from "react";
 import { useTranslation } from 'react-i18next';
 
-const popularLocations = [
-  "Aleppo",
-  "Damascus", 
-  "Latakia",
-  "Tartus"
-];
+// This will be moved inside the component to be language-aware
 
 // Enhanced animation variants
 const containerVariants = {
@@ -78,6 +73,11 @@ const Hero = () => {
   ]);
   const searchRef = useRef(null);
 
+  // Language-aware popular locations
+  const popularLocations = i18n.language === 'ar' 
+    ? ['حلب', 'دمشق', 'اللاذقية', 'طرطوس']
+    : ['Aleppo', 'Damascus', 'Latakia', 'Tartus'];
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -98,7 +98,7 @@ const Hero = () => {
     getPropertyTypeCounts().then((types) => {
       setQuickFilters(
         types.map((type) => ({
-          label: type.type_name,
+          label: i18n.language === 'ar' ? type.type_name?.ar : type.type_name?.en || type.type_name || 'Unknown',
           icon: Home,
           count: type.count
         }))
@@ -126,7 +126,7 @@ const Hero = () => {
         prev[3] // static average rating
       ]);
     });
-  }, []);
+  }, [i18n.language]);
 
   const handleSubmit = (city = searchQuery) => {
     if (city.trim()) {
@@ -291,7 +291,7 @@ const Hero = () => {
                   {/* Search Input */}
                   <div className="flex flex-col lg:flex-row gap-4">
                     <div className="relative flex-1">
-                      <MapPin className={`absolute left-4 top-1/2 transform -translate-y-1/2 transition-colors duration-300 ${
+                      <MapPin className={`absolute ${isRTL ? 'right-4' : 'left-4'} top-1/2 transform -translate-y-1/2 transition-colors duration-300 ${
                         isSearchFocused ? 'text-blue-500' : 'text-gray-400'
                       }`} />
                       <input
@@ -304,9 +304,10 @@ const Hero = () => {
                         }}
                         onBlur={() => setIsSearchFocused(false)}
                         placeholder={t('enter_desired_city')}
-                        className="w-full pl-12 pr-6 py-4 rounded-2xl border-2 border-gray-200 bg-white/90 
+                        className={`w-full ${isRTL ? 'pr-12 pl-6' : 'pl-12 pr-6'} py-4 rounded-2xl border-2 border-gray-200 bg-white/90 
                           focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 
-                          text-lg placeholder-gray-500 font-medium"
+                          text-lg placeholder-gray-500 font-medium ${isRTL ? 'text-right' : 'text-left'}`}
+                        dir={isRTL ? 'rtl' : 'ltr'}
                       />
                     </div>
                     
@@ -354,9 +355,9 @@ const Hero = () => {
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: index * 0.1 }}
                                 onClick={() => handleLocationClick(location)}
-                                className="flex items-center justify-between p-4 hover:bg-blue-50 rounded-xl 
-                                  transition-all duration-300 text-left group border border-transparent 
-                                  hover:border-blue-200 hover:shadow-md"
+                                className={`flex items-center justify-between p-4 hover:bg-blue-50 rounded-xl 
+                                  transition-all duration-300 ${isRTL ? 'text-right' : 'text-left'} group border border-transparent 
+                                  hover:border-blue-200 hover:shadow-md`}
                               >
                                 <div className="flex items-center gap-3">
                                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 
@@ -368,8 +369,13 @@ const Hero = () => {
                                       transition-colors">{location}</span>
                                   </div>
                                 </div>
-                                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 
-                                  group-hover:translate-x-1 transition-all duration-300" />
+                                {isRTL ? (
+                                  <ArrowLeft className="w-5 h-5 text-gray-400 group-hover:text-blue-600 
+                                    group-hover:-translate-x-1 transition-all duration-300" />
+                                ) : (
+                                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 
+                                    group-hover:translate-x-1 transition-all duration-300" />
+                                )}
                               </motion.button>
                             ))}
                           </div>

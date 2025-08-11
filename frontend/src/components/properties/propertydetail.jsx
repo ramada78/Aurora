@@ -30,6 +30,7 @@ import { getPropertyTypes, getCities } from "../../services/api";
 import PropertyReviews from './PropertyReviews';
 import VR360Embed from "../VR360Embed.jsx";
 import { useTranslation } from 'react-i18next';
+import { getLocalizedText } from '../../utils/i18nHelpers';
 
 const PropertyDetails = () => {
   const { t, i18n } = useTranslation();
@@ -119,8 +120,8 @@ const PropertyDetails = () => {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: property.title,
-          text: `Check out this ${propertyTypeName}: ${property.title}`,
+          title: title,
+          text: `Check out this ${propertyTypeName}: ${title}`,
           url: window.location.href
         });
       } else {
@@ -160,10 +161,10 @@ const PropertyDetails = () => {
   const DEMO_VR_TOUR_URL = "https://my.matterport.com/show/?m=zEWsxhZpGba&play=1&qs=1";
 
   // Fallback logic for dynamic content
-  const title = property?.title_ar || property?.title_en || property?.title;
-  const description = property?.description_ar || property?.description_en || property?.description;
-  const city = property?.city?.city_name_ar || property?.city?.city_name_en || property?.city?.city_name || cityName;
-  const propertyType = property?.propertyType?.type_name_ar || property?.propertyType?.type_name_en || propertyTypeName;
+  const title = getLocalizedText(property.title);
+  const description = getLocalizedText(property.description);
+  const city = getLocalizedText(property.city?.city_name);
+  const propertyType = getLocalizedText(property.propertyType?.type_name);
 
   return (
     <motion.div 
@@ -178,7 +179,7 @@ const PropertyDetails = () => {
             to="/properties"
             className="inline-flex items-center text-blue-600 hover:text-blue-700"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Properties
+            {i18n.dir() === 'rtl' ? <ArrowRight className={`w-4 h-4 ${i18n.dir() === 'rtl' ? 'ml-2' : 'mr-2'}`} /> : <ArrowLeft className={`w-4 h-4 ${i18n.dir() === 'rtl' ? 'ml-2' : 'mr-2'}`} />} {t('property.backToProperties')}
           </Link>
           <button
             onClick={handleShare}
@@ -188,12 +189,12 @@ const PropertyDetails = () => {
             {copySuccess ? (
               <span className="text-green-600">
                 <Copy className="w-5 h-5" />
-                Copied!
+                {t('property.copied')}
               </span>
             ) : (
               <>
                 <Share2 className="w-5 h-5" />
-                Share
+                {t('property.share')}
               </>
             )}
           </button>
@@ -206,7 +207,7 @@ const PropertyDetails = () => {
               <motion.img
                 key={activeImage}
                 src={property.image[activeImage]?.startsWith('/uploads/') ? `${Backendurl}${encodeURI(property.image[activeImage])}` : property.image[activeImage]}
-                alt={`${property.title} - View ${activeImage + 1}`}
+                alt={`${title} - View ${activeImage + 1}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -242,7 +243,7 @@ const PropertyDetails = () => {
             {/* Image Counter */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 
               bg-black/50 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm">
-              {activeImage + 1} / {property.image.length}
+              {t('property.imageCounter', { current: activeImage + 1, total: property.image.length })}
             </div>
           </div>
 
@@ -255,13 +256,13 @@ const PropertyDetails = () => {
                 <div className="flex items-center text-gray-600 gap-4">
                   {city && (
                     <span className="flex items-center bg-blue-100 px-2 py-1 rounded text-xs ml-2">
-                      <MapPin className="w-4 h-4 mr-1 text-blue-600" />
+                      <MapPin className={`w-4 h-4 ${i18n.language === 'ar' ? 'ml-1' : 'mr-1'} text-blue-600`} />
                       {city}
                     </span>
                   )}
                   {propertyType && (
                     <span className="flex items-center bg-blue-100 px-2 py-1 rounded text-xs ml-2">
-                      <Home className="w-4 h-4 mr-1 text-blue-600" />
+                      <Home className={`w-4 h-4 ${i18n.language === 'ar' ? 'ml-1' : 'mr-1'} text-blue-600`} />
                       {propertyType}
                     </span>
                   )}
@@ -270,6 +271,7 @@ const PropertyDetails = () => {
               <button
                 onClick={handleShare}
                 className="p-2 rounded-full hover:bg-gray-100"
+                title={t('property.share')}
               >
                 <Share2 className="w-5 h-5" />
               </button>
@@ -278,7 +280,7 @@ const PropertyDetails = () => {
             {/* Property Status Badge */}
             <div className="flex items-center gap-2 mb-4">
               <span className={`px-3 py-1 rounded-full text-xs font-medium ${property.status === 'available' ? 'bg-green-100 text-green-800' : property.status === 'rented' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                {property.status ? property.status.charAt(0).toUpperCase() + property.status.slice(1) : t('available')}
+                {property.status ? t(`property.status.${property.status}`) : t('property.status.available')}
               </span>
             </div>
 
@@ -286,7 +288,7 @@ const PropertyDetails = () => {
               <div>
                 <div className="bg-blue-50 rounded-lg p-6 mb-6">
                 <p className="text-green-600">
-                    {property.availability.charAt(0).toUpperCase() + property.availability.slice(1)} for
+                    {property.availability ? t(`property.availability.for_${property.availability}`) : t('property.availability.for_sale')}
                   </p>
                   <p className="text-3xl font-bold text-blue-600 mb-2 flex items-center">
                     <DollarSign className="w-5 h-5 text-blue-600" /> {Number(property.price).toLocaleString('en-US')}
@@ -297,18 +299,18 @@ const PropertyDetails = () => {
                   <div className="bg-gray-50 p-4 rounded-lg text-center">
                     <BedDouble className="w-6 h-6 text-blue-600 mx-auto mb-2" />
                     <p className="text-sm text-gray-600">
-                      {property.beds} {property.beds > 1 ? t('beds') : t('bed')}
+                      {property.beds} {property.beds > 1 ? t('property.beds') : t('property.bed')}
                     </p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg text-center">
                     <Bath className="w-6 h-6 text-blue-600 mx-auto mb-2" />
                     <p className="text-sm text-gray-600">
-                      {property.baths} {property.baths > 1 ? t('baths') : t('bath')}
+                      {property.baths} {property.baths > 1 ? t('property.baths') : t('property.bath')}
                     </p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg text-center">
                     <Maximize className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">{property.sqft} sqft</p>
+                    <p className="text-sm text-gray-600">{property.sqft} {t('property.sqftUnit')}</p>
                   </div>
                 </div>
 
@@ -319,7 +321,7 @@ const PropertyDetails = () => {
                     justify-center gap-2"
                 >
                   <Calendar className="w-5 h-5" />
-                  Schedule Viewing
+                  {t('property.scheduleViewing')}
                 </button>
               </div>
 
@@ -327,7 +329,7 @@ const PropertyDetails = () => {
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold mb-4">{t('listingType')}</h2>
                   <p className="text-gray-600 leading-relaxed">
-                    {property.availability.charAt(0).toUpperCase() + property.availability.slice(1)}
+                    {property.availability ? t(`property.availability.${property.availability}`) : t('property.availability.for_sale')}
                   </p>
                 </div>
                 <div className="mb-6">
@@ -337,20 +339,22 @@ const PropertyDetails = () => {
                   </p>
                 </div>
 
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold mb-4">{t('amenities')}</h2>
-                  <div className="grid grid-cols-2 gap-4">
-                    {property.amenities.map((amenity, index) => (
-                      <div 
-                        key={amenity._id || index}
-                        className="flex items-center text-gray-600"
-                      >
-                        <SparkleIcon className="w-4 h-4 mr-2 text-blue-600" />
-                        {amenity.name}
-                      </div>
-                    ))}
+                {property.amenities && property.amenities.length > 0 && (
+                  <div className="mb-6">
+                    <h2 className="text-xl font-semibold mb-4">{t('amenities')}</h2>
+                    <div className="grid grid-cols-2 gap-4">
+                      {property.amenities.map((amenity, index) => (
+                        <div 
+                          key={amenity._id || index}
+                          className="flex items-center text-gray-600"
+                        >
+                          <SparkleIcon className={`w-4 h-4 ${i18n.dir() === 'rtl' ? 'ml-2' : 'mr-2'} text-blue-600`} />
+                          {getLocalizedText(amenity.name)}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
@@ -372,7 +376,7 @@ const PropertyDetails = () => {
                   <button
                     onClick={() => setShowVR(false)}
                     className="absolute top-4 right-4 z-10 bg-white/80 backdrop-blur-sm rounded-full p-2 text-gray-800 hover:bg-white transition"
-                    aria-label="Close VR Tour"
+                    aria-label={t('property.closeVrTour')}
                   >
                     <X className="w-6 h-6" />
                   </button>
@@ -423,8 +427,8 @@ const PropertyDetails = () => {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
             >
-              <ArrowRight className="w-4 h-4" />
-              {t('viewExactLocation')}
+              <ArrowRight className={`w-4 h-4 ${i18n.dir() === 'rtl' ? 'rotate-180' : ''}`} />
+              {t('property.viewExactLocation')}
             </a>
           ) : (
             <a
@@ -433,8 +437,8 @@ const PropertyDetails = () => {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700"
             >
-              <ArrowRight className="w-4 h-4" />
-              {t('viewExactLocation')}
+              <ArrowRight className={`w-4 h-4 ${i18n.dir() === 'rtl' ? 'rotate-180' : ''}`} />
+              {t('property.viewExactLocation')}
             </a>
           )}
         </div>

@@ -32,6 +32,7 @@ import { useAuth } from "../context/AuthContext";
 import PropTypes from "prop-types";
 import axios from "axios";
 import { useTranslation } from 'react-i18next';
+import { getLocalizedText } from '../utils/i18nHelpers';
 
 // Enhanced Animation Variants
 const navVariants = {
@@ -313,7 +314,7 @@ const Navbar = () => {
                           <Bell className={`w-5 h-5 ${isRTL ? 'ml-2' : 'mr-2'} text-blue-600`} />
                           <span className="font-bold text-gray-900">{t('notifications')}</span>
                           {unreadCount > 0 && (
-                            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                            <span className={`${isRTL ? 'mr-2' : 'ml-2'} px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium`}>
                               {unreadCount} {t('new_notifications')}
                             </span>
                           )}
@@ -387,7 +388,7 @@ const Navbar = () => {
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm text-gray-800 leading-relaxed">
-                                    {notif.message}
+                                    {getLocalizedText(notif.message)}
                                   </p>
                                   <div className="flex items-center justify-between mt-2">
                                     <span className="text-xs text-gray-400">

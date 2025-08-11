@@ -9,6 +9,7 @@ import PropertyCard from './properties/Propertycard.jsx';
 import { Backendurl } from '../App';
 import { getPropertyTypes } from '../services/api';
 import { useTranslation } from 'react-i18next';
+import { getLocalizedText } from '../utils/i18nHelpers';
 
 
 const PropertiesShow = () => {
@@ -18,11 +19,17 @@ const PropertiesShow = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [propertyTypes, setPropertyTypes] = useState([]);
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   const categories = [
     { id: 'all', label: t('all_properties') },
-    ...propertyTypes.map(type => ({ id: type.type_name, label: type.type_name }))
+    ...propertyTypes.map(type => {
+      const typeName = getLocalizedText(type.type_name);
+      return { 
+        id: typeName, 
+        label: typeName 
+      };
+    })
   ];
   
   const containerVariants = {
@@ -78,7 +85,7 @@ const PropertiesShow = () => {
 
   useEffect(() => {
     getPropertyTypes().then(setPropertyTypes);
-  }, []);
+  }, [i18n.language]);
 
   const filteredProperties = (() => {
     let filtered = [];
@@ -86,7 +93,7 @@ const PropertiesShow = () => {
       filtered = [...properties];
     } else {
       filtered = properties.filter(property => {
-        const typeName = property.propertyType?.type_name || '';
+        const typeName = getLocalizedText(property.propertyType?.type_name) || '';
         return typeName.toLowerCase() === activeCategory.toLowerCase();
       });
     }

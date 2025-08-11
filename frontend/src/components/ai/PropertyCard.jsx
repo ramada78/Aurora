@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import { MapPin, Maximize, BedDouble, Bath, Building, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getLocalizedText } from '../../utils/i18nHelpers';
 
 const PropertyCard = ({ property }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -10,6 +11,8 @@ const PropertyCard = ({ property }) => {
   const isRTL = i18n.dir() === 'rtl';
 
   if (!property) return null;
+
+
 
   const getImageUrl = () => {
     if (property.image && typeof property.image === 'string') {
@@ -22,24 +25,34 @@ const PropertyCard = ({ property }) => {
   };
 
   const getLocation = () => {
-    if (property.city && typeof property.city === 'string') {
-      return property.city;
+    if (property.city) {
+      // If it's a populated object with city_name
+      if (property.city.city_name) {
+        return getLocalizedText(property.city.city_name);
+      }
+      // If it's just a string (fallback)
+      if (typeof property.city === 'string') {
+        return property.city;
+      }
     }
-    if (property.city?.city_name) return property.city.city_name;
     return null;
   };
 
   const getPropertyType = () => {
-    if (property.propertyType && typeof property.propertyType === 'string') {
-      return property.propertyType;
+    if (property.propertyType) {
+      // If it's a populated object with type_name
+      if (property.propertyType.type_name) {
+        return getLocalizedText(property.propertyType.type_name);
+      }
+      // If it's just a string (fallback)
+      if (typeof property.propertyType === 'string') {
+        return property.propertyType;
+      }
     }
-    if (property.propertyType?.type_name) return property.propertyType.type_name;
-    if (property.property_type) return property.property_type;
+    if (property.property_type) {
+      return getLocalizedText(property.property_type);
+    }
     return null;
-  };
-
-  const getPropertyTypeAr = () => {
-    return getPropertyType();
   };
 
   const statusText = property.status ? t(`property.status.${property.status.toLowerCase()}`, property.status.charAt(0).toUpperCase() + property.status.slice(1)) : t('property.status.unknown');
@@ -54,7 +67,9 @@ const PropertyCard = ({ property }) => {
 
   const imageUrl = getImageUrl();
   const location = getLocation();
-  const propertyType = isRTL ? getPropertyTypeAr() : getPropertyType();
+  const propertyType = getPropertyType();
+  const title = getLocalizedText(property.title);
+  const description = getLocalizedText(property.description);
 
   return (
     <motion.div
@@ -82,8 +97,8 @@ const PropertyCard = ({ property }) => {
 
       <div className={`bg-gradient-to-r from-blue-500 to-indigo-600 p-4 sm:p-5 relative ${isRTL ? 'text-right' : ''}`}>
         <div className="relative z-10">
-          <h3 className="text-lg sm:text-xl font-semibold text-white mb-1 truncate" title={property.title}>
-            {property.title || t('property.noTitle')}
+          <h3 className="text-lg sm:text-xl font-semibold text-white mb-1 truncate" title={title}>
+            {title || t('property.noTitle')}
           </h3>
           <div className={`flex items-center text-blue-100 flex-wrap ${isRTL ? '' : ''}`}>
             <MapPin className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRTL ? 'ml-1' : 'mr-1'} flex-shrink-0`} />
@@ -151,7 +166,7 @@ const PropertyCard = ({ property }) => {
             className={`overflow-hidden ${isExpanded ? '' : 'max-h-12 sm:max-h-none'}`}
           >
             <p className={`text-gray-600 text-xs sm:text-sm mt-2 ${isExpanded ? '' : 'line-clamp-3'} ${isRTL ? 'text-right' : 'text-left'}`}>
-              {property.description || t('property.noDescription')}
+              {description || t('property.noDescription')}
             </p>
           </motion.div>
         </div>

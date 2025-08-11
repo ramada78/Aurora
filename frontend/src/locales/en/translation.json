@@ -233,7 +233,7 @@
   },
   "aiAgent": {
     "title": "AI-Powered Property Recommendations",
-    "description": "Discover properties tailored to your preferences using advanced AI algorithms. We analyze your recent searches and filters to suggest homes you’ll love—automatically!",
+    "description": "Discover properties tailored to your preferences using advanced AI algorithms. We analyze your recent searches and filters to suggest homes you'll love—automatically!",
     "recommendedForYou": "Recommended For You",
     "loadingRecommendations": "Loading recommendations...",
     "noRecommendations": "No recommendations found. Try searching for properties to get personalized suggestions!",
@@ -255,7 +255,7 @@
       "table": "Table",
       "insights": "Insights",
       "location": "Location",
-      "pricePerSqft": "Price per sqft",
+      "pricePerSqft": "Price per m²",
       "appreciation": "Appreciation",
       "rentalYield": "Rental Yield",
       "missingData": "Some data is missing or incomplete. The insights shown may be limited.",
@@ -289,17 +289,53 @@
     "unknownLocation": "Unknown Location",
     "price": "Price",
     "area": "Area",
-    "sqftUnit": "sqft",
+    "sqftUnit": "m²",
     "beds": "Beds",
     "baths": "Baths",
+    "bed": "Bed",
+    "bath": "Bath",
     "overview": "Overview",
     "noDescription": "No description available.",
+    "backToProperties": "Back to Properties",
+    "share": "Share",
+    "copied": "Copied!",
+    "imageCounter": "{{current}} / {{total}}",
+    "closeVrTour": "Close VR Tour",
+    "viewExactLocation": "View Exact Location",
+    "availability": {
+      "for_buy": "For Sale",
+      "for_rent": "For Rent",
+      "sale": "Sale",
+      "rent": "Rent",
+      "buy": "Buy",
+      "sell": "Sell"
+    },
     "status": {
       "available": "Available",
       "rented": "Rented",
       "sold": "Sold",
+      "pending": "Pending",
       "unknown": "Status Unknown"
-    }
+    },
+    "more": "more"
+  },
+  "reviews": {
+    "addYourReview": "Add Your Review",
+    "yourRating": "Your Rating",
+    "comment": "Comment",
+    "shareExperience": "Share your experience...",
+    "submitReview": "Submit Review",
+    "submitting": "Submitting...",
+    "pleaseLogin": "Please log in to add a review.",
+    "propertyReviews": "Property Reviews",
+    "loadingReviews": "Loading reviews...",
+    "noReviews": "No reviews yet for this property.",
+    "previousReviews": "Previous reviews",
+    "nextReviews": "Next reviews",
+    "selectRating": "Please select a rating.",
+    "reviewSubmitted": "Review submitted!",
+    "failedToSubmit": "Failed to submit review.",
+    "user": "User"
   },
   "savedProperties": {
     "title": "Saved Properties",
@@ -456,7 +492,6 @@
       "strong": "Strong"
     }
   },
-  "appointments": "Appointments",
   "appointmentsPage": {
     "title": "Scheduled Appointments",
     "loading": "Loading...",
@@ -561,7 +596,6 @@
     "welcome_back": "Welcome back, {{name}}!",
     "profile": "My Profile",
     "saved_properties": "Saved Properties",
-    "appointments": "Appointments",
     "roles": "Roles",
     "role_client": "Client",
     "role_seller": "Seller",
@@ -570,5 +604,78 @@
   "navbar": {
     "aurora": "Aurora",
     "future_real_estate": "Future Real Estate"
+  },
+  "filters": "Filters",
+  "reset_all": "Reset All",
+  "all_cities": "All Cities",
+  "show_available_only": "Show Available Only",
+  "listing_type": "Listing Type",
+  "property_type": "Property Type",
+  "city": "City",
+  "price_range": "Price Range",
+  "price_range_usd": "Price Range (USD)",
+  "bedrooms": "Bedrooms",
+  "bathrooms": "Bathrooms",
+  "area": "Area",
+  "area_sqft": "Area (m²)",
+  "amenities": "Amenities",
+  "min_placeholder": "Min",
+  "max_placeholder": "Max",
+  "any_placeholder": "Any",
+  "rent": "Rent",
+  "buy": "Buy",
+  "search_by_title_city_property": "Search by title, city, property type...",
+  "search": "Search",
+  "recent_searches": "Recent Searches",
+  "popular_locations": "Popular Locations",
+  "scheduleViewing": {
+    "title": "Schedule a Viewing",
+    "close": "Close dialog",
+    "steps": {
+      "dateTime": "Date & Time",
+      "details": "Details"
+    },
+    "form": {
+      "selectDate": "Select Date",
+      "selectDatePlaceholder": "Choose a date",
+      "dateInfo": "Available Monday to Friday, up to 30 days in advance",
+      "selectTimeSlot": "Select Time Slot",
+      "chooseTimeSlot": "Choose a time slot",
+      "timeInfo": "Available from 9:00 AM to 6:00 PM",
+      "visitType": "Visit Type",
+      "selectVRCity": "Select VR City",
+      "selectCity": "Select City",
+      "continue": "Continue",
+      "selectedTime": "Selected Time",
+      "change": "Change",
+      "additionalNotes": "Additional Notes",
+      "optional": "Optional",
+      "notesPlaceholder": "Any specific requirements or questions about the property...",
+      "back": "Back",
+      "scheduling": "Scheduling...",
+      "scheduleViewing": "Schedule Viewing"
+    },
+    "visitTypes": {
+      "atProperty": "At Property",
+      "onlineMeeting": "Online Meeting",
+      "officeVR": "Office VR Tour"
+    },
+    "success": {
+      "title": "Viewing Scheduled!",
+      "confirmationEmail": "We've sent you a confirmation email with all the details.",
+      "agentContact": "One of our agents will contact you to confirm the details.",
+      "close": "Close"
+    },
+    "errors": {
+      "weekendsNotAvailable": "Viewings are not available on weekends",
+      "selectFutureTime": "Please select a future time slot",
+      "loginRequired": "Please login to schedule a viewing",
+      "schedulingFailed": "Error scheduling viewing",
+      "incompleteForm": "Please complete all required fields",
+      "vrCityRequired": "Please select a VR city for office VR tour"
+    },
+    "info": {
+      "agentGuide": "A qualified agent will guide you through the viewing"
+    }
   }
 } 

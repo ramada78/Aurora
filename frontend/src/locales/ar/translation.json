@@ -294,14 +294,50 @@
     "sqftUnit": "متر مربع",
     "beds": "غرف نوم",
     "baths": "حمامات",
+    "bed": "غرفة نوم",
+    "bath": "حمام",
     "overview": "نظرة عامة",
     "noDescription": "لا يوجد وصف متاح.",
+    "backToProperties": "العودة إلى العقارات",
+    "share": "مشاركة",
+    "copied": "تم النسخ!",
+    "imageCounter": "{{current}} / {{total}}",
+    "closeVrTour": "إغلاق الجولة الافتراضية",
+    "viewExactLocation": "عرض الموقع الدقيق",
+    "availability": {
+      "for_buy": "للبيع",
+      "for_rent": "للإيجار",
+      "sale": "بيع",
+      "rent": "إيجار",
+      "buy": "شراء",
+      "sell": "بيع"
+    },
     "status": {
       "available": "متاح",
       "rented": "مؤجر",
       "sold": "مباع",
+      "pending": "قيد الانتظار",
       "unknown": "الحالة غير معروفة"
-    }
+    },
+    "more": "المزيد"
+  },
+  "reviews": {
+    "addYourReview": "أضف تقييمك",
+    "yourRating": "تقييمك",
+    "comment": "التعليق",
+    "shareExperience": "شارك تجربتك...",
+    "submitReview": "إرسال التقييم",
+    "submitting": "جاري الإرسال...",
+    "pleaseLogin": "يرجى تسجيل الدخول لإضافة تقييم.",
+    "propertyReviews": "تقييمات العقار",
+    "loadingReviews": "جاري تحميل التقييمات...",
+    "noReviews": "لا توجد تقييمات بعد لهذا العقار.",
+    "previousReviews": "التقييمات السابقة",
+    "nextReviews": "التقييمات التالية",
+    "selectRating": "يرجى اختيار تقييم.",
+    "reviewSubmitted": "تم إرسال التقييم!",
+    "failedToSubmit": "فشل في إرسال التقييم.",
+    "user": "المستخدم"
   },
   "appointments": "المواعيد",
   "appointmentsPage": {
@@ -563,7 +599,6 @@
     "welcome_back": "مرحباً بعودتك، {{name}}!",
     "profile": "ملفي الشخصي",
     "saved_properties": "العقارات المحفوظة",
-    "appointments": "المواعيد",
     "roles": "الأدوار",
     "role_client": "عميل",
     "role_seller": "بائع",
@@ -572,5 +607,78 @@
   "navbar": {
     "aurora": "أورورا",
     "future_real_estate": "مستقبل العقارات"
+  },
+  "filters": "الفلاتر",
+  "reset_all": "إعادة تعيين الكل",
+  "all_cities": "جميع المدن",
+  "show_available_only": "إظهار المتاح فقط",
+  "listing_type": "نوع الإعلان",
+  "property_type": "نوع العقار",
+  "city": "المدينة",
+  "price_range": "نطاق السعر",
+  "price_range_usd": "نطاق السعر (دولار أمريكي)",
+  "bedrooms": "غرف النوم",
+  "bathrooms": "الحمامات",
+  "area": "المساحة",
+  "area_sqft": "المساحة (متر مربع)",
+  "amenities": "وسائل الراحة",
+  "min_placeholder": "الأدنى",
+  "max_placeholder": "الأعلى",
+  "any_placeholder": "أي",
+  "rent": "إيجار",
+  "buy": "شراء",
+  "search_by_title_city_property": "البحث بالعنوان أو المدينة أو نوع العقار...",
+  "search": "بحث",
+  "recent_searches": "عمليات البحث الأخيرة",
+  "popular_locations": "المواقع الشائعة",
+  "scheduleViewing": {
+    "title": "جدولة موعد زيارة",
+    "close": "إغلاق مربع الحوار",
+    "steps": {
+      "dateTime": "التاريخ والوقت",
+      "details": "التفاصيل"
+    },
+    "form": {
+      "selectDate": "اختر التاريخ",
+      "selectDatePlaceholder": "اختر تاريخًا",
+      "dateInfo": "متاح من الإثنين إلى الجمعة، حتى 30 يومًا مقدمًا",
+      "selectTimeSlot": "اختر الموعد",
+      "chooseTimeSlot": "اختر موعدًا",
+      "timeInfo": "متاح من 9:00 صباحًا إلى 6:00 مساءً",
+      "visitType": "نوع الزيارة",
+      "selectVRCity": "اختر مدينة الواقع الافتراضي",
+      "selectCity": "اختر المدينة",
+      "continue": "متابعة",
+      "selectedTime": "الوقت المحدد",
+      "change": "تغيير",
+      "additionalNotes": "ملاحظات إضافية",
+      "optional": "اختياري",
+      "notesPlaceholder": "أي متطلبات خاصة أو أسئلة حول العقار...",
+      "back": "رجوع",
+      "scheduling": "جاري الجدولة...",
+      "scheduleViewing": "جدولة زيارة"
+    },
+    "visitTypes": {
+      "atProperty": "في العقار",
+      "onlineMeeting": "اجتماع عبر الإنترنت",
+      "officeVR": "جولة افتراضية في المكتب"
+    },
+    "success": {
+      "title": "تم جدولة الزيارة!",
+      "confirmationEmail": "لقد أرسلنا لك بريدًا إلكترونيًا تأكيديًا مع جميع التفاصيل.",
+      "agentContact": "سيتصل بك أحد وكلائنا لتأكيد التفاصيل.",
+      "close": "إغلاق"
+    },
+    "errors": {
+      "weekendsNotAvailable": "الزيارات غير متاحة في عطلة نهاية الأسبوع",
+      "selectFutureTime": "يرجى اختيار موعد مستقبلي",
+      "loginRequired": "يرجى تسجيل الدخول لجدولة زيارة",
+              "schedulingFailed": "خطأ في جدولة الزيارة",
+        "incompleteForm": "يرجى إكمال جميع الحقول المطلوبة",
+        "vrCityRequired": "يرجى اختيار مدينة الواقع الافتراضي للجولة الافتراضية في المكتب"
+    },
+    "info": {
+      "agentGuide": "سيرشدك وكيل مؤهل خلال الزيارة"
+    }
   }
 } 

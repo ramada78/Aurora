@@ -9,6 +9,7 @@ import { Backendurl } from "../../App.jsx";
 import { getPropertyTypes, getCities, saveLastSearch as saveLastSearchAPI } from "../../services/api";
 import { useLocation } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
+import { getLocalizedText } from '../../utils/i18nHelpers';
 
 const PropertiesPage = () => {
   const { t, i18n } = useTranslation();
@@ -68,17 +69,23 @@ const PropertiesPage = () => {
     });
   }, [location.search]);
 
+
+
   const propertyTypeMap = useMemo(() => {
     const map = {};
-    propertyTypes.forEach(pt => { map[pt._id] = pt.type_name; });
+    propertyTypes.forEach(pt => { 
+      map[pt._id] = getLocalizedText(pt.type_name); 
+    });
     return map;
-  }, [propertyTypes]);
+  }, [propertyTypes, i18n.language]);
 
   const cityMap = useMemo(() => {
     const map = {};
-    cities.forEach(c => { map[c._id] = c.city_name; });
+    cities.forEach(c => { 
+      map[c._id] = getLocalizedText(c.city_name); 
+    });
     return map;
-  }, [cities]);
+  }, [cities, i18n.language]);
 
   const fetchProperties = async () => {
     try {
@@ -129,17 +136,23 @@ const PropertiesPage = () => {
     }
     return props
       .filter((property) => {
+        // Get localized text for search fields
+        const title = getLocalizedText(property.title);
+        const description = getLocalizedText(property.description);
+        const cityName = getLocalizedText(property.city?.city_name);
+        const propertyTypeName = getLocalizedText(property.propertyType?.type_name);
+
         const searchMatch = !filters.searchQuery || 
-          [property.title, property.description, property.city?.city_name, property.propertyType?.type_name]
-            .some(field => field?.toLowerCase().includes(filters.searchQuery.toLowerCase()));
+          [title, description, cityName, propertyTypeName]
+            .some(field => field && field.toLowerCase().includes(filters.searchQuery.toLowerCase()));
 
-        // Property Type filter (new)
+        // Property Type filter
         const typeMatch = !filters.propertyType || 
-          property.propertyType?.type_name?.toLowerCase() === filters.propertyType.toLowerCase();
+          (propertyTypeName && propertyTypeName.toLowerCase().includes(filters.propertyType.toLowerCase()));
 
-        // City filter (partial match)
+        // City filter
         const cityMatch = !filters.city || 
-          property.city?.city_name?.toLowerCase().includes(filters.city.toLowerCase());
+          (cityName && cityName.toLowerCase().includes(filters.city.toLowerCase()));
 
         // Price filter (USD)
         const minPrice = filters.minPrice === '' || filters.minPrice === undefined ? -Infinity : Number(filters.minPrice);
@@ -180,7 +193,7 @@ const PropertiesPage = () => {
             return 0;
         }
       });
-  }, [propertyState.properties, filters]);
+  }, [propertyState.properties, filters, i18n.language]);
 
   const numericFields = ['minPrice','maxPrice','bedrooms','bathrooms','area','beds','price','sqft'];
   const coerceNumericFilters = (filters) => {
@@ -196,7 +209,6 @@ const PropertiesPage = () => {
 
   const saveLastSearch = async (searchObj) => {
     const coerced = coerceNumericFilters(searchObj);
-    console.log('Saving filter for AI aggregation:', coerced);
     const token = localStorage.getItem('token');
     if (token) {
       await saveLastSearchAPI(coerced);

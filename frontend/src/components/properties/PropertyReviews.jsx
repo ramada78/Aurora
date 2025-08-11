@@ -5,6 +5,7 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { ChevronLeft, ChevronRight, Star as LucideStar, StarOff as LucideStarOff } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const StarRating = ({ rating, setRating, readOnly = false }) => (
   <div className="flex items-center gap-1">
@@ -30,6 +31,7 @@ const StarRating = ({ rating, setRating, readOnly = false }) => (
 
 const PropertyReviews = ({ propertyId }) => {
   const { isLoggedIn, user } = useAuth();
+  const { t, i18n } = useTranslation();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState(0);
@@ -53,7 +55,7 @@ const PropertyReviews = ({ propertyId }) => {
     setError('');
     setSuccess('');
     if (!rating) {
-      setError('Please select a rating.');
+      setError(t('reviews.selectRating'));
       return;
     }
     setSubmitting(true);
@@ -64,14 +66,14 @@ const PropertyReviews = ({ propertyId }) => {
         property_id: propertyId,
         user_id: user._id,
       });
-      setSuccess('Review submitted!');
+      setSuccess(t('reviews.reviewSubmitted'));
       setRating(0);
       setComment('');
       // Refresh reviews
       const data = await getReviewsByPropertyId(propertyId);
       setReviews(data.filter(r => r.property_id === propertyId || r.property_id?._id === propertyId));
     } catch (err) {
-      setError('Failed to submit review.');
+      setError(t('reviews.failedToSubmit'));
     } finally {
       setSubmitting(false);
     }
@@ -83,7 +85,7 @@ const PropertyReviews = ({ propertyId }) => {
       className={`slick-arrow z-10 bg-blue-600 hover:bg-blue-700 rounded-full shadow-lg flex items-center justify-center transition w-10 h-10 absolute top-1/2 -translate-y-1/2 ${direction === 'left' ? 'left-[-24px]' : 'right-[-24px]'} ${className}`}
       style={{ ...style, display: 'flex' }}
       onClick={onClick}
-      aria-label={direction === 'left' ? 'Previous reviews' : 'Next reviews'}
+      aria-label={direction === 'left' ? t('reviews.previousReviews') : t('reviews.nextReviews')}
       type="button"
     >
       {direction === 'left' ? <ChevronLeft size={24} color="#000" fill="#fff" /> : <ChevronRight size={24} color="#000" fill="#fff" />}
@@ -114,21 +116,21 @@ const PropertyReviews = ({ propertyId }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-10 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-lg p-10 mt-8">
       {/* Left: Add Review */}
       <div className="pr-0 md:pr-8 border-b md:border-b-0 md:border-r border-gray-200">
-        <h3 className="text-2xl font-bold mb-6 text-blue-900">Add Your Review</h3>
+        <h3 className="text-2xl font-bold mb-6 text-blue-900">{t('reviews.addYourReview')}</h3>
         {isLoggedIn ? (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block mb-2 font-semibold text-gray-700">Your Rating</label>
+              <label className="block mb-2 font-semibold text-gray-700">{t('reviews.yourRating')}</label>
               <StarRating rating={rating} setRating={setRating} />
             </div>
             <div>
-              <label className="block mb-2 font-semibold text-gray-700">Comment</label>
+              <label className="block mb-2 font-semibold text-gray-700">{t('reviews.comment')}</label>
               <textarea
                 className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-200 focus:outline-none transition"
                 rows={4}
                 value={comment}
                 onChange={e => setComment(e.target.value)}
-                placeholder="Share your experience..."
+                placeholder={t('reviews.shareExperience')}
               />
             </div>
             {error && <div className="text-red-500 text-sm">{error}</div>}
@@ -138,20 +140,20 @@ const PropertyReviews = ({ propertyId }) => {
               className="bg-blue-600 text-white px-8 py-2 rounded-lg font-semibold shadow hover:bg-blue-700 transition disabled:opacity-50"
               disabled={submitting}
             >
-              {submitting ? 'Submitting...' : 'Submit Review'}
+              {submitting ? t('reviews.submitting') : t('reviews.submitReview')}
             </button>
           </form>
         ) : (
-          <div className="text-gray-500">Please log in to add a review.</div>
+          <div className="text-gray-500">{t('reviews.pleaseLogin')}</div>
         )}
       </div>
       {/* Right: List Reviews as Slider */}
       <div className="flex flex-col">
-        <h3 className="text-2xl font-bold mb-6 text-blue-900">Property Reviews</h3>
+        <h3 className="text-2xl font-bold mb-6 text-blue-900">{t('reviews.propertyReviews')}</h3>
         {loading ? (
-          <div>Loading reviews...</div>
+          <div>{t('reviews.loadingReviews')}</div>
         ) : reviews.length === 0 ? (
-          <div className="text-gray-500">No reviews yet for this property.</div>
+          <div className="text-gray-500">{t('reviews.noReviews')}</div>
         ) : (
           <Slider {...sliderSettings} className="review-slider">
             {reviews.map((review) => (
@@ -165,7 +167,7 @@ const PropertyReviews = ({ propertyId }) => {
                   </div>
                   <div className="text-gray-800 mb-2 text-lg font-medium">{review.comment}</div>
                   <div className="text-xs text-gray-500 mt-2 font-semibold">
-                    {review.user_id?.name || 'User'}
+                    {review.user_id?.name || t('reviews.user')}
                   </div>
                 </div>
               </div>

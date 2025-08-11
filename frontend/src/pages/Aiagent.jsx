@@ -20,7 +20,6 @@ const AIPropertyHub = () => {
       setRecLoading(true);
       const lastSearches = await getLastSearches();
       const preferences = aggregatePreferences(lastSearches);
-      console.log('Aggregated preferences for AI recommendations:', preferences);
       if (Object.keys(preferences).length > 0) {
         const recs = await recommendProperties(preferences);
         setRecommendations(recs);
@@ -77,7 +76,7 @@ const AIPropertyHub = () => {
           </div>
         </div>
         {/* Recommendations section */}
-        <div className="mt-10">
+        <div className="mt-10 mb-20">
           <h2 className={`text-2xl font-bold mb-4 text-blue-700 flex items-center gap-2 ${isRTL ? '' : ''}`}>
             <Sparkles className="w-6 h-6 text-blue-400" /> {t('aiAgent.recommendedForYou')}
           </h2>

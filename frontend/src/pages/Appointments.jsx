@@ -170,7 +170,7 @@ const Appointments = () => {
                 <div className={`relative z-20 flex-1 flex flex-col p-8 gap-2 text-white ${isRTL ? 'text-right' : ''}`}>
                   <div className={`flex items-center gap-2 mb-1 ${isRTL ? '' : ''}`}>
                     <Home className="w-5 h-5 text-blue-200" />
-                    <span className="font-semibold text-lg line-clamp-1">{isRTL ? appt.propertyId?.title_ar : appt.propertyId?.title_en}</span>
+                    <span className="font-semibold text-lg line-clamp-1">{isRTL ? appt.propertyId?.title.ar : appt.propertyId?.title.en}</span>
                   </div>
                   <div className={`flex items-center gap-2 text-blue-100 text-sm ${isRTL ? '' : ''}`}>
                     <Calendar className="w-4 h-4" />

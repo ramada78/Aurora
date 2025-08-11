@@ -1,21 +1,26 @@
-import React, { useState, useMemo } from 'react';
-import { Calendar, Clock, Loader, X, Info, CheckCircle, Users, MapPin } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Calendar, Clock, Loader, X, Info, CheckCircle, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Backendurl } from '../../App';
+import { useTranslation } from 'react-i18next';
 
-const VISIT_TYPES = [
-  { value: "property", label: "At Property" },
-  { value: "online", label: "Online Meeting" },
-  { value: "office_vr", label: "Office VR Tour" },
-];
+const ScheduleViewing = ({ propertyId, onClose }) => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.dir() === 'rtl';
 
-const VR_CITIES = [
-  "Damascus", "Aleppo", "Homs", "Hama", "Latakia", "Tartus", "Daraa", "Sweida", "Quneitra", "Idlib", "Raqqa", "Deir ez-Zor", "Hasakah", "Rif Dimashq"
-];
+  const visitTypes = [
+    { value: "property", label: t('scheduleViewing.visitTypes.atProperty') },
+    { value: "online", label: t('scheduleViewing.visitTypes.onlineMeeting') },
+    { value: "office_vr", label: t('scheduleViewing.visitTypes.officeVR') },
+  ];
 
-const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, propertyImage, onClose }) => {
+  // VR Cities translated based on current language
+  const vrCities = i18n.language === 'ar' 
+    ? ['دمشق', 'حلب', 'حمص', 'حماة', 'اللاذقية', 'طرطوس', 'درعا', 'السويداء', 'القنيطرة', 'إدلب', 'الرقة', 'دير الزور', 'الحسكة', 'ريف دمشق']
+    : ['Damascus', 'Aleppo', 'Homs', 'Hama', 'Latakia', 'Tartus', 'Daraa', 'Sweida', 'Quneitra', 'Idlib', 'Raqqa', 'Deir ez-Zor', 'Hasakah', 'Rif Dimashq'];
+
   const [formData, setFormData] = useState({
     date: '',
     time: '',
@@ -69,7 +74,7 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
   const handleDateChange = (e) => {
     const selectedDate = e.target.value;
     if (isWeekend(selectedDate)) {
-      toast.error('Viewings are not available on weekends');
+      toast.error(t('scheduleViewing.errors.weekendsNotAvailable'));
       return;
     }
     setFormData(prev => ({ ...prev, date: selectedDate, time: '' }));
@@ -78,7 +83,7 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
   const handleTimeChange = (e) => {
     const selectedTime = e.target.value;
     if (formData.date === dateRestrictions.min && isPastTime(selectedTime)) {
-      toast.error('Please select a future time slot');
+      toast.error(t('scheduleViewing.errors.selectFutureTime'));
       return;
     }
     setFormData(prev => ({ ...prev, time: selectedTime }));
@@ -94,20 +99,50 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form data before submission
+    if (!formData.date || !formData.time || !formData.visitType) {
+      toast.error(t('scheduleViewing.errors.incompleteForm'));
+      return;
+    }
+
+    // Validate VR city if visit type is office_vr
+    if (formData.visitType === 'office_vr' && !formData.vrCity) {
+      toast.error(t('scheduleViewing.errors.vrCityRequired'));
+      return;
+    }
+
+    // Validate propertyId format
+    if (!propertyId || typeof propertyId !== 'string' || propertyId.length !== 24) {
+      toast.error('Invalid property ID');
+      return;
+    }
+    
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        toast.error('Please login to schedule a viewing');
+        toast.error(t('scheduleViewing.errors.loginRequired'));
         return;
       }
     
       setLoading(true);
+      
+      // Prepare data for submission - only include vrCity if visitType is office_vr
+      // This ensures we don't send undefined values that might cause backend errors
+      const submissionData = {
+        propertyId: propertyId.toString(), // Ensure it's a string
+        date: formData.date, // Backend will parse this string to Date
+        time: formData.time,
+        notes: formData.notes || '', // Ensure notes is never undefined
+        visitType: formData.visitType,
+        ...(formData.visitType === 'office_vr' && formData.vrCity && { vrCity: formData.vrCity })
+      };
+      
+      console.log('Submitting appointment data:', submissionData);
+      
       const response = await axios.post(
         `${Backendurl}/api/appointments/schedule`, 
-        {
-          propertyId,
-          ...formData
-        }, 
+        submissionData, 
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -124,18 +159,226 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
       }
     } catch (error) {
       console.error('Scheduling error:', error);
-      const errorMessage = error.response?.data?.message || 'Error scheduling viewing';
+      console.error('Error response:', error.response?.data);
+      
+      // Handle specific backend error messages
+      let errorMessage = t('scheduleViewing.errors.schedulingFailed');
+      
+      if (error.response?.status === 400) {
+        // Bad request - show specific validation error
+        errorMessage = error.response.data.message || 'Invalid request data';
+      } else if (error.response?.status === 404) {
+        // Property not found
+        errorMessage = 'Property not found';
+      } else if (error.response?.status === 500) {
+        // Server error - show generic message
+        console.error('Server error details:', error.response.data);
+        errorMessage = t('scheduleViewing.errors.schedulingFailed');
+      }
+      
       toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  // Format date for display
+  // Format date for display with proper localization
   const formatDate = (dateString) => {
     if (!dateString) return '';
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    const options = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
+    return new Date(dateString).toLocaleDateString(locale, options);
+  };
+
+  // Custom Date Picker Component
+  // Provides fully localized calendar with Arabic/English support
+  // Replaces HTML5 date input for better localization control
+  // Includes form submission prevention to avoid accidental submits
+  const CustomDatePicker = ({ value, onChange, min, max, disabled }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [currentDate, setCurrentDate] = useState(value ? new Date(value) : new Date());
+    const datePickerRef = useRef(null);
+
+    // Close date picker when clicking outside
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
+          setIsOpen(false);
+        }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const getDaysInMonth = (date) => {
+      return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    };
+
+    const getFirstDayOfMonth = (date) => {
+      return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+    };
+
+    const getMonthName = (date) => {
+      const options = { month: 'long', year: 'numeric' };
+      const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
+      return date.toLocaleDateString(locale, options);
+    };
+
+    const getDayNames = () => {
+      const options = { weekday: 'short' };
+      const locale = i18n.language === 'ar' ? 'ar-EG' : 'en-US';
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const day = new Date(2024, 0, i + 1);
+        days.push(day.toLocaleDateString(locale, options));
+      }
+      return days;
+    };
+
+    const handleDateSelect = (day) => {
+      const selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+      const dateString = selectedDate.toISOString().split('T')[0];
+      onChange({ target: { value: dateString } });
+      setIsOpen(false);
+    };
+
+    const isDateDisabled = (day) => {
+      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+      const dateString = date.toISOString().split('T')[0];
+      
+      // Check if date is within allowed range
+      const isOutOfRange = dateString < min || dateString > max;
+      const isWeekendDay = isWeekend(dateString);
+      
+      return isOutOfRange || isWeekendDay;
+    };
+
+    const isSelected = (day) => {
+      if (!value) return false;
+      const selectedDate = new Date(value);
+      return selectedDate.getDate() === day && 
+             selectedDate.getMonth() === currentDate.getMonth() && 
+             selectedDate.getFullYear() === currentDate.getFullYear();
+    };
+
+    const renderCalendar = () => {
+      const daysInMonth = getDaysInMonth(currentDate);
+      const firstDay = getFirstDayOfMonth(currentDate);
+      const days = [];
+      
+      // Add empty cells for days before the first day of the month
+      for (let i = 0; i < firstDay; i++) {
+        days.push(<div key={`empty-${i}`} className="h-8"></div>);
+      }
+      
+      // Add days of the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        const disabled = isDateDisabled(day);
+        const selected = isSelected(day);
+        days.push(
+          <button
+            key={day}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (!disabled) {
+                handleDateSelect(day);
+              }
+            }}
+            disabled={disabled}
+            className={`h-8 w-8 rounded-full text-sm transition-colors ${
+              disabled 
+                ? 'text-gray-300 cursor-not-allowed' 
+                : selected 
+                  ? 'bg-blue-600 text-white' 
+                  : 'hover:bg-gray-100 text-gray-700'
+            }`}
+          >
+            {day}
+          </button>
+        );
+      }
+      
+      return days;
+    };
+
+    return (
+      <div className="relative" ref={datePickerRef}>
+        <div 
+          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm cursor-pointer bg-white"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!disabled) {
+              setIsOpen(!isOpen);
+            }
+          }}
+        >
+          <span className={value ? 'text-gray-900' : 'text-gray-500'}>
+            {value ? formatDate(value) : t('scheduleViewing.form.selectDatePlaceholder')}
+          </span>
+        </div>
+        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 p-4"
+            >
+              {/* Calendar Header */}
+              <div className="flex items-center justify-between mb-4">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
+                  }}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  {isRTL ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+                </button>
+                <h3 className="font-semibold text-gray-900">{getMonthName(currentDate)}</h3>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+                  }}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
+                  {isRTL ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </button>
+              </div>
+              
+              {/* Days of Week */}
+              <div className={`grid grid-cols-7 gap-1 mb-2 ${isRTL ? 'text-right' : 'text-left'}`}>
+                {getDayNames().map((day, index) => (
+                  <div key={index} className="h-8 flex items-center justify-center text-xs font-medium text-gray-500">
+                    {day}
+                  </div>
+                ))}
+              </div>
+              
+              {/* Calendar Grid */}
+              <div className={`grid grid-cols-7 gap-1 ${isRTL ? 'text-right' : 'text-left'}`}>
+                {renderCalendar()}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
   };
 
   // Check if form can proceed to next step
@@ -158,36 +401,16 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
           <button
             onClick={onClose}
             className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 bg-white rounded-full p-1 hover:bg-gray-100 transition-colors z-10"
-            aria-label="Close dialog"
+            aria-label={t('scheduleViewing.close')}
           >
             <X size={20} />
           </button>
 
           {!isSuccess ? (
             <>
-              {/* Header with property info */}
-              <div className="flex items-center mb-4 pb-3 border-b border-gray-100">
-                {propertyImage && (
-                  <div className="mr-4 flex-shrink-0">
-                    <img 
-                      src={propertyImage} 
-                      alt={propertyTitle} 
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-xl font-bold text-gray-900 truncate">Schedule a Viewing</h2>
-                  {propertyTitle && (
-                    <p className="text-gray-700 font-medium truncate">{propertyTitle}</p>
-                  )}
-                  {propertyLocation && (
-                    <div className="flex items-center text-sm text-gray-500">
-                      <MapPin className="w-3 h-3 mr-1" />
-                      <span className="truncate">{propertyLocation}</span>
-                    </div>
-                  )}
-                </div>
+              {/* Header */}
+              <div className="mb-6">
+                <h2 className="text-xl font-bold text-gray-900 text-center">{t('scheduleViewing.title')}</h2>
               </div>
 
               {/* Step indicator */}
@@ -197,7 +420,7 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 mb-1 ${step >= 1 ? 'border-blue-600 bg-blue-50' : 'border-gray-300'}`}>
                       <Calendar className="w-4 h-4" />
                     </div>
-                    <span className="text-xs">Date & Time</span>
+                    <span className="text-xs">{t('scheduleViewing.steps.dateTime')}</span>
                   </div>
                   <div className="flex-1 h-0.5 mx-4 bg-gray-200">
                     <div className={`h-full bg-blue-600 transition-all duration-300`} style={{ width: step >= 2 ? '100%' : '0%' }}></div>
@@ -206,7 +429,7 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 mb-1 ${step >= 2 ? 'border-blue-600 bg-blue-50' : 'border-gray-300'}`}>
                       <Info className="w-4 h-4" />
                     </div>
-                    <span className="text-xs">Details</span>
+                    <span className="text-xs">{t('scheduleViewing.steps.details')}</span>
                   </div>
                 </div>
               </div>
@@ -221,30 +444,24 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
                   >
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Select Date
+                        {t('scheduleViewing.form.selectDate')}
                       </label>
-                      <div className="relative">
-                        <input
-                          type="date"
+                      <CustomDatePicker
                           value={formData.date}
                           onChange={handleDateChange}
                           min={dateRestrictions.min}
                           max={dateRestrictions.max}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                          required
                           disabled={loading}
                         />
-                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      </div>
                       <p className="text-xs text-gray-500 mt-1.5 flex items-center">
                         <Info className="w-3 h-3 mr-1 inline flex-shrink-0" />
-                        Available Monday to Friday, up to 30 days in advance
+                        {t('scheduleViewing.form.dateInfo')}
                       </p>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Select Time Slot
+                        {t('scheduleViewing.form.selectTimeSlot')}
                       </label>
                       <div className="relative">
                         <select
@@ -254,7 +471,7 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
                           required
                           disabled={!formData.date || loading}
                         >
-                          <option value="">Choose a time slot</option>
+                          <option value="">{t('scheduleViewing.form.chooseTimeSlot')}</option>
                           {timeSlots.map((slot) => (
                             <option 
                               key={slot} 
@@ -274,12 +491,12 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
                       </div>
                       <p className="text-xs text-gray-500 mt-1.5 flex items-center">
                         <Info className="w-3 h-3 mr-1 inline flex-shrink-0" />
-                        Available from 9:00 AM to 6:00 PM
+                        {t('scheduleViewing.form.timeInfo')}
                       </p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Visit Type</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('scheduleViewing.form.visitType')}</label>
                       <select
                         value={formData.visitType}
                         onChange={handleVisitTypeChange}
@@ -287,14 +504,14 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
                         required
                         disabled={loading}
                       >
-                        {VISIT_TYPES.map((type) => (
+                        {visitTypes.map((type) => (
                           <option key={type.value} value={type.value}>{type.label}</option>
                         ))}
                       </select>
                     </div>
                     {formData.visitType === 'office_vr' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Select VR City</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('scheduleViewing.form.selectVRCity')}</label>
                         <select
                           value={formData.vrCity}
                           onChange={handleVrCityChange}
@@ -302,8 +519,8 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
                           required
                           disabled={loading}
                         >
-                          <option value="">Select City</option>
-                          {VR_CITIES.map((city) => (
+                          <option value="">{t('scheduleViewing.form.selectCity')}</option>
+                          {vrCities.map((city) => (
                             <option key={city} value={city}>{city}</option>
                           ))}
                         </select>
@@ -318,7 +535,7 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
                         className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 
                           transition-colors flex items-center justify-center gap-2 disabled:bg-blue-300"
                       >
-                        Continue
+                        {t('scheduleViewing.form.continue')}
                       </button>
                     </div>
                   </motion.div>
@@ -333,13 +550,13 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
                   >
                     <div className="bg-blue-50 rounded-lg p-4 mb-4">
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-sm font-medium text-gray-900">Selected Time</h3>
+                        <h3 className="text-sm font-medium text-gray-900">{t('scheduleViewing.form.selectedTime')}</h3>
                         <button 
                           type="button" 
                           onClick={() => setStep(1)}
                           className="text-xs text-blue-600 hover:text-blue-800"
                         >
-                          Change
+                          {t('scheduleViewing.form.change')}
                         </button>
                       </div>
                       <div className="flex items-center">
@@ -354,15 +571,15 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
 
                     <div>
                       <label className="flex justify-between text-sm font-medium text-gray-700 mb-1">
-                        <span>Additional Notes</span>
-                        <span className="text-gray-400 text-xs">(Optional)</span>
+                        <span>{t('scheduleViewing.form.additionalNotes')}</span>
+                        <span className="text-gray-400 text-xs">({t('scheduleViewing.form.optional')})</span>
                       </label>
                       <textarea
                         value={formData.notes}
                         onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
                         rows={4}
-                        placeholder="Any specific requirements or questions about the property..."
+                        placeholder={t('scheduleViewing.form.notesPlaceholder')}
                         disabled={loading}
                       />
                     </div>
@@ -375,7 +592,7 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
                         className="lg:w-1/2 order-2 lg:order-1 bg-gray-100 text-gray-700 py-3 rounded-lg hover:bg-gray-200 
                           transition-colors flex items-center justify-center gap-2 disabled:bg-gray-100 disabled:text-gray-400"
                       >
-                        Back
+                        {t('scheduleViewing.form.back')}
                       </button>
                       <button
                         type="submit"
@@ -386,10 +603,10 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
                         {loading ? (
                           <>
                             <Loader className="w-4 h-4 animate-spin" />
-                            Scheduling...
+                            {t('scheduleViewing.form.scheduling')}
                           </>
                         ) : (
-                          'Schedule Viewing'
+                          t('scheduleViewing.form.scheduleViewing')
                         )}
                       </button>
                     </div>
@@ -407,9 +624,9 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
               
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Viewing Scheduled!</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{t('scheduleViewing.success.title')}</h3>
               <p className="text-gray-600 mb-6">
-                We've sent you a confirmation email with all the details.
+                {t('scheduleViewing.success.confirmationEmail')}
               </p>
               
               <div className="bg-blue-50 rounded-lg p-4 max-w-xs mx-auto mb-6">
@@ -421,23 +638,17 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
                   <Clock className="w-4 h-4 text-blue-600 mr-2" />
                   <span className="text-gray-700 text-sm">{formData.time}</span>
                 </div>
-                {propertyTitle && (
-                  <div className="flex items-center">
-                    <MapPin className="w-4 h-4 text-blue-600 mr-2" />
-                    <span className="text-gray-700 text-sm">{propertyTitle}</span>
-                  </div>
-                )}
               </div>
               
               <p className="text-sm text-gray-500 mb-6">
-                One of our agents will contact you to confirm the details.
+                {t('scheduleViewing.success.agentContact')}
               </p>
               
               <button
                 onClick={onClose}
                 className="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Close
+                {t('scheduleViewing.success.close')}
               </button>
             </motion.div>
           )}
@@ -446,8 +657,8 @@ const ScheduleViewing = ({ propertyId, propertyTitle, propertyLocation, property
           {!isSuccess && (
             <div className="mt-6 pt-4 border-t border-gray-100">
               <div className="flex items-center text-sm text-gray-600">
-                <Users className="w-4 h-4 text-blue-600 mr-2" />
-                <span>A qualified agent will guide you through the viewing</span>
+                <Users className={`w-4 h-4 text-blue-600 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                <span>{t('scheduleViewing.info.agentGuide')}</span>
               </div>
             </div>
           )}
