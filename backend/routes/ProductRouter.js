@@ -1,5 +1,5 @@
 import express from 'express';
-import { addproperty, listproperty, removeproperty, updateproperty,singleproperty, listAmenities, seedAmenities, getTotalPropertyViews, getViewsOverTime } from '../controller/productcontroller.js';
+import { addproperty, listproperty, removeproperty, updateproperty,singleproperty, listAmenities, seedAmenities, getTotalPropertyViews, getViewsOverTime, getPropertyStatusDistribution } from '../controller/productcontroller.js';
 import upload from '../middleware/multer.js';
 import { rolesOrAdmin } from '../middleware/authmiddleware.js';
 
@@ -24,5 +24,6 @@ propertyrouter.get('/amenities', listAmenities);
 propertyrouter.post('/amenities/seed', seedAmenities);
 propertyrouter.get('/total-views', getTotalPropertyViews);
 propertyrouter.get('/views-over-time', getViewsOverTime);
+propertyrouter.get('/status-distribution', getPropertyStatusDistribution);
 
 export default propertyrouter;

@@ -1,0 +1,642 @@
+{
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Overview of your property management system",
+    "refreshData": "Refresh Data",
+    "loading": "Loading dashboard data...",
+    "loadingTitle": "Loading Dashboard",
+    "error": {
+      "title": "Error Loading Dashboard",
+      "retry": "Retry"
+    },
+    "stats": {
+      "totalProperties": "Total Properties",
+      "totalPropertiesDesc": "Total properties listed",
+      "completedTransactions": "Completed Transactions",
+      "completedTransactionsDesc": "Total completed sales",
+      "totalViews": "Total Views",
+      "totalViewsDesc": "Property page views",
+      "pendingAppointments": "Pending Appointments",
+      "pendingAppointmentsDesc": "Awaiting confirmation"
+    },
+    "charts": {
+      "propertyViews": "Property Views",
+      "propertyViewsTitle": "Property Views Over Time",
+      "noViewData": "No view data available"
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "noActivity": "No recent activity"
+    },
+    "charts": {
+      "propertyViews": "Property Views",
+      "propertyViewsTitle": "Property Views Over Time",
+      "propertyStatusTitle": "Property Status Distribution",
+      "inventoryStatus": "Inventory Status",
+      "noViewData": "No view data available",
+      "noStatusData": "No property status data available",
+      "liveData": "Live Data"
+    },
+    "propertyStatus": {
+      "available": "Available",
+      "sold": "Sold",
+      "rented": "Rented"
+    },
+    "activity": {
+      "realTime": "Real-time",
+      "clientScheduledViewing": "A client scheduled viewing for property ",
+      "newPropertyListed": "New property listed",
+      "propertyAdded": "Property added",
+      "propertyUpdated": "Property updated",
+      "propertyDeleted": "Property deleted",
+      "appointmentConfirmed": "Appointment confirmed",
+      "appointmentCancelled": "Appointment cancelled",
+      "transactionCompleted": "Transaction completed"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "add": "Add",
+    "update": "Update",
+    "search": "Search",
+    "filter": "Filter",
+    "clear": "Clear",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "actions": "Actions",
+    "status": "Status",
+    "date": "Date",
+    "time": "Time",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "description": "Description",
+    "price": "Price",
+    "location": "Location",
+    "type": "Type",
+    "category": "Category",
+    "created": "Created",
+    "updated": "Updated",
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "properties": "Properties",
+    "appointments": "Appointments",
+    "transactions": "Transactions",
+    "users": "Users",
+    "metaData": "Meta Data",
+    "amenities": "Amenities",
+    "cities": "Cities",
+    "propertyTypes": "Property Types",
+    "reviews": "Reviews",
+    "logout": "Logout",
+    "adminPanel": "Admin Panel"
+  },
+  "login": {
+    "title": "Admin Login",
+    "adminEmail": "Admin Email",
+    "password": "Password",
+    "emailPlaceholder": "admin@example.com",
+    "passwordPlaceholder": "••••••••",
+    "signIn": "Sign in",
+    "signingIn": "Signing in...",
+    "loginSuccess": "Admin Login successful!",
+    "loginSuccessGeneric": "Login successful!",
+    "noPermission": "You do not have permission to access the admin panel.",
+    "loginFailed": "Login failed",
+    "invalidCredentials": "Invalid credentials"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "new": "new",
+    "refresh": "Refresh notifications",
+    "markAllRead": "Mark all read",
+    "loading": "Loading notifications...",
+    "noNotifications": "No notifications yet",
+    "notifyWhenSomethingHappens": "We'll notify you when something happens",
+    "view": "View →",
+    "clearAll": "Clear all notifications →"
+  },
+  "properties": {
+    "title": "Property Listings",
+    "loading": "Loading properties...",
+    "searchPlaceholder": "Search properties...",
+    "addProperty": "Add Property",
+    "showAll": "Show All",
+    "showMyPropertiesOnly": "Show My Properties Only",
+    "filters": {
+      "allTypes": "All Types",
+      "allCities": "All Cities",
+      "newestFirst": "Newest First",
+      "priceLowToHigh": "Price: Low to High",
+      "priceHighToLow": "Price: High to Low"
+    },
+    "property": {
+      "unknownType": "Unknown Type",
+      "unknownCity": "Unknown City",
+      "forRent": "For rent",
+      "forSale": "For sale",
+      "beds": "Beds",
+      "baths": "Baths",
+      "sqft": "m²",
+      "views": "views",
+      "edit": "Edit",
+      "remove": "Remove",
+      "deleteConfirm": "Are you sure you want to delete property: {{title}}?",
+      "deleteSuccess": "Property deleted successfully",
+      "deleteError": "Failed to delete property",
+      "deleteErrorGeneric": "Error deleting property"
+    },
+    "status": {
+      "available": "Available",
+      "rented": "Rented",
+      "sold": "Sold"
+    }
+  },
+  "forms": {
+    "addProperty": {
+      "title": "Add New Property",
+      "submit": "Submit Property",
+      "submitting": "Submitting...",
+      "success": "Property added successfully",
+      "error": "An error occurred. Please try again."
+    },
+    "updateProperty": {
+      "title": "Update Property",
+      "submit": "Update Property",
+      "updating": "Updating...",
+      "success": "Property updated successfully",
+      "error": "An error occurred. Please try again.",
+      "notAllowed": "You are not allowed to update this property.",
+      "loading": "Loading property..."
+    },
+    "fields": {
+      "titleEn": "Property Title (English)",
+      "titleAr": "Property Title (Arabic)",
+      "descriptionEn": "Description (English)",
+      "descriptionAr": "Description (Arabic)",
+      "title": "Property Title",
+      "description": "Description",
+      "propertyType": "Property Type",
+      "city": "City",
+      "seller": "Seller (Optional)",
+      "agent": "Agent (Optional)",
+      "availability": "Availability",
+      "status": "Status",
+      "mapUrl": "Map URL",
+      "vrTourLink": "VR Tour Link",
+      "price": "Price",
+      "beds": "Bedrooms",
+      "baths": "Bathrooms",
+      "sqft": "m²",
+      "amenities": "Amenities",
+      "images": "Property Images"
+    },
+    "placeholders": {
+      "enterTitleEn": "Enter property title in English",
+      "enterTitleAr": "Enter property title in Arabic",
+      "enterDescriptionEn": "Enter property description in English",
+      "enterDescriptionAr": "Enter property description in Arabic",
+      "selectType": "Select Type",
+      "selectCity": "Select City",
+      "selectSeller": "Select Seller",
+      "selectAgent": "Select Agent",
+      "selectAvailability": "Select Availability",
+      "mapUrlPlaceholder": "https://maps.google.com/...",
+      "vrTourPlaceholder": "https://uploads/.../file.glb"
+    },
+    "availability": {
+      "rent": "Rent",
+      "buy": "Buy"
+    },
+    "imageUpload": {
+      "uploadImages": "Upload images",
+      "maxImages": "Maximum 4 images allowed",
+      "fileTypes": "PNG, JPG, GIF up to 10MB"
+    }
+  },
+  "users": {
+    "title": "User Management",
+    "subtitle": "Manage all users including clients, agents, and sellers.",
+    "loading": "Loading users...",
+    "searchPlaceholder": "Search users...",
+    "addUser": "Add User",
+    "editUser": "Edit User",
+    "filters": {
+      "allRoles": "All Roles",
+      "client": "Client",
+      "agent": "Agent",
+      "seller": "Seller"
+    },
+    "table": {
+      "user": "User",
+      "role": "Role",
+      "contact": "Contact",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending"
+    },
+    "form": {
+      "name": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "password": "Password",
+      "roles": "User Roles",
+      "submit": "Create User",
+      "update": "Update User",
+      "submitting": "Creating...",
+      "updating": "Updating...",
+      "success": "User created successfully",
+      "updateSuccess": "User updated successfully",
+      "error": "Failed to create user",
+      "updateError": "Failed to update user",
+      "deleteSuccess": "User deleted successfully",
+      "deleteError": "Failed to delete user",
+      "requiredFields": "Please fill in all required fields, select at least one role, and set a password"
+    },
+    "messages": {
+      "noPhone": "No phone",
+      "noUsersFound": "No users found",
+      "noUsersFiltered": "No users found matching your criteria"
+    },
+    "modal": {
+      "addTitle": "Add New User",
+      "editTitle": "Edit User",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone Number",
+      "password": "Password",
+      "roles": "Roles",
+      "enterName": "Enter name",
+      "enterEmail": "Enter email",
+      "enterPhone": "Enter phone number (optional)",
+      "enterPassword": "Enter password",
+      "keepPassword": "Leave blank to keep current password",
+      "selectRoles": "Select roles"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure you want to delete this user?",
+      "editUser": "Edit user",
+      "deleteUser": "Delete user"
+    }
+  },
+  "appointments": {
+    "title": "Appointments",
+    "subtitle": "Manage and track property viewing appointments",
+    "loading": "Loading appointments...",
+    "searchPlaceholder": "Search appointments...",
+    "noAppointments": "No appointments found",
+    "filters": {
+      "allAppointments": "All Appointments",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled",
+      "completed": "Completed"
+    },
+    "visitTypes": {
+      "property": "At Property",
+      "online": "Online Meeting",
+      "office_vr": "Office VR Tour"
+    },
+    "table": {
+      "property": "Property",
+      "client": "Client",
+      "dateTime": "Date & Time",
+      "status": "Status",
+      "visitType": "Visit Type",
+      "vrCity": "VR City",
+      "meetingLink": "Meeting Link",
+      "cancelReason": "Cancel Reason",
+      "actions": "Actions"
+    },
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled",
+      "completed": "Completed"
+    },
+    "actions": {
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "viewLink": "View Link",
+      "noLinkYet": "No link yet",
+      "enterMeetingLink": "Enter meeting link"
+    },
+    "editModal": {
+      "title": "Edit Appointment",
+      "property": "Property",
+      "date": "Date",
+      "time": "Time",
+      "visitType": "Visit Type",
+      "vrCity": "VR City",
+      "selectVrCity": "Select a VR City",
+      "meetingPlatform": "Meeting Platform",
+      "meetingLink": "Meeting Link",
+      "meetingLinkPlaceholder": "Enter meeting link (if applicable)",
+      "notes": "Notes",
+      "status": "Status",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "messages": {
+      "fetchError": "Failed to fetch appointments",
+      "statusUpdateSuccess": "Appointment {{status}} successfully",
+      "statusUpdateError": "Failed to update appointment status",
+      "meetingLinkError": "Please enter a meeting link",
+      "meetingLinkSuccess": "Meeting link updated successfully",
+      "meetingLinkUpdateError": "Failed to update meeting link",
+      "editSuccess": "Appointment updated successfully",
+      "editError": "Failed to update appointment"
+    }
+  },
+  "transactions": {
+    "title": "Transactions",
+    "subtitle": "Manage and track property sale transactions",
+    "loading": "Loading transactions...",
+    "searchPlaceholder": "Search transactions...",
+    "filters": {
+      "allTransactions": "All Transactions",
+      "pending": "Pending",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "table": {
+      "property": "Property",
+      "seller": "Seller",
+      "buyer": "Buyer",
+      "agent": "Agent",
+      "dealType": "Deal Type",
+      "date": "Date",
+      "price": "Price",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "dealTypes": {
+      "sale": "Sale",
+      "rent": "Rent"
+    },
+    "actions": {
+      "addTransaction": "Add Transaction",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "save": "Save",
+      "add": "Add"
+    },
+    "noTransactions": "No transactions found",
+    "noTransactionsFiltered": "No transactions found matching your criteria",
+    "addModal": {
+      "title": "Add New Transaction",
+      "transactionDate": "Transaction Date",
+      "salePrice": "Price of Sale / Monthly Rent",
+      "status": "Status",
+      "dealType": "Deal Type",
+      "property": "Property",
+      "seller": "Seller",
+      "agent": "Agent",
+      "buyer": "Buyer (Client)",
+      "selectStatus": "Select status",
+      "selectDealType": "Select deal type",
+      "selectProperty": "Select property",
+      "selectSeller": "Select Seller",
+      "selectAgent": "Select Agent",
+      "selectBuyer": "Select buyer",
+      "enterSalePrice": "Enter sale price"
+    },
+    "editModal": {
+      "title": "Edit Transaction",
+      "transactionDate": "Transaction Date",
+      "salePrice": "Price of Sale / Monthly Rent",
+      "status": "Status",
+      "dealType": "Deal Type",
+      "property": "Property",
+      "seller": "Seller",
+      "agent": "Agent",
+      "buyer": "Buyer (Client)",
+      "selectStatus": "Select status",
+      "selectDealType": "Select deal type",
+      "selectProperty": "Select property",
+      "selectSeller": "Select Seller",
+      "selectAgent": "Select Agent",
+      "selectBuyer": "Select buyer",
+      "enterSalePrice": "Enter sale price"
+    },
+    "messages": {
+      "fillRequiredFields": "Please fill in all required fields",
+      "transactionAdded": "Transaction added successfully",
+      "transactionUpdated": "Transaction updated",
+      "transactionDeleted": "Transaction deleted",
+      "failedToAdd": "Failed to add transaction",
+      "failedToUpdate": "Failed to update transaction",
+      "failedToDelete": "Failed to delete transaction",
+      "confirmDelete": "Are you sure you want to delete this transaction?"
+    }
+  },
+  "reviews": {
+    "title": "Reviews",
+    "subtitle": "Manage property reviews from website visitors",
+    "loading": "Loading reviews...",
+    "searchPlaceholder": "Search reviews...",
+    "table": {
+      "property": "Property",
+      "reviewer": "Reviewer",
+      "rating": "Rating",
+      "comment": "Comment",
+      "date": "Date",
+      "actions": "Actions"
+    },
+    "actions": {
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure you want to delete this review?"
+    },
+    "noReviews": "No reviews found",
+    "noReviewsFiltered": "No reviews found matching your search",
+    "messages": {
+      "fetchError": "Failed to fetch reviews",
+      "deleteSuccess": "Review deleted successfully",
+      "deleteError": "Failed to delete review"
+    },
+    "labels": {
+      "unknownProperty": "Unknown Property",
+      "unknownLocation": "Unknown Location",
+      "anonymous": "Anonymous",
+      "noEmail": "No email",
+      "noComment": "No comment"
+    }
+  },
+  "amenities": {
+    "title": "Amenities",
+    "subtitle": "Manage property amenities and features",
+    "loading": "Loading amenities...",
+    "searchPlaceholder": "Search amenities...",
+    "table": {
+      "amenityName": "Amenity Name",
+      "actions": "Actions"
+    },
+    "actions": {
+      "addAmenity": "Add Amenity",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "add": "Add",
+      "update": "Update"
+    },
+    "noAmenities": "No amenities found",
+    "noAmenitiesFiltered": "No amenities found matching your search",
+    "modal": {
+      "addTitle": "Add New Amenity",
+      "editTitle": "Edit Amenity",
+      "amenityName": "Amenity Name",
+      "amenityNameEn": "English Name",
+      "amenityNameAr": "Arabic Name",
+      "enterAmenityName": "Enter amenity name",
+      "enterAmenityNameEn": "Enter English name",
+      "enterAmenityNameAr": "Enter Arabic name"
+    },
+    "messages": {
+      "fetchError": "Failed to fetch amenities",
+      "addSuccess": "Amenity added successfully",
+      "updateSuccess": "Amenity updated successfully",
+      "deleteSuccess": "Amenity deleted successfully",
+      "addError": "Failed to add amenity",
+      "updateError": "Failed to update amenity",
+      "deleteError": "Failed to delete amenity",
+      "enterAmenityName": "Please enter an amenity name",
+      "fillAllFields": "Please fill in both English and Arabic names",
+      "confirmDelete": "Are you sure you want to delete this amenity?"
+    }
+  },
+      "cities": {
+      "title": "Cities",
+      "subtitle": "Manage cities and locations for properties",
+      "loading": "Loading cities...",
+      "searchPlaceholder": "Search cities...",
+      "table": {
+        "cityName": "City Name",
+        "country": "Country",
+        "region": "Region",
+        "actions": "Actions"
+      },
+      "actions": {
+        "addCity": "Add City",
+        "edit": "Edit",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "add": "Add",
+        "update": "Update"
+      },
+      "noCities": "No cities found",
+      "noCitiesFiltered": "No cities found matching your search",
+          "modal": {
+      "addTitle": "Add New City",
+      "editTitle": "Edit City",
+      "cityName": "City Name",
+      "cityNameEn": "English City Name",
+      "cityNameAr": "Arabic City Name",
+      "country": "Country",
+      "countryEn": "English Country Name",
+      "countryAr": "Arabic Country Name",
+      "enterCityName": "Enter city name",
+      "enterCityNameEn": "Enter English city name",
+      "enterCityNameAr": "Enter Arabic city name",
+      "enterCountry": "Enter country",
+      "enterCountryEn": "Enter English country name",
+      "enterCountryAr": "Enter Arabic country name"
+    },
+          "messages": {
+      "fetchError": "Failed to fetch cities",
+      "addSuccess": "City added successfully",
+      "updateSuccess": "City updated successfully",
+      "deleteSuccess": "City deleted successfully",
+      "addError": "Failed to add city",
+      "updateError": "Failed to update city",
+      "deleteError": "Failed to delete city",
+      "fillAllFields": "Please fill in both English and Arabic names for city and country",
+      "confirmDelete": "Are you sure you want to delete this city?"
+    }
+    },
+    "propertyTypes": {
+      "title": "Property Types",
+      "subtitle": "Manage property types and categories",
+      "loading": "Loading property types...",
+      "searchPlaceholder": "Search property types...",
+      "table": {
+        "typeName": "Type Name",
+        "category": "Category",
+        "actions": "Actions"
+      },
+      "actions": {
+        "addPropertyType": "Add Property Type",
+        "edit": "Edit",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "add": "Add",
+        "update": "Update"
+      },
+      "noPropertyTypes": "No property types found",
+      "noPropertyTypesFiltered": "No property types found matching your search",
+          "modal": {
+      "addTitle": "Add New Property Type",
+      "editTitle": "Edit Property Type",
+      "typeName": "Type Name",
+      "typeNameEn": "English Name",
+      "typeNameAr": "Arabic Name",
+      "category": "Category",
+      "enterTypeName": "Enter type name",
+      "enterTypeNameEn": "Enter English name",
+      "enterTypeNameAr": "Enter Arabic name",
+      "selectCategory": "Select category"
+    },
+      "categories": {
+        "residential": "Residential",
+        "commercial": "Commercial",
+        "land": "Land",
+        "industrial": "Industrial"
+      },
+          "messages": {
+      "fetchError": "Failed to fetch property types",
+      "addSuccess": "Property type added successfully",
+      "updateSuccess": "Property type updated successfully",
+      "deleteSuccess": "Property type deleted successfully",
+      "addError": "Failed to add property type",
+      "updateError": "Failed to update property type",
+      "deleteError": "Failed to delete property type",
+      "fillAllFields": "Please fill in both English and Arabic names",
+      "confirmDelete": "Are you sure you want to delete this property type?"
+    }
+    }
+} 

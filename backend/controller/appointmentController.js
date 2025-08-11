@@ -4,21 +4,53 @@ import User from '../models/Usermodel.js';
 import transporter from "../config/nodemailer.js";
 import { getSchedulingEmailTemplate, getEmailTemplate } from '../email.js';
 
+// Helper function to create dual-language notification messages
+const createDualLanguageMessage = (enMsg, arMsg) => ({
+  en: enMsg,
+  ar: arMsg
+});
+
 async function notifyAppointment({ appointment, property, clientMsg, notifMsg }) {
+  // clientMsg and notifMsg are already dual-language objects, no need to wrap them again
+
   if (appointment.userId && appointment.userId._id) {
-    await User.findByIdAndUpdate(appointment.userId._id, { $push: { notifications: { type: 'appointment', message: clientMsg, link: '/dashboard/appointments' } } });
+    await User.findByIdAndUpdate(appointment.userId._id, { 
+      $push: { notifications: { 
+        type: 'appointment', 
+        message: clientMsg, 
+        link: '/dashboard/appointments' 
+      } } 
+    });
   }
   if (property.agent) {
-    await User.findByIdAndUpdate(property.agent, { $push: { notifications: { type: 'appointment', message: notifMsg, link: '/appointments' } } }, { new: true });
+    await User.findByIdAndUpdate(property.agent, { 
+      $push: { notifications: { 
+        type: 'appointment', 
+        message: notifMsg, 
+        link: '/appointments' 
+      } } 
+    }, { new: true });
   }
   if (property.seller) {
-    await User.findByIdAndUpdate(property.seller, { $push: { notifications: { type: 'appointment', message: notifMsg, link: '/appointments' } } }, { new: true });
+    await User.findByIdAndUpdate(property.seller, { 
+      $push: { notifications: { 
+        type: 'appointment', 
+        message: notifMsg, 
+        link: '/appointments' 
+      } } 
+    }, { new: true });
   }
-  await User.updateMany({ isAdmin: true }, { $push: { notifications: { type: 'appointment', message: notifMsg, link: '/appointments' } } });
+  await User.updateMany({ isAdmin: true }, { 
+    $push: { notifications: { 
+      type: 'appointment', 
+      message: notifMsg, 
+      link: '/appointments' 
+    } } 
+  });
 }
 
 function isAllowedAppointment({ req, property }) {
-  if (req.admin) return true;
+  if (req.user && req.user.isAdmin) return true;
   if (property.agent && property.agent.toString() === req.user._id.toString()) return true;
   if (property.seller && property.seller.toString() === req.user._id.toString()) return true;
   return false;
@@ -37,8 +69,17 @@ export const updateAppointmentStatus = async (req, res) => {
     appointment.status = status;
     await appointment.save();
     await appointment.populate('propertyId userId');
-    const notifMsg = `Appointment for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been updated.`;
-    const clientMsg = `Your appointment for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been updated.`;
+    const propertyTitle = appointment.propertyId.displayTitle || (appointment.propertyId.title?.en || appointment.propertyId.title) || 'Property';
+    const propertyTitleAr = appointment.propertyId.title?.ar || 'العقار';
+    
+    const notifMsg = createDualLanguageMessage(
+      `Appointment for property "${propertyTitle}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been updated.`,
+      `تم تحديث الموعد للعقار "${propertyTitleAr}" في ${new Date(appointment.date).toLocaleDateString('ar-EG')} الساعة ${appointment.time}.`
+    );
+    const clientMsg = createDualLanguageMessage(
+      `Your appointment for property "${propertyTitle}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been updated.`,
+      `تم تحديث موعدك للعقار "${propertyTitleAr}" في ${new Date(appointment.date).toLocaleDateString('ar-EG')} الساعة ${appointment.time}.`
+    );
     await notifyAppointment({ appointment, property: appointment.propertyId, clientMsg, notifMsg });
     res.json({ success: true, message: `Appointment ${status} successfully`, appointment });
   } catch (error) {
@@ -48,24 +89,63 @@ export const updateAppointmentStatus = async (req, res) => {
 
 export const scheduleViewing = async (req, res) => {
   try {
-    const { propertyId, date, time, notes, visitType, vrCity } = req.body;
+    const { propertyId, date: dateString, time, notes, visitType, vrCity } = req.body;
     const userId = req.user._id;
+    
+    // Parse the date string to a Date object
+    const date = new Date(dateString);
+    
+    if (isNaN(date.getTime())) {
+      return res.status(400).json({ success: false, message: 'Invalid date format' });
+    }
+    
     const property = await Property.findById(propertyId);
     if (!property) return res.status(404).json({ success: false, message: 'Property not found' });
     const validVisitTypes = ['property', 'online', 'office_vr'];
     if (!visitType || !validVisitTypes.includes(visitType)) return res.status(400).json({ success: false, message: 'Invalid or missing visit type.' });
     if (visitType === 'office_vr' && (!vrCity || vrCity.trim() === '')) return res.status(400).json({ success: false, message: 'City is required for office VR tour.' });
+    
     const existingAppointment = await Appointment.findOne({ propertyId, date, time, status: { $ne: 'cancelled' } });
     if (existingAppointment) return res.status(400).json({ success: false, message: 'This time slot is already booked' });
-    const appointment = new Appointment({ propertyId, userId, date, time, notes, status: 'pending', visitType, vrCity: visitType === 'office_vr' ? vrCity : undefined });
+    
+    // Prepare appointment data - only include vrCity if visitType is office_vr
+    const appointmentData = {
+      propertyId,
+      userId,
+      date,
+      time,
+      notes: notes || '',
+      status: 'pending',
+      visitType
+    };
+    
+    // Only add vrCity if visitType is office_vr and vrCity is provided
+    if (visitType === 'office_vr' && vrCity) {
+      appointmentData.vrCity = vrCity;
+    }
+    
+    const appointment = new Appointment(appointmentData);
     await appointment.save();
     await appointment.populate(['propertyId', 'userId']);
-    const notifMsg = `New appointment requested for property "${property.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} by ${appointment.userId.name}.`;
-    const clientMsg = `Your appointment for property "${property.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been requested.`;
+    const propertyTitle = property.displayTitle || (property.title?.en || property.title) || 'Property';
+    const propertyTitleAr = property.title?.ar || 'العقار';
+    
+    const notifMsg = createDualLanguageMessage(
+      `New appointment requested for property "${propertyTitle}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} by ${appointment.userId.name}.`,
+      `تم طلب موعد جديد للعقار "${propertyTitleAr}" في ${new Date(appointment.date).toLocaleDateString('ar-EG')} الساعة ${appointment.time} بواسطة ${appointment.userId.name}.`
+    );
+    const clientMsg = createDualLanguageMessage(
+      `Your appointment for property "${propertyTitle}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been requested.`,
+      `تم طلب موعدك للعقار "${propertyTitleAr}" في ${new Date(appointment.date).toLocaleDateString('ar-EG')} الساعة ${appointment.time}.`
+    );
     await notifyAppointment({ appointment, property, clientMsg, notifMsg });
     res.status(201).json({ success: true, message: 'Viewing scheduled successfully', appointment });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error scheduling viewing' });
+    console.error('Schedule viewing error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error scheduling viewing'
+    });
   }
 };
 
@@ -79,14 +159,24 @@ export const cancelAppointment = async (req, res) => {
     if (!appointment.userId || !appointment.userId._id || !req.user || !req.user._id) {
       return res.status(403).json({ success: false, message: 'Not authorized to cancel this appointment (missing user info)' });
     }
-    if (appointment.userId._id.toString() !== req.user._id.toString()) {
+    if (appointment.userId._id.toString() !== req.user._id.toString() && !req.user.isAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized to cancel this appointment' });
     }
     appointment.status = 'cancelled';
     appointment.cancelReason = req.body.reason || 'Cancelled by user';
     await appointment.save();
-    const notifMsg = `Appointment for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} was cancelled. Reason: ${appointment.cancelReason}`;
-    const clientMsg = `Your appointment for "${appointment.propertyId.title}" was cancelled. Reason: ${appointment.cancelReason}`;
+    const propertyTitle = appointment.propertyId.displayTitle || (appointment.propertyId.title?.en || appointment.propertyId.title) || 'Property';
+    const propertyTitleAr = appointment.propertyId.title?.ar || 'العقار';
+    const cancelReasonAr = appointment.cancelReason === 'Cancelled by user' ? 'تم الإلغاء بواسطة المستخدم' : appointment.cancelReason;
+    
+    const notifMsg = createDualLanguageMessage(
+      `Appointment for property "${propertyTitle}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} was cancelled. Reason: ${appointment.cancelReason}`,
+      `تم إلغاء الموعد للعقار "${propertyTitleAr}" في ${new Date(appointment.date).toLocaleDateString('ar-EG')} الساعة ${appointment.time}. السبب: ${cancelReasonAr}`
+    );
+    const clientMsg = createDualLanguageMessage(
+      `Your appointment for "${propertyTitle}" was cancelled. Reason: ${appointment.cancelReason}`,
+      `تم إلغاء موعدك للعقار "${propertyTitleAr}". السبب: ${cancelReasonAr}`
+    );
     await notifyAppointment({ appointment, property: appointment.propertyId, clientMsg, notifMsg });
     res.json({ success: true, message: 'Appointment cancelled successfully' });
   } catch (error) {
@@ -106,8 +196,17 @@ export const updateAppointmentDetails = async (req, res) => {
     if (!isAllowedAppointment({ req, property: appointment.propertyId })) {
       return res.status(403).json({ success: false, message: 'You do not have permission to update this appointment.' });
     }
-    const notifMsg = `Appointment for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been updated.`;
-    const clientMsg = `Your appointment for property "${appointment.propertyId.title}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been updated.`;
+    const propertyTitle = appointment.propertyId.displayTitle || (appointment.propertyId.title?.en || appointment.propertyId.title) || 'Property';
+    const propertyTitleAr = appointment.propertyId.title?.ar || 'العقار';
+    
+    const notifMsg = createDualLanguageMessage(
+      `Appointment for property "${propertyTitle}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been updated.`,
+      `تم تحديث الموعد للعقار "${propertyTitleAr}" في ${new Date(appointment.date).toLocaleDateString('ar-EG')} الساعة ${appointment.time}.`
+    );
+    const clientMsg = createDualLanguageMessage(
+      `Your appointment for property "${propertyTitle}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been updated.`,
+      `تم تحديث موعدك للعقار "${propertyTitleAr}" في ${new Date(appointment.date).toLocaleDateString('ar-EG')} الساعة ${appointment.time}.`
+    );
     await notifyAppointment({ appointment, property: appointment.propertyId, clientMsg, notifMsg });
     res.json({ success: true, message: 'Appointment updated successfully', appointment });
   } catch (error) {
@@ -172,7 +271,7 @@ export const submitAppointmentFeedback = async (req, res) => {
     const { rating, comment } = req.body;
     const appointment = await Appointment.findById(id);
     if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
-    if (appointment.userId.toString() !== req.user._id.toString()) {
+    if (appointment.userId.toString() !== req.user._id.toString() && !req.user.isAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized to submit feedback for this appointment' });
     }
     appointment.feedback = { rating, comment };

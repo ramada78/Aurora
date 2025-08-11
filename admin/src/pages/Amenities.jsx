@@ -13,28 +13,31 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { backendurl } from "../App";
+import { useTranslation } from "react-i18next";
 
 const Amenities = () => {
+  const { t, i18n } = useTranslation();
   const [amenities, setAmenities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAmenity, setEditingAmenity] = useState(null);
-  const [amenityName, setAmenityName] = useState("");
+  const [amenityNameEn, setAmenityNameEn] = useState("");
+  const [amenityNameAr, setAmenityNameAr] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
   const fetchAmenities = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendurl}/api/amenities`);
+      const response = await axios.get(`${backendurl}/api/amenities?lang=${i18n.language}`);
       if (response.data.success) {
         setAmenities(response.data.amenities || []);
       } else {
-        toast.error("Failed to fetch amenities");
+        toast.error(t('amenities.messages.fetchError'));
       }
     } catch (error) {
       console.error("Error fetching amenities:", error);
-      toast.error("Failed to fetch amenities");
+      toast.error(t('amenities.messages.fetchError'));
     } finally {
       setLoading(false);
     }
@@ -42,8 +45,8 @@ const Amenities = () => {
 
   const handleAddAmenity = async (e) => {
     e.preventDefault();
-    if (!amenityName.trim()) {
-      toast.error("Please enter an amenity name");
+    if (!amenityNameEn.trim() || !amenityNameAr.trim()) {
+      toast.error(t('amenities.messages.fillAllFields'));
       return;
     }
 
@@ -51,23 +54,27 @@ const Amenities = () => {
       setActionLoading(true);
       const response = await axios.post(
         `${backendurl}/api/amenities`,
-        { name: amenityName.trim() },
+        { 
+          nameEn: amenityNameEn.trim(),
+          nameAr: amenityNameAr.trim()
+        },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
 
       if (response.data.success) {
-        toast.success("Amenity added successfully");
-        setAmenityName("");
+        toast.success(t('amenities.messages.addSuccess'));
+        setAmenityNameEn("");
+        setAmenityNameAr("");
         setShowAddModal(false);
         fetchAmenities();
       } else {
-        toast.error(response.data.message || "Failed to add amenity");
+        toast.error(response.data.message || t('amenities.messages.addError'));
       }
     } catch (error) {
       console.error("Error adding amenity:", error);
-      toast.error("Failed to add amenity");
+      toast.error(t('amenities.messages.addError'));
     } finally {
       setActionLoading(false);
     }
@@ -75,8 +82,8 @@ const Amenities = () => {
 
   const handleEditAmenity = async (e) => {
     e.preventDefault();
-    if (!amenityName.trim()) {
-      toast.error("Please enter an amenity name");
+    if (!amenityNameEn.trim() || !amenityNameAr.trim()) {
+      toast.error(t('amenities.messages.fillAllFields'));
       return;
     }
 
@@ -84,30 +91,34 @@ const Amenities = () => {
       setActionLoading(true);
       const response = await axios.put(
         `${backendurl}/api/amenities/${editingAmenity._id}`,
-        { name: amenityName.trim() },
+        { 
+          nameEn: amenityNameEn.trim(),
+          nameAr: amenityNameAr.trim()
+        },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
 
       if (response.data.success) {
-        toast.success("Amenity updated successfully");
-        setAmenityName("");
+        toast.success(t('amenities.messages.updateSuccess'));
+        setAmenityNameEn("");
+        setAmenityNameAr("");
         setEditingAmenity(null);
         fetchAmenities();
       } else {
-        toast.error(response.data.message || "Failed to update amenity");
+        toast.error(response.data.message || t('amenities.messages.updateError'));
       }
     } catch (error) {
       console.error("Error updating amenity:", error);
-      toast.error("Failed to update amenity");
+      toast.error(t('amenities.messages.updateError'));
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleDeleteAmenity = async (amenityId) => {
-    if (!window.confirm("Are you sure you want to delete this amenity?")) {
+    if (!window.confirm(t('amenities.messages.confirmDelete'))) {
       return;
     }
 
@@ -121,14 +132,14 @@ const Amenities = () => {
       );
 
       if (response.data.success) {
-        toast.success("Amenity deleted successfully");
+        toast.success(t('amenities.messages.deleteSuccess'));
         fetchAmenities();
       } else {
-        toast.error(response.data.message || "Failed to delete amenity");
+        toast.error(response.data.message || t('amenities.messages.deleteError'));
       }
     } catch (error) {
       console.error("Error deleting amenity:", error);
-      toast.error("Failed to delete amenity");
+      toast.error(t('amenities.messages.deleteError'));
     } finally {
       setActionLoading(false);
     }
@@ -136,40 +147,55 @@ const Amenities = () => {
 
   const openEditModal = (amenity) => {
     setEditingAmenity(amenity);
-    setAmenityName(amenity.name);
+    setAmenityNameEn(amenity.name?.en || amenity.name || "");
+    setAmenityNameAr(amenity.name?.ar || "");
   };
 
   const closeModal = () => {
     setShowAddModal(false);
     setEditingAmenity(null);
-    setAmenityName("");
+    setAmenityNameEn("");
+    setAmenityNameAr("");
   };
 
   useEffect(() => {
     fetchAmenities();
-  }, []);
+  }, [i18n.language]); // Refetch when language changes
 
   const filteredAmenities = amenities.filter((amenity) =>
-    amenity.name.toLowerCase().includes(searchTerm.toLowerCase())
+    amenity.displayName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-32 flex items-center justify-center">
-        <Loader className="w-8 h-8 text-blue-500 animate-spin" />
+      <div className="min-h-screen pt-32 flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+        <div className="text-center">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-6"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-500 rounded-full animate-spin mx-auto" style={{ animationDelay: '-0.5s' }}></div>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">{t('amenities.loading')}</h3>
+          <p className="text-gray-600">{t('amenities.loading')}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-32 px-4 bg-gray-50">
+    <div className="min-h-screen pt-32 px-4 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto">
         {/* Header and Search Section */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">Amenities</h1>
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg"
+        >
+          <div className="mb-4 lg:mb-0">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              {t('amenities.title')}
+            </h1>
             <p className="text-gray-600">
-              Manage property amenities and features
+              {t('amenities.subtitle')}
             </p>
           </div>
 
@@ -177,35 +203,39 @@ const Amenities = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search amenities..."
+                placeholder={t('amenities.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 placeholder-gray-500"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             </div>
 
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
-              <Plus className="w-4 h-4" />
-              Add Amenity
+              <Plus className="w-5 h-5" />
+              {t('amenities.actions.addAmenity')}
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden border border-white/20"
+        >
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gradient-to-r from-blue-50 to-purple-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Amenity Name
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    {t('amenities.table.amenityName')}
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    {t('amenities.table.actions')}
                   </th>
                 </tr>
               </thead>
@@ -217,29 +247,31 @@ const Amenities = () => {
                     animate={{ opacity: 1, y: 0 }}
                     className="hover:bg-gray-50"
                   >
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3">
                       <div className="flex items-center">
-                        <Settings className="w-5 h-5 text-gray-400 mr-2" />
-                        <span className="font-medium text-gray-900">
-                          {amenity.name}
+                        <Settings className="w-4 h-4 text-gray-400 mr-2" />
+                        <span className="font-medium text-gray-900 text-sm">
+                          {amenity.displayName}
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={() => openEditModal(amenity)}
-                          className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
+                          className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-all duration-200"
                           disabled={actionLoading}
+                          title={t('amenities.actions.edit')}
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-3 h-3" />
                         </button>
                         <button
                           onClick={() => handleDeleteAmenity(amenity._id)}
-                          className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                          className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-all duration-200"
                           disabled={actionLoading}
+                          title={t('amenities.actions.delete')}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3 h-3" />
                         </button>
                       </div>
                     </td>
@@ -251,53 +283,72 @@ const Amenities = () => {
 
           {filteredAmenities.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              {searchTerm ? "No amenities found matching your search" : "No amenities found"}
+              {searchTerm ? t('amenities.noAmenitiesFiltered') : t('amenities.noAmenities')}
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
 
       {/* Add/Edit Modal */}
       {(showAddModal || editingAmenity) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">
-              {editingAmenity ? "Edit Amenity" : "Add New Amenity"}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {editingAmenity ? t('amenities.modal.editTitle') : t('amenities.modal.addTitle')}
             </h2>
             <form onSubmit={editingAmenity ? handleEditAmenity : handleAddAmenity}>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Amenity Name
-                </label>
-                <input
-                  type="text"
-                  value={amenityName}
-                  onChange={(e) => setAmenityName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter amenity name"
-                  required
-                />
+              <div className="space-y-6">
+                {/* English Name Field */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('amenities.modal.amenityNameEn')} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={amenityNameEn}
+                    onChange={(e) => setAmenityNameEn(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                    placeholder={t('amenities.modal.enterAmenityNameEn')}
+                    required
+                  />
+                </div>
+                
+                {/* Arabic Name Field */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('amenities.modal.amenityNameAr')} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={amenityNameAr}
+                    onChange={(e) => setAmenityNameAr(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                    placeholder={t('amenities.modal.enterAmenityNameAr')}
+                    required
+                  />
+                </div>
               </div>
-              <div className="flex justify-end gap-2">
+              
+              <div className="flex justify-end gap-3 mt-6">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
                   disabled={actionLoading}
                 >
-                  Cancel
+                  {t('amenities.actions.cancel')}
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all duration-300 shadow-lg"
                   disabled={actionLoading}
                 >
                   {actionLoading ? (
                     <Loader className="w-4 h-4 animate-spin" />
                   ) : editingAmenity ? (
-                    "Update"
+                    t('amenities.actions.update')
                   ) : (
-                    "Add"
+                    t('amenities.actions.add')
                   )}
                 </button>
               </div>

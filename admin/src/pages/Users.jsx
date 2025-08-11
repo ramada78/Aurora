@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { motion } from "framer-motion";
 import {
@@ -18,6 +19,7 @@ import { toast } from "react-hot-toast";
 import { backendurl } from "../App";
 
 const UsersPage = () => {
+  const { t, i18n } = useTranslation();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,16 +38,15 @@ const UsersPage = () => {
   });
 
   const roles = [
-    { value: "client", label: "Client", icon: User },
-    { value: "agent", label: "Agent", icon: UserCheck },
-    { value: "seller", label: "Seller", icon: Building },
-    // Note: All roles now supported through unified API
+    { value: "client", label: t('users.filters.client'), icon: User },
+    { value: "agent", label: t('users.filters.agent'), icon: UserCheck },
+    { value: "seller", label: t('users.filters.seller'), icon: Building },
   ];
 
   const statuses = [
-    { value: "active", label: "Active", color: "bg-green-100 text-green-800" },
-    { value: "inactive", label: "Inactive", color: "bg-red-100 text-red-800" },
-    { value: "pending", label: "Pending", color: "bg-yellow-100 text-yellow-800" },
+    { value: "active", label: t('users.status.active'), color: "bg-green-100 text-green-800" },
+    { value: "inactive", label: t('users.status.inactive'), color: "bg-red-100 text-red-800" },
+    { value: "pending", label: t('users.status.pending'), color: "bg-yellow-100 text-yellow-800" },
   ];
 
   const fetchUsers = async () => {
@@ -59,11 +60,11 @@ const UsersPage = () => {
       if (response.data.success) {
         setUsers(response.data.users);
       } else {
-        toast.error("Failed to fetch users");
+        toast.error(t('users.form.error'));
       }
     } catch (error) {
       console.error("Error fetching users:", error);
-      toast.error("Failed to fetch users");
+      toast.error(t('users.form.error'));
     } finally {
       setLoading(false);
     }
@@ -72,7 +73,7 @@ const UsersPage = () => {
   const handleAddUser = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email || formData.roles.length === 0 || !formData.password) {
-      toast.error("Please fill in all required fields, select at least one role, and set a password");
+      toast.error(t('users.form.requiredFields'));
       return;
     }
 
@@ -95,19 +96,19 @@ const UsersPage = () => {
       );
 
       if (response.data.success) {
-        toast.success(`${response.data.message}`);
+        toast.success(t('users.form.success'));
         resetForm();
         setShowAddModal(false);
         fetchUsers();
       } else {
-        toast.error(response.data.message || "Failed to add user");
+        toast.error(response.data.message || t('users.form.error'));
       }
     } catch (error) {
       console.error("Error adding user:", error);
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
-        toast.error("Failed to add user. Please check the console for details.");
+        toast.error(t('users.form.error'));
       }
     } finally {
       setActionLoading(false);
@@ -117,7 +118,7 @@ const UsersPage = () => {
   const handleEditUser = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.email) {
-      toast.error("Please fill in all required fields");
+      toast.error(t('users.form.requiredFields'));
       return;
     }
 
@@ -141,19 +142,19 @@ const UsersPage = () => {
       );
 
       if (response.data.success) {
-        toast.success("User updated successfully");
+        toast.success(t('users.form.updateSuccess'));
         resetForm();
         setEditingUser(null);
         fetchUsers();
       } else {
-        toast.error(response.data.message || "Failed to update user");
+        toast.error(response.data.message || t('users.form.updateError'));
       }
     } catch (error) {
       console.error("Error updating user:", error);
       if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
-        toast.error("Failed to update user");
+        toast.error(t('users.form.updateError'));
       }
     } finally {
       setActionLoading(false);
@@ -161,7 +162,7 @@ const UsersPage = () => {
   };
 
   const handleDeleteUser = async (userId, role) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) {
+    if (!window.confirm(t('users.actions.deleteConfirm'))) {
       return;
     }
 
@@ -296,7 +297,7 @@ const UsersPage = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [i18n.language]); // Refetch when language changes
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -312,21 +313,34 @@ const UsersPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-32 flex items-center justify-center">
-        <Loader className="w-8 h-8 text-blue-500 animate-spin" />
+      <div className="min-h-screen pt-32 flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+        <div className="text-center">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-6"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-500 rounded-full animate-spin mx-auto" style={{ animationDelay: '-0.5s' }}></div>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">Loading Users</h3>
+          <p className="text-gray-600">{t('users.loading')}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-32 px-4 bg-gray-50">
+    <div className="min-h-screen pt-32 px-4 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto">
         {/* Header and Search Section */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">Users</h1>
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg"
+        >
+          <div className="mb-4 lg:mb-0">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              {t('users.title')}
+            </h1>
             <p className="text-gray-600">
-              Manage all users including clients, agents, and sellers.
+              {t('users.subtitle')}
             </p>
           </div>
 
@@ -334,12 +348,12 @@ const UsersPage = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search users..."
+                placeholder={t('users.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="pl-10 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             </div>
 
             <div className="flex items-center gap-2">
@@ -347,9 +361,9 @@ const UsersPage = () => {
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="rounded-lg border border-gray-200 px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                className="rounded-xl border border-gray-200 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               >
-                <option value="all">All Roles</option>
+                <option value="all">{t('users.filters.allRoles')}</option>
                 {roles.map((role) => (
                   <option key={role.value} value={role.value}>
                     {role.label}
@@ -360,13 +374,13 @@ const UsersPage = () => {
 
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               <Plus className="w-4 h-4" />
-              Add User
+              {t('users.addUser')}
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Table */}
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -375,16 +389,16 @@ const UsersPage = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
+                    {t('users.table.user')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
+                    {t('users.table.role')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Contact
+                    {t('users.table.contact')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    {t('users.table.actions')}
                   </th>
                 </tr>
               </thead>
@@ -417,7 +431,7 @@ const UsersPage = () => {
                         <div className="flex flex-wrap gap-2">
                           {user.roles.map((role) => (
                             <span key={role} className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                              {role.charAt(0).toUpperCase() + role.slice(1)}
+                              {getRoleLabel(role)}
                             </span>
                           ))}
                         </div>
@@ -425,7 +439,7 @@ const UsersPage = () => {
 
                       {/* Contact (single phone number) */}
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        {user.phone ? user.phone : "No phone"}
+                        {user.phone ? user.phone : t('users.messages.noPhone')}
                       </td>
 
                       {/* Actions */}
@@ -435,7 +449,7 @@ const UsersPage = () => {
                             onClick={() => openEditModal(user)}
                             className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
                             disabled={actionLoading}
-                            title="Edit user"
+                            title={t('users.actions.editUser')}
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -444,7 +458,7 @@ const UsersPage = () => {
                             onClick={() => handleDeleteUser(user._id, user.primaryRole || (user.roles && user.roles[0]))}
                             className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
                             disabled={actionLoading}
-                            title="Delete user"
+                            title={t('users.actions.deleteUser')}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -459,7 +473,7 @@ const UsersPage = () => {
 
           {filteredUsers.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              {searchTerm || roleFilter !== "all" ? "No users found matching your criteria" : "No users found"}
+              {searchTerm || roleFilter !== "all" ? t('users.messages.noUsersFiltered') : t('users.messages.noUsersFound')}
             </div>
           )}
         </div>
@@ -468,54 +482,60 @@ const UsersPage = () => {
       {/* Add/Edit Modal */}
       {(showAddModal || editingUser) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">
-              {editingUser ? "Edit User" : "Add New User"}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {editingUser ? t('users.modal.editTitle') : t('users.modal.addTitle')}
             </h2>
             <form onSubmit={editingUser ? handleEditUser : handleAddUser}>
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {/* Name Field */}
-                <div className="mb-4">
-                  <label className="block text-gray-700 font-semibold mb-1">Name <span className="text-red-500">*</span></label>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('users.modal.name')} <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleFormChange}
                     required
-                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                    placeholder={t('users.modal.enterName')}
                   />
                 </div>
                 {/* Email Field */}
-                <div className="mb-4">
-                  <label className="block text-gray-700 font-semibold mb-1">Email <span className="text-red-500">*</span></label>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('users.modal.email')} <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleFormChange}
                     required
-                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter email"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                    placeholder={t('users.modal.enterEmail')}
                   />
                 </div>
                 {/* Phone Field */}
-                <div className="mb-4">
-                  <label className="block text-gray-700 font-semibold mb-1">Phone Number</label>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('users.modal.phone')}
+                  </label>
                   <input
                     type="text"
                     name="phone"
                     value={formData.phone}
                     onChange={handleFormChange}
-                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter phone number (optional)"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                    placeholder={t('users.modal.enterPhone')}
                   />
                 </div>
                 {/* Password Field */}
-                <div className="mb-4">
-                  <label className="block text-gray-700 font-semibold mb-1">
-                    Password 
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('users.modal.password')}
                     {!editingUser && <span className="text-red-500">*</span>}
                   </label>
                   <input
@@ -524,50 +544,53 @@ const UsersPage = () => {
                     value={formData.password}
                     onChange={handleFormChange}
                     required={!editingUser}
-                    className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                    placeholder={editingUser ? "Leave blank to keep current password" : "Enter password"}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                    placeholder={editingUser ? t('users.modal.keepPassword') : t('users.modal.enterPassword')}
                   />
                 </div>
 
                 {/* Roles Field */}
-                <div className="mb-4">
-                  <label className="block text-gray-700 font-semibold mb-1">Roles <span className="text-red-500">*</span></label>
-                  <div className="flex gap-4">
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('users.modal.roles')} <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-4">
                     {roles.map((role) => (
-                      <label key={role.value} className="flex items-center gap-1">
+                      <label key={role.value} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
                         <input
                           type="checkbox"
                           checked={formData.roles.includes(role.value)}
                           onChange={(e) => handleRoleChange(role.value, e.target.checked)}
                           required={formData.roles.length === 0}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
-                        {role.label}
+                        <span className="text-sm font-medium text-gray-700">{role.label}</span>
                       </label>
                     ))}
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 mt-6">
+              <div className="flex justify-end gap-3 mt-6">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
                   disabled={actionLoading}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all duration-300 shadow-lg"
                   disabled={actionLoading}
                 >
                   {actionLoading ? (
                     <Loader className="w-4 h-4 animate-spin" />
                   ) : editingUser ? (
-                    "Update"
+                    t('common.update')
                   ) : (
-                    "Add"
+                    t('common.add')
                   )}
                 </button>
               </div>

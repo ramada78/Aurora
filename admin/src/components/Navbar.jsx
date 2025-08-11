@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { 
   Home, 
   List, 
@@ -24,8 +25,10 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { AnimatePresence } from 'framer-motion';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const Navbar = () => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -34,6 +37,24 @@ const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [notifLoading, setNotifLoading] = useState(false);
   const notifRef = useRef(null);
+  
+  // Check if user is logged in
+  const isLoggedIn = localStorage.getItem('token');
+
+  // Helper function to process multilingual content
+  const processMultilingualContent = (content) => {
+    if (typeof content === 'string') {
+      return content;
+    }
+    
+    if (typeof content === 'object' && content !== null) {
+      const currentLang = i18n.language;
+      // Try to get content in current language, fallback to English, then to first available language
+      return content[currentLang] || content['en'] || content['ar'] || Object.values(content)[0] || String(content);
+    }
+    
+    return String(content);
+  };
   
   const isActive = (path) => {
     return location.pathname === path;
@@ -120,18 +141,18 @@ const Navbar = () => {
   }, [notifDropdownOpen]);
 
   const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/list', label: 'Properties', icon: List },
-    { path: '/appointments', label: 'Appointments', icon: Calendar },
-    { path: '/transactions', label: 'Transactions', icon: TrendingUp },
-    { path: '/users', label: 'Users', icon: Users },
+    { path: '/dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard },
+    { path: '/list', label: t('navigation.properties'), icon: List },
+    { path: '/appointments', label: t('navigation.appointments'), icon: Calendar },
+    { path: '/transactions', label: t('navigation.transactions'), icon: TrendingUp },
+    { path: '/users', label: t('navigation.users'), icon: Users },
   ];
 
   const metaDataItems = [
-    { path: "/amenities", label: "Amenities", icon: Settings },
-    { path: "/cities", label: "Cities", icon: MapPin },
-    { path: "/property-types", label: "Property Types", icon: Building },
-    { path: "/reviews", label: "Reviews", icon: Star },
+    { path: "/amenities", label: t('navigation.amenities'), icon: Settings },
+    { path: "/cities", label: t('navigation.cities'), icon: MapPin },
+    { path: "/property-types", label: t('navigation.propertyTypes'), icon: Building },
+    { path: "/reviews", label: t('navigation.reviews'), icon: Star },
   ];
 
   // Role-based navigation logic
@@ -165,83 +186,85 @@ const Navbar = () => {
             <div className="p-2 bg-blue-100 rounded-lg">
               <Home className="h-5 w-5 text-blue-600" />
             </div>
-            <span className="ml-2 text-xl font-bold text-gray-900">Admin Panel</span>
+            <span className="ml-2 text-xl font-bold text-gray-900">{t('navigation.adminPanel')}</span>
           </Link>
           
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-1 items-center">
-            {filteredNavItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive(item.path)
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center">
-                  <item.icon className="h-4 w-4 mr-1.5" />
-                  {item.label}
-                </div>
-              </Link>
-            ))}
-            
-            {/* Meta Data Dropdown (hide for seller) */}
-            {filteredMetaDataItems.length > 0 && (
-              <div className="relative">
-                <button
-                  onClick={() => setIsMetaDataOpen(!isMetaDataOpen)}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    filteredMetaDataItems.some(item => location.pathname === item.path)
-                      ? "bg-blue-50 text-blue-700"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <Database className="h-4 w-4 mr-1.5" />
-                  <span>Meta Data</span>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${isMetaDataOpen ? 'rotate-180' : ''}`} />
-                </button>
+            {isLoggedIn && (
+              <>
+                {filteredNavItems.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive(item.path)
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <item.icon className="h-4 w-4 mr-1.5" />
+                      {item.label}
+                    </div>
+                  </Link>
+                ))}
+                
+                {/* Meta Data Dropdown (hide for seller) */}
+                {filteredMetaDataItems.length > 0 && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsMetaDataOpen(!isMetaDataOpen)}
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        filteredMetaDataItems.some(item => location.pathname === item.path)
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      <Database className="h-4 w-4 mr-1.5" />
+                      <span>{t('navigation.metaData')}</span>
+                      <ChevronDown className={`h-4 w-4 transition-transform ${isMetaDataOpen ? 'rotate-180' : ''}`} />
+                    </button>
 
-                {isMetaDataOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                    {filteredMetaDataItems.map((item) => (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors ${
-                          location.pathname === item.path
-                            ? "bg-blue-50 text-blue-700"
-                            : "text-gray-600 hover:bg-gray-50"
-                        }`}
-                        onClick={() => setIsMetaDataOpen(false)}
-                      >
-                        <item.icon className="h-4 w-4 mr-1.5" />
-                        <span>{item.label}</span>
-                      </Link>
-                    ))}
+                    {isMetaDataOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                        {filteredMetaDataItems.map((item) => (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors ${
+                              location.pathname === item.path
+                                ? "bg-blue-50 text-blue-700"
+                                : "text-gray-600 hover:bg-gray-50"
+                            }`}
+                            onClick={() => setIsMetaDataOpen(false)}
+                          >
+                            <item.icon className="h-4 w-4 mr-1.5" />
+                            <span>{item.label}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            )}
 
-            {/* Enhanced Notification Bell Dropdown */}
-            <div className="relative ml-4" ref={notifRef}>
-              <button
-                className="relative p-2.5 rounded-xl hover:bg-gray-100 transition-all duration-200 group"
-                onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
-              >
-                <BellIcon className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
-                {unreadCount > 0 && (
-                  <motion.span 
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg"
+                {/* Enhanced Notification Bell Dropdown */}
+                <div className="relative ml-4" ref={notifRef}>
+                  <button
+                    className="relative p-2.5 rounded-xl hover:bg-gray-100 transition-all duration-200 group"
+                    onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
                   >
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </motion.span>
-                )}
-              </button>
+                    <BellIcon className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                    {unreadCount > 0 && (
+                      <motion.span 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg"
+                      >
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </motion.span>
+                    )}
+                  </button>
               
               <AnimatePresence>
                 {notifDropdownOpen && (
@@ -257,10 +280,10 @@ const Navbar = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           <BellIcon className="w-5 h-5 text-blue-600" />
-                          <span className="font-bold text-gray-900">Notifications</span>
+                          <span className="font-bold text-gray-900">{t('notifications.title')}</span>
                           {unreadCount > 0 && (
                             <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
-                              {unreadCount} new
+                              {unreadCount} {t('notifications.new')}
                             </span>
                           )}
                         </div>
@@ -268,7 +291,7 @@ const Navbar = () => {
                           <button 
                             onClick={fetchNotifications}
                             className="text-xs text-gray-500 hover:text-blue-600 transition-colors p-1 rounded hover:bg-gray-100"
-                            title="Refresh notifications"
+                            title={t('notifications.refresh')}
                           >
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -279,7 +302,7 @@ const Navbar = () => {
                               onClick={markAllRead}
                               className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
                             >
-                              Mark all read
+                              {t('notifications.markAllRead')}
                             </button>
                           )}
                         </div>
@@ -291,13 +314,13 @@ const Navbar = () => {
                       {notifLoading ? (
                         <div className="p-8 text-center">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                          <p className="text-gray-500 mt-2 text-sm">Loading notifications...</p>
+                          <p className="text-gray-500 mt-2 text-sm">{t('notifications.loading')}</p>
                         </div>
                       ) : notifications.length === 0 ? (
                         <div className="p-8 text-center">
                           <BellIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                          <p className="text-gray-500 text-sm">No notifications yet</p>
-                          <p className="text-gray-400 text-xs mt-1">We'll notify you when something happens</p>
+                          <p className="text-gray-500 text-sm">{t('notifications.noNotifications')}</p>
+                          <p className="text-gray-400 text-xs mt-1">{t('notifications.notifyWhenSomethingHappens')}</p>
                         </div>
                       ) : (
                         <div className="divide-y divide-gray-50">
@@ -333,7 +356,7 @@ const Navbar = () => {
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm text-gray-800 leading-relaxed">
-                                    {notif.message}
+                                    {processMultilingualContent(notif.message)}
                                   </p>
                                   <div className="flex items-center justify-between mt-2">
                                     <span className="text-xs text-gray-400">
@@ -350,7 +373,7 @@ const Navbar = () => {
                                         className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
                                         onClick={() => setNotifDropdownOpen(false)}
                                       >
-                                        View →
+                                        {t('notifications.view')}
                                       </Link>
                                     )}
                                   </div>
@@ -377,16 +400,21 @@ const Navbar = () => {
                 )}
               </AnimatePresence>
             </div>
+            </>
+            )}
 
-            <button
-              onClick={handleLogout}
-              className="px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 transition-colors ml-2"
-            >
-              <div className="flex items-center">
-                <LogOut className="h-4 w-4 mr-1.5" />
-                Logout
-              </div>
-            </button>
+            <LanguageSwitcher />
+            {isLoggedIn && (
+              <button
+                onClick={handleLogout}
+                className="px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 transition-colors ml-2"
+              >
+                <div className="flex items-center">
+                  <LogOut className="h-4 w-4 mr-1.5" />
+                  {t('navigation.logout')}
+                </div>
+              </button>
+            )}
           </nav>
           
           {/* Mobile Menu Button */}
@@ -405,89 +433,93 @@ const Navbar = () => {
         </div>
       </div>
       
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          className="md:hidden bg-white border-t border-gray-100 shadow-lg"
-        >
-          <div className="px-2 pt-2 pb-4 space-y-1">
-            {filteredNavItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
-                  isActive(item.path)
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <div className="flex items-center">
-                  <item.icon className="h-5 w-5 mr-2" />
-                  {item.label}
-                </div>
-              </Link>
-            ))}
-            
-            {/* Meta Data Dropdown (hide for seller) */}
-            {filteredMetaDataItems.length > 0 && (
-              <div className="relative">
-                <button
-                  onClick={() => {
-                    setIsMetaDataOpen(!isMetaDataOpen);
-                    setIsMenuOpen(false);
-                  }}
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${
-                    filteredMetaDataItems.some(item => location.pathname === item.path)
-                      ? "bg-blue-50 text-blue-700"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <Database className="h-5 w-5 mr-2" />
-                    <span>Meta Data</span>
-                  </div>
-                </button>
-
-                {isMetaDataOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                    {filteredMetaDataItems.map((item) => (
+                {/* Mobile Menu */}
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden bg-white border-t border-gray-100 shadow-lg"
+            >
+              <div className="px-2 pt-2 pb-4 space-y-1">
+                {isLoggedIn && (
+                  <>
+                    {filteredNavItems.map((item) => (
                       <Link
                         key={item.path}
                         to={item.path}
                         className={`block px-3 py-2 rounded-md text-base font-medium ${
-                          location.pathname === item.path
-                            ? "bg-blue-50 text-blue-700"
-                            : "text-gray-600 hover:bg-gray-50"
+                          isActive(item.path)
+                            ? 'bg-blue-50 text-blue-700'
+                            : 'text-gray-600 hover:bg-gray-50'
                         }`}
-                        onClick={() => setIsMetaDataOpen(false)}
+                        onClick={() => setIsMenuOpen(false)}
                       >
                         <div className="flex items-center">
                           <item.icon className="h-5 w-5 mr-2" />
-                          <span>{item.label}</span>
+                          {item.label}
                         </div>
                       </Link>
                     ))}
-                  </div>
+                    
+                    {/* Meta Data Dropdown (hide for seller) */}
+                    {filteredMetaDataItems.length > 0 && (
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setIsMetaDataOpen(!isMetaDataOpen);
+                            setIsMenuOpen(false);
+                          }}
+                          className={`block px-3 py-2 rounded-md text-base font-medium ${
+                            filteredMetaDataItems.some(item => location.pathname === item.path)
+                              ? "bg-blue-50 text-blue-700"
+                              : "text-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          <div className="flex items-center">
+                            <Database className="h-5 w-5 mr-2" />
+                            <span>{t('navigation.metaData')}</span>
+                          </div>
+                        </button>
+
+                        {isMetaDataOpen && (
+                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                            {filteredMetaDataItems.map((item) => (
+                              <Link
+                                key={item.path}
+                                to={item.path}
+                                className={`block px-3 py-2 rounded-md text-base font-medium ${
+                                  location.pathname === item.path
+                                    ? "bg-blue-50 text-blue-700"
+                                    : "text-gray-600 hover:bg-gray-50"
+                                }`}
+                                onClick={() => setIsMetaDataOpen(false)}
+                              >
+                                <div className="flex items-center">
+                                  <item.icon className="h-5 w-5 mr-2" />
+                                  <span>{item.label}</span>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
+                    >
+                      <div className="flex items-center">
+                        <LogOut className="h-5 w-5 mr-2" />
+                        {t('navigation.logout')}
+                      </div>
+                    </button>
+                  </>
                 )}
               </div>
-            )}
-
-            <button
-              onClick={handleLogout}
-              className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
-            >
-              <div className="flex items-center">
-                <LogOut className="h-5 w-5 mr-2" />
-                Logout
-              </div>
-            </button>
-          </div>
-        </motion.div>
-      )}
+            </motion.div>
+          )}
     </header>
   );
 };

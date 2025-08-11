@@ -321,7 +321,7 @@ const PropertyDetails = () => {
                     justify-center gap-2"
                 >
                   <Calendar className="w-5 h-5" />
-                  {t('property.scheduleViewing')}
+                  {t('scheduleViewing.title')}
                 </button>
               </div>
 

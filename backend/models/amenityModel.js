@@ -1,7 +1,10 @@
 import mongoose from "mongoose";
 
 const amenitySchema = new mongoose.Schema({
-  name: { type: String, required: true, unique: true }
+  name: {
+    en: { type: String, required: true },
+    ar: { type: String, required: true }
+  }
 });
 
 const Amenity = mongoose.model("Amenity", amenitySchema);

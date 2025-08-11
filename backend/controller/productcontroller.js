@@ -6,7 +6,7 @@ import Seller from '../models/Seller.js';
 
 const addproperty = async (req, res) => {
     try {
-        let { title, price, beds, baths, sqft, propertyType, city, availability, description, amenities, seller, agent, mapUrl, vrTourLink } = req.body;
+        let { titleEn, titleAr, price, beds, baths, sqft, propertyType, city, availability, descriptionEn, descriptionAr, amenities, seller, agent, mapUrl, vrTourLink } = req.body;
         if (seller === "") seller = undefined;
         if (agent === "") agent = undefined;
         // Use propertyType if available, otherwise fall back to type
@@ -33,7 +33,10 @@ const addproperty = async (req, res) => {
         }
         // seller and agent are now user IDs
         const product = new Property({
-            title,
+            title: {
+                en: titleEn,
+                ar: titleAr
+            },
             price,
             beds,
             baths,
@@ -41,7 +44,10 @@ const addproperty = async (req, res) => {
             propertyType: propertyTypeValue,
             city,
             availability,
-            description,
+            description: {
+                en: descriptionEn,
+                ar: descriptionAr
+            },
             amenities,
             image: imageUrls,
             seller, // user id
@@ -58,13 +64,22 @@ const addproperty = async (req, res) => {
 
 const listproperty = async (req, res) => {
     try {
+        const { lang = 'en' } = req.query; // Get language from query parameter
         const property = await Property.find()
             .populate('amenities')
             .populate('seller', 'name email') // now User
             .populate('agent', 'name email') // now User
             .populate('city')
             .populate('propertyType');
-        res.json({ property, success: true });
+        
+        // Transform properties to include the appropriate names for the requested language
+        const transformedProperties = property.map(prop => ({
+            ...prop.toObject(),
+            displayTitle: prop.title && prop.title[lang] ? prop.title[lang] : (prop.title?.en || prop.title || 'Unknown'),
+            displayDescription: prop.description && prop.description[lang] ? prop.description[lang] : (prop.description?.en || prop.description || 'Unknown')
+        }));
+        
+        res.json({ property: transformedProperties, success: true });
     } catch (error) {
         res.status(500).json({ message: "Server Error", success: false });
     }
@@ -92,7 +107,7 @@ const removeproperty = async (req, res) => {
 
 const updateproperty = async (req, res) => {
     try {
-        let { id, title, price, beds, baths, sqft, propertyType, city, availability, description, amenities, seller, mapUrl, status } = req.body;
+        let { id, titleEn, titleAr, price, beds, baths, sqft, propertyType, city, availability, descriptionEn, descriptionAr, amenities, seller, mapUrl, status } = req.body;
         // Use propertyType if available, otherwise fall back to type
         const propertyTypeValue = propertyType;
         if (!Array.isArray(amenities)) {
@@ -133,7 +148,10 @@ const updateproperty = async (req, res) => {
         if (mergedImages.length === 0) {
             mergedImages = property.image;
         }
-        property.title = title;
+        property.title = {
+            en: titleEn,
+            ar: titleAr
+        };
         property.price = price;
         property.beds = beds;
         property.baths = baths;
@@ -141,7 +159,10 @@ const updateproperty = async (req, res) => {
         property.propertyType = propertyTypeValue;
         property.city = city;
         property.availability = availability;
-        property.description = description;
+        property.description = {
+            en: descriptionEn,
+            ar: descriptionAr
+        };
         property.amenities = amenities;
         property.seller = seller; // user id
         if (typeof req.body.agent !== 'undefined') property.agent = req.body.agent === "" ? undefined : req.body.agent; // user id
@@ -159,6 +180,7 @@ const updateproperty = async (req, res) => {
 const singleproperty = async (req, res) => {
     try {
         const { id } = req.params;
+        const { lang = 'en' } = req.query; // Get language from query parameter
         const property = await Property.findById(id)
             .populate('amenities')
             .populate('seller', 'name email') // now User
@@ -173,7 +195,15 @@ const singleproperty = async (req, res) => {
             property.views = (property.views || 0) + 0.5;
             await property.save();
         }
-        res.json({ property, success: true });
+        
+        // Transform property to include the appropriate names for the requested language
+        const transformedProperty = {
+            ...property.toObject(),
+            displayTitle: property.title && property.title[lang] ? property.title[lang] : (property.title?.en || property.title || 'Unknown'),
+            displayDescription: property.description && property.description[lang] ? property.description[lang] : (property.description?.en || property.description || 'Unknown')
+        };
+        
+        res.json({ property: transformedProperty, success: true });
     } catch (error) {
         res.status(500).json({ message: "Server Error", success: false });
     }
@@ -264,4 +294,64 @@ const getViewsOverTime = async (req, res) => {
   }
 };
 
-export { addproperty, listproperty, removeproperty, updateproperty , singleproperty, listAmenities, seedAmenities, getTotalPropertyViews, getViewsOverTime };
+const getPropertyStatusDistribution = async (req, res) => {
+  try {
+    // Aggregate properties by status
+    const result = await Property.aggregate([
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+
+    // Transform the result into the expected format with normalized status names
+    const distribution = {};
+    result.forEach(item => {
+      let status = item._id || 'available';
+      
+      // Normalize status names to ensure consistency
+      if (status) {
+        status = status.toLowerCase().trim();
+        switch (status) {
+          case 'available':
+            status = 'Available';
+            break;
+          case 'sold':
+            status = 'Sold';
+            break;
+          case 'rented':
+            status = 'Rented';
+            break;
+          default:
+            status = 'Available'; // Default fallback
+        }
+      }
+      
+      // Add to distribution, combining duplicates
+      if (distribution[status]) {
+        distribution[status] += item.count;
+      } else {
+        distribution[status] = item.count;
+      }
+    });
+
+    const expectedStatuses = ['Available', 'Sold', 'Rented'];
+    expectedStatuses.forEach(status => {
+      if (!distribution[status]) {
+        distribution[status] = 0;
+      }
+    });
+
+    res.json({ success: true, distribution });
+  } catch (error) {
+    console.error('Error getting property status distribution:', error);
+    res.status(500).json({ success: false, message: "Error getting property status distribution" });
+  }
+};
+
+export { addproperty, listproperty, removeproperty, updateproperty , singleproperty, listAmenities, seedAmenities, getTotalPropertyViews, getViewsOverTime, getPropertyStatusDistribution };

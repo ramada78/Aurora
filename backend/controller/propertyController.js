@@ -111,7 +111,14 @@ export const recommendProperties = async (req, res) => {
         if (safeCity && safeCity.trim() !== '') {
             const cityNorm = safeCity.trim().toLowerCase();
             filteredProperties = properties.filter(p => {
-                const propCity = p.city?.city_name?.trim().toLowerCase();
+                // Handle both string and object formats for city_name
+                let propCity = '';
+                if (typeof p.city?.city_name === 'string') {
+                    propCity = p.city.city_name.trim().toLowerCase();
+                } else if (typeof p.city?.city_name === 'object') {
+                    // Use English name for comparison (since frontend translates to English)
+                    propCity = (p.city.city_name.en || '').trim().toLowerCase();
+                }
                 return propCity === cityNorm;
             });
             // If no properties match the city, return empty recommendations
@@ -123,9 +130,17 @@ export const recommendProperties = async (req, res) => {
         // Pre-filter by propertyType and availability if present
         let preFilteredProperties = filteredProperties;
         if (safePropertyType && safePropertyType.trim() !== '') {
-            preFilteredProperties = preFilteredProperties.filter(p =>
-                p.propertyType?.type_name?.trim().toLowerCase() === safePropertyType.trim().toLowerCase()
-            );
+            preFilteredProperties = preFilteredProperties.filter(p => {
+                // Handle both string and object formats for type_name
+                let propType = '';
+                if (typeof p.propertyType?.type_name === 'string') {
+                    propType = p.propertyType.type_name.trim().toLowerCase();
+                } else if (typeof p.propertyType?.type_name === 'object') {
+                    // Use English name for comparison (since frontend translates to English)
+                    propType = (p.propertyType.type_name.en || '').trim().toLowerCase();
+                }
+                return propType === safePropertyType.trim().toLowerCase();
+            });
         }
         if (req.body.availability && req.body.availability.trim() !== '') {
             preFilteredProperties = preFilteredProperties.filter(p =>
@@ -145,23 +160,48 @@ export const recommendProperties = async (req, res) => {
             return res.json({ success: true, recommended: [] });
         }
 
-        // Prepare lists for encoding
-        const propertyTypes = [...new Set(preFilteredProperties.map(p => p.propertyType?.type_name || 'Unknown'))];
-        const cities = [...new Set(preFilteredProperties.map(p => p.city?.city_name || 'Unknown'))];
+        // Prepare lists for encoding - extract English names consistently
+        const propertyTypes = [...new Set(preFilteredProperties.map(p => {
+            if (typeof p.propertyType?.type_name === 'string') {
+                return p.propertyType.type_name;
+            } else if (typeof p.propertyType?.type_name === 'object') {
+                return p.propertyType.type_name.en || 'Unknown';
+            }
+            return 'Unknown';
+        }))];
+        
+        const cities = [...new Set(preFilteredProperties.map(p => {
+            if (typeof p.city?.city_name === 'string') {
+                return p.city.city_name;
+            } else if (typeof p.city?.city_name === 'object') {
+                return p.city.city_name.en || 'Unknown';
+            }
+            return 'Unknown';
+        }))];
+        
         const availabilities = [...new Set(preFilteredProperties.map(p => p.availability || 'Unknown'))];
         const propertyTypeMap = encodeCategories(propertyTypes);
         const cityMap = encodeCategories(cities);
         const availabilityMap = encodeCategories(availabilities);
 
         // Build feature vectors for all pre-filtered properties
-        const featureVectors = preFilteredProperties.map(p => [
-            p.beds,
-            p.price,
-            p.sqft,
-            propertyTypeMap[p.propertyType?.type_name || 'Unknown'],
-            cityMap[p.city?.city_name || 'Unknown'],
-            availabilityMap[p.availability || 'Unknown']
-        ]);
+        const featureVectors = preFilteredProperties.map(p => {
+            const propType = typeof p.propertyType?.type_name === 'string' 
+                ? p.propertyType.type_name 
+                : (p.propertyType?.type_name?.en || 'Unknown');
+            const propCity = typeof p.city?.city_name === 'string' 
+                ? p.city.city_name 
+                : (p.city?.city_name?.en || 'Unknown');
+            
+            return [
+                p.beds,
+                p.price,
+                p.sqft,
+                propertyTypeMap[propType],
+                cityMap[propCity],
+                availabilityMap[p.availability || 'Unknown']
+            ];
+        });
 
         // Build user preference vector
         const userVector = [
@@ -213,8 +253,8 @@ export const recommendProperties = async (req, res) => {
                 beds: p.beds || 0,
                 baths: p.baths || 0,
                 sqft: p.sqft || 0,
-                city: p.city?.city_name || 'Unknown',
-                propertyType: p.propertyType?.type_name || 'Unknown',
+                city: p.city || null,
+                propertyType: p.propertyType || null,
                 availability: p.availability || '',
                 description: p.description || '',
                 status: p.status || '',

@@ -18,8 +18,10 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { backendurl } from "../App";
+import { useTranslation } from "react-i18next";
 
 const Transactions = () => {
+  const { t, i18n } = useTranslation();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -76,7 +78,7 @@ const Transactions = () => {
   const fetchReferenceData = async () => {
     try {
       const [propertiesRes, sellersRes, clientsRes, agentsRes] = await Promise.all([
-        axios.get(`${backendurl}/api/products/list`),
+        axios.get(`${backendurl}/api/products/list?lang=${i18n.language}`),
         axios.get(`${backendurl}/api/sellers`),
         axios.get(`${backendurl}/api/clients`),
         axios.get(`${backendurl}/api/agents`),
@@ -128,7 +130,7 @@ const Transactions = () => {
   const handleAddTransaction = async (e) => {
     e.preventDefault();
     if (!addForm.transaction_date || !addForm.sale_price || !addForm.status || !addForm.deal_type || !addForm.property_id || !addForm.seller_id || !addForm.buyer_id) {
-      toast.error('Please fill in all required fields');
+      toast.error(t('transactions.messages.fillRequiredFields'));
       return;
     }
     // Always send string IDs in the payload
@@ -147,30 +149,30 @@ const Transactions = () => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       if (response.data.success) {
-        toast.success('Transaction added successfully');
+        toast.success(t('transactions.messages.transactionAdded'));
         setShowAddModal(false);
         setAddForm({ transaction_date: '', sale_price: '', status: '', deal_type: '', property_id: '', seller_id: '', agent_id: '', buyer_id: '' });
         fetchTransactions();
       } else {
-        toast.error(response.data.message || 'Failed to add transaction');
+        toast.error(response.data.message || t('transactions.messages.failedToAdd'));
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add transaction');
+      toast.error(error.response?.data?.message || t('transactions.messages.failedToAdd'));
     } finally {
       setAddLoading(false);
     }
   };
 
   const handleDeleteTransaction = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this transaction?')) return;
+    if (!window.confirm(t('transactions.messages.confirmDelete'))) return;
     try {
       await axios.delete(`${backendurl}/api/transactions/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      toast.success('Transaction deleted');
+      toast.success(t('transactions.messages.transactionDeleted'));
       fetchTransactions();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to delete transaction');
+      toast.error(error.response?.data?.message || t('transactions.messages.failedToDelete'));
     }
   };
 
@@ -207,12 +209,12 @@ const Transactions = () => {
       await axios.put(`${backendurl}/api/transactions/${editForm._id}`, payload, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
-      toast.success('Transaction updated');
+      toast.success(t('transactions.messages.transactionUpdated'));
       setShowEditModal(false);
       setEditForm(null);
       fetchTransactions();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update transaction');
+      toast.error(error.response?.data?.message || t('transactions.messages.failedToUpdate'));
     } finally {
       setEditLoading(false);
     }
@@ -256,7 +258,7 @@ const Transactions = () => {
   useEffect(() => {
     fetchTransactions();
     fetchReferenceData();
-  }, []);
+  }, [i18n.language]);
 
   const filteredTransactions = transactions.filter((transaction) => {
     const propertyId = transaction.property_id && typeof transaction.property_id === 'object'
@@ -277,7 +279,8 @@ const Transactions = () => {
     const client = clients.find(c => c._id === buyerId);
     const agent = agents.find(a => a._id === agentId);
 
-    const propertyTitle = property?.title?.toLowerCase() || "";
+    const propertyTitle = (i18n.language === 'ar' ? property?.title?.ar : property?.title?.en) || "";
+    const propertyTitleLower = propertyTitle.toLowerCase();
     const sellerName = seller?.user_id?.name?.toLowerCase() || "";
     const buyerName = client?.user_id?.name?.toLowerCase() || "";
     const agentName = agent?.user_id?.name?.toLowerCase() || "";
@@ -286,7 +289,7 @@ const Transactions = () => {
 
     return (
       search === "" ||
-      propertyTitle.includes(search) ||
+      propertyTitleLower.includes(search) ||
       sellerName.includes(search) ||
       buyerName.includes(search) ||
       agentName.includes(search)
@@ -314,74 +317,112 @@ const Transactions = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-32 flex items-center justify-center">
-        <Loader className="w-8 h-8 text-blue-500 animate-spin" />
+      <div className="min-h-screen pt-32 flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="text-center">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <TrendingUp className="w-8 h-8 text-blue-600" />
+            </div>
+          </div>
+          <p className="text-gray-600 font-medium">{t('transactions.loading')}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-32 px-4 bg-gray-50">
+    <div className="min-h-screen pt-32 px-4 bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="max-w-7xl mx-auto">
         {/* Header and Search Section */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">Transactions</h1>
-            <p className="text-gray-600">
-              Manage and track property sale transactions
-            </p>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search transactions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-8"
+        >
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                {t('transactions.title')}
+              </h1>
+              <p className="text-gray-600 text-lg">
+                {t('transactions.subtitle')}
+              </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <Filter className="text-gray-400" />
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="rounded-lg border border-gray-200 px-4 py-2 focus:ring-2 focus:ring-blue-500"
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder={t('transactions.searchPlaceholder')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 placeholder-gray-500"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Filter className="text-gray-400 w-5 h-5" />
+                <select
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  className="rounded-xl border border-gray-200 px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900"
+                >
+                  <option value="all">{t('transactions.filters.allTransactions')}</option>
+                  <option value="pending">{t('transactions.filters.pending')}</option>
+                  <option value="completed">{t('transactions.filters.completed')}</option>
+                  <option value="cancelled">{t('transactions.filters.cancelled')}</option>
+                </select>
+              </div>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                <option value="all">All Transactions</option>
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
+                <Plus className="w-5 h-5" />
+                {t('transactions.actions.addTransaction')}
+              </button>
             </div>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Add Transaction
-            </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden border border-white/20"
+        >
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gradient-to-r from-blue-50 to-purple-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Property</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seller</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Buyer</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deal Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    {t('transactions.table.property')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    {t('transactions.table.seller')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    {t('transactions.table.buyer')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    {t('transactions.table.agent')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    {t('transactions.table.dealType')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    {t('transactions.table.date')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    {t('transactions.table.price')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    {t('transactions.table.status')}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    {t('transactions.table.actions')}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -400,57 +441,57 @@ const Transactions = () => {
                     className="hover:bg-gray-50"
                   >
                     {/* Property */}
-                    <td className="px-6 py-4 text-xs">
+                    <td className="px-4 py-3">
                       <div className="flex items-center">
-                        <Home className="w-5 h-5 text-gray-400 mr-2" />
+                        <Home className="w-4 h-4 text-gray-400 mr-2" />
                         <div>
-                          <p className="font-medium text-gray-900">
-                              {property ? `${property.title} - ${property.city?.city_name || ''}` : 'N/A'}
+                          <p className="font-medium text-gray-900 text-sm">
+                              {property ? `${(i18n.language === 'ar' ? property.title?.ar : property.title?.en)} - ${(i18n.language === 'ar' ? property.city?.city_name?.ar : property.city?.city_name?.en) || ''}` : 'N/A'}
                           </p>
                         </div>
                       </div>
                     </td>
                       {/* Seller (show user name) */}
-                    <td className="px-6 py-4 text-xs">
+                    <td className="px-4 py-3">
                       <div className="flex items-center">
-                        <User className="w-5 h-5 text-gray-400 mr-2" />
+                        <User className="w-4 h-4 text-gray-400 mr-2" />
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-gray-900 text-sm">
                               {seller ? `${seller.user_id.name}` : 'N/A'}
                           </p>
                         </div>
                       </div>
                     </td>
                       {/* Buyer (show user name) */}
-                    <td className="px-6 py-4 text-xs">
+                    <td className="px-4 py-3">
                       <div className="flex items-center">
-                        <User className="w-5 h-5 text-gray-400 mr-2" />
+                        <User className="w-4 h-4 text-gray-400 mr-2" />
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-gray-900 text-sm">
                               {client && client.user_id && client.user_id.name ? client.user_id.name : 'N/A'}
                           </p>
                         </div>
                       </div>
                     </td>
                       {/* Agent (show user name) */}
-                    <td className="px-6 py-4 text-xs">
+                    <td className="px-4 py-3">
                       <div className="flex items-center">
-                        <User className="w-5 h-5 text-gray-400 mr-2" />
+                        <User className="w-4 h-4 text-gray-400 mr-2" />
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-gray-900 text-sm">
                               {transaction.agent_id && transaction.agent_id.name ? transaction.agent_id.name : 'N/A'}
                           </p>
                         </div>
                       </div>
                     </td>
                     {/* Deal Type */}
-                    <td className="px-6 py-4 text-xs">
+                    <td className="px-4 py-3">
                       <span className="px-2 py-1 rounded bg-gray-100 text-xs font-medium">
-                        {transaction.deal_type ? transaction.deal_type.charAt(0).toUpperCase() + transaction.deal_type.slice(1) : 'N/A'}
+                        {transaction.deal_type ? t(`transactions.dealTypes.${transaction.deal_type}`) : 'N/A'}
                       </span>
                     </td>
                     {/* Date */}
-                    <td className="px-6 py-4 text-xs">
+                    <td className="px-4 py-3 text-sm">
                       {transaction.transaction_date ? (() => {
                         const d = new Date(transaction.transaction_date);
                         // Format: YYYY-MM-DD HH:mm (no seconds)
@@ -463,23 +504,23 @@ const Transactions = () => {
                       })() : 'N/A'}
                     </td>
                     {/* Price */}
-                    <td className="px-6 py-4 text-xs">
+                    <td className="px-4 py-3 text-sm">
                       {transaction.sale_price ? `$${transaction.sale_price.toLocaleString()}` : 'N/A'}
                     </td>
                     {/* Status */}
-                    <td className="px-6 py-4 text-xs">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
-                        {transaction.status ? transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1) : 'N/A'}
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
+                        {transaction.status ? t(`transactions.status.${transaction.status}`) : 'N/A'}
                       </span>
                     </td>
                     {/* Actions */}
-                    <td className="px-6 py-4 text-xs">
-                      <div className="flex items-center gap-2">
-                          <button onClick={() => handleEditClick(transaction)} className="p-1 rounded hover:bg-gray-200">
-                            <Edit className="w-4 h-4 text-blue-500" />
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                          <button onClick={() => handleEditClick(transaction)} className="p-1.5 rounded hover:bg-gray-200 transition-all duration-200" title={t('transactions.actions.edit')}>
+                            <Edit className="w-3 h-3 text-blue-500" />
                         </button>
-                          <button onClick={() => handleDeleteTransaction(transaction._id)} className="p-1 rounded hover:bg-gray-200">
-                            <Trash2 className="w-4 h-4 text-red-500" />
+                          <button onClick={() => handleDeleteTransaction(transaction._id)} className="p-1.5 rounded hover:bg-gray-200 transition-all duration-200" title={t('transactions.actions.delete')}>
+                            <Trash2 className="w-3 h-3 text-red-500" />
                         </button>
                       </div>
                     </td>
@@ -492,98 +533,112 @@ const Transactions = () => {
 
           {filteredTransactions.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              {searchTerm || filter !== "all" ? "No transactions found matching your criteria" : "No transactions found"}
+              {searchTerm || filter !== "all" ? t('transactions.noTransactionsFiltered') : t('transactions.noTransactions')}
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
 
       {/* Add Transaction Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Add New Transaction</h2>
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {t('transactions.addModal.title')}
+            </h2>
             <form onSubmit={handleAddTransaction}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Transaction Date *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.addModal.transactionDate')} *
+                  </label>
                   <input
                     type="datetime-local"
                     name="transaction_date"
                     value={addForm.transaction_date}
                     onChange={handleAddFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Price of Sale / Monthly Rent *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.addModal.salePrice')} *
+                  </label>
                   <input
                     type="number"
                     name="sale_price"
                     value={addForm.sale_price}
                     onChange={handleAddFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter sale price"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                    placeholder={t('transactions.addModal.enterSalePrice')}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.addModal.status')} *
+                  </label>
                   <select
                     name="status"
                     value={addForm.status}
                     onChange={handleAddFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900"
                     required
                   >
-                    <option value="">Select status</option>
-                    <option value="pending">Pending</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="">{t('transactions.addModal.selectStatus')}</option>
+                    <option value="pending">{t('transactions.status.pending')}</option>
+                    <option value="completed">{t('transactions.status.completed')}</option>
+                    <option value="cancelled">{t('transactions.status.cancelled')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Deal Type *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.addModal.dealType')} *
+                  </label>
                   <select
                     name="deal_type"
                     value={addForm.deal_type}
                     onChange={handleAddFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900"
                     required
                   >
-                    <option value="">Select deal type</option>
-                    <option value="sale">Sale</option>
-                    <option value="rent">Rent</option>
+                    <option value="">{t('transactions.addModal.selectDealType')}</option>
+                    <option value="sale">{t('transactions.dealTypes.sale')}</option>
+                    <option value="rent">{t('transactions.dealTypes.rent')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Property *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.addModal.property')} *
+                  </label>
                   <select
                     name="property_id"
                     value={addForm.property_id}
                     onChange={handleAddFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900"
                     required
                   >
-                    <option value="">Select property</option>
+                    <option value="">{t('transactions.addModal.selectProperty')}</option>
                     {myProperties.map((property) => (
                       <option key={property._id} value={property._id}>
-                        {property.title} - {property.city?.city_name}
+                        {(i18n.language === 'ar' ? property.title?.ar : property.title?.en)} - {(i18n.language === 'ar' ? property.city?.city_name?.ar : property.city?.city_name?.en) || 'Unknown City'}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Seller</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.addModal.seller')}
+                  </label>
                   <select
                     name="seller_id"
                     value={addForm.seller_id}
                     onChange={handleAddFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900"
                     required
                   >
-                    <option value="">Select Seller</option>
+                    <option value="">{t('transactions.addModal.selectSeller')}</option>
                     {sellers
                       .filter(seller => seller && seller.user_id && typeof seller.user_id === 'object' && seller.user_id.name && seller.user_id._id)
                       .reduce((unique, seller) => {
@@ -598,15 +653,17 @@ const Transactions = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Agent</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.addModal.agent')}
+                  </label>
                   <select
                     name="agent_id"
                     value={addForm.agent_id}
                     onChange={handleAddFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900"
                     required
                   >
-                    <option value="">Select Agent</option>
+                    <option value="">{t('transactions.addModal.selectAgent')}</option>
                     {agents
                       .filter(agent => agent && agent.user_id && typeof agent.user_id === 'object' && agent.user_id.name && agent.user_id._id)
                       .reduce((unique, agent) => {
@@ -621,15 +678,17 @@ const Transactions = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Buyer (Client) *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.addModal.buyer')} *
+                  </label>
                   <select
                     name="buyer_id"
                     value={addForm.buyer_id}
                     onChange={handleAddFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900"
                     required
                   >
-                    <option value="">Select buyer</option>
+                    <option value="">{t('transactions.addModal.selectBuyer')}</option>
                     {(() => {
                       const filteredClients = clients
                         .filter(client => client && client.user_id && typeof client.user_id === 'object' && client.user_id.name && client.user_id._id);
@@ -648,21 +707,21 @@ const Transactions = () => {
                   </select>
                 </div>
               </div>
-              <div className="flex justify-end gap-2 mt-6">
+              <div className="flex justify-end gap-3 mt-6">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
                   disabled={addLoading}
                 >
-                  Cancel
+                  {t('transactions.actions.cancel')}
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all duration-300 shadow-lg"
                   disabled={addLoading}
                 >
-                  {addLoading ? <Loader className="w-4 h-4 animate-spin" /> : 'Add'}
+                  {addLoading ? <Loader className="w-4 h-4 animate-spin" /> : t('transactions.actions.add')}
                 </button>
               </div>
             </form>
@@ -670,92 +729,106 @@ const Transactions = () => {
         </div>
       )}
 
-      {/* Edit Transaction Modal */}
+            {/* Edit Transaction Modal */}
       {showEditModal && editForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Edit Transaction</h2>
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              {t('transactions.editModal.title')}
+            </h2>
             <form onSubmit={handleEditTransaction}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Transaction Date *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.editModal.transactionDate')} *
+                  </label>
                   <input
                     type="datetime-local"
                     name="transaction_date"
                     value={formatDateForInput(editForm.transaction_date)}
                     onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Price of Sale / Monthly Rent *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.editModal.salePrice')} *
+                  </label>
                   <input
                     type="number"
                     name="sale_price"
                     value={editForm.sale_price}
                     onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter sale price"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                    placeholder={t('transactions.editModal.enterSalePrice')}
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.editModal.status')} *
+                  </label>
                   <select
                     name="status"
                     value={editForm.status}
                     onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900"
                     required
                   >
-                    <option value="">Select status</option>
-                    <option value="pending">Pending</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="">{t('transactions.editModal.selectStatus')}</option>
+                    <option value="pending">{t('transactions.status.pending')}</option>
+                    <option value="completed">{t('transactions.status.completed')}</option>
+                    <option value="cancelled">{t('transactions.status.cancelled')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Deal Type *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.editModal.dealType')} *
+                  </label>
                   <select
                     name="deal_type"
                     value={editForm.deal_type}
                     onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900"
                     required
                   >
-                    <option value="">Select deal type</option>
-                    <option value="sale">Sale</option>
-                    <option value="rent">Rent</option>
+                    <option value="">{t('transactions.editModal.selectDealType')}</option>
+                    <option value="sale">{t('transactions.dealTypes.sale')}</option>
+                    <option value="rent">{t('transactions.dealTypes.rent')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Property *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.editModal.property')} *
+                  </label>
                   <select
                     name="property_id"
                     value={editForm.property_id}
                     onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900"
                     required
                   >
-                    <option value="">Select property</option>
+                    <option value="">{t('transactions.editModal.selectProperty')}</option>
                     {properties.map((property) => (
                       <option key={property._id} value={property._id}>
-                        {property.title} - {property.city?.city_name}
+                        {(i18n.language === 'ar' ? property.title?.ar : property.title?.en)} - {(i18n.language === 'ar' ? property.city?.city_name?.ar : property.city?.city_name?.en) || 'Unknown City'}
                       </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Seller</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.editModal.seller')}
+                  </label>
                   <select
                     name="seller_id"
                     value={editForm.seller_id}
                     onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900"
                     required
                   >
-                    <option value="">Select Seller</option>
+                    <option value="">{t('transactions.editModal.selectSeller')}</option>
                     {sellers
                       .filter(seller => seller && seller.user_id && typeof seller.user_id === 'object' && seller.user_id.name && seller.user_id._id)
                       .reduce((unique, seller) => {
@@ -770,15 +843,17 @@ const Transactions = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Agent</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.editModal.agent')}
+                  </label>
                   <select
                     name="agent_id"
                     value={editForm.agent_id}
                     onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900"
                     required
                   >
-                    <option value="">Select Agent</option>
+                    <option value="">{t('transactions.editModal.selectAgent')}</option>
                     {agents
                       .filter(agent => agent && agent.user_id && typeof agent.user_id === 'object' && agent.user_id.name && agent.user_id._id)
                       .reduce((unique, agent) => {
@@ -788,20 +863,22 @@ const Transactions = () => {
                       .map(agent => (
                         <option key={agent.user_id._id} value={agent.user_id._id}>
                           {agent.user_id.name}
-                      </option>
-                    ))}
+                        </option>
+                      ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Buyer (Client) *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('transactions.editModal.buyer')} *
+                  </label>
                   <select
                     name="buyer_id"
                     value={editForm.buyer_id}
                     onChange={handleEditFormChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900"
                     required
                   >
-                    <option value="">Select buyer</option>
+                    <option value="">{t('transactions.editModal.selectBuyer')}</option>
                     {clients
                       .filter(client => client && client.user_id && typeof client.user_id === 'object' && client.user_id.name && client.user_id._id)
                       .reduce((unique, client) => {
@@ -816,21 +893,21 @@ const Transactions = () => {
                   </select>
                 </div>
               </div>
-              <div className="flex justify-end gap-2 mt-6">
+              <div className="flex justify-end gap-3 mt-6">
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  className="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
                   disabled={editLoading}
                 >
-                  Cancel
+                  {t('transactions.actions.cancel')}
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 transition-all duration-300 shadow-lg"
                   disabled={editLoading}
                 >
-                  {editLoading ? <Loader className="w-4 h-4 animate-spin" /> : 'Save'}
+                  {editLoading ? <Loader className="w-4 h-4 animate-spin" /> : t('transactions.actions.save')}
                 </button>
               </div>
             </form>

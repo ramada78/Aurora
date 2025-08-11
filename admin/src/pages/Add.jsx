@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import { backendurl } from '../App';
@@ -8,15 +9,18 @@ const AVAILABILITY_TYPES = ['rent', 'buy'];
 const AMENITIES = ['Lake View', 'Fireplace', 'Central heating and air conditioning', 'Dock', 'Pool', 'Garage', 'Garden', 'Gym', 'Security system', 'Master bathroom', 'Guest bathroom', 'Home theater', 'Exercise room/gym', 'Covered parking', 'High-speed internet ready'];
 
 const Add = () => {
+  const { t, i18n } = useTranslation();
   const [formData, setFormData] = useState({
-    title: '',
+    titleEn: '',
+    titleAr: '',
     propertyType: '',
     city: '',
     seller: '',
     agent: '',
     price: '',
     mapUrl: '',
-    description: '',
+    descriptionEn: '',
+    descriptionAr: '',
     beds: '',
     baths: '',
     sqft: '',
@@ -37,13 +41,13 @@ const Add = () => {
   const [agents, setAgents] = useState([]);
 
   useEffect(() => {
-    axios.get(`${backendurl}/api/products/amenities`).then(res => {
+    axios.get(`${backendurl}/api/products/amenities?lang=${i18n.language}`).then(res => {
       if (res.data.success) setAllAmenities(res.data.amenities);
     });
-    axios.get(`${backendurl}/api/property-types`).then(res => {
+    axios.get(`${backendurl}/api/property-types?lang=${i18n.language}`).then(res => {
       if (res.data.success) setPropertyTypes(res.data.types);
     });
-    axios.get(`${backendurl}/api/cities`).then(res => {
+    axios.get(`${backendurl}/api/cities?lang=${i18n.language}`).then(res => {
       if (res.data.success) setCities(res.data.cities);
     });
     axios.get(`${backendurl}/api/sellers`).then(res => {
@@ -52,7 +56,7 @@ const Add = () => {
     axios.get(`${backendurl}/api/agents`).then(res => {
       if (res.data.success) setAgents(res.data.agents);
     });
-  }, []);
+  }, [i18n.language]);
 
   // Auto-fill agent if logged-in user is agent, after agents are loaded
   useEffect(() => {
@@ -105,7 +109,7 @@ const Add = () => {
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length + previewUrls.length > 4) {
-      alert('Maximum 4 images allowed');
+      alert(t('forms.imageUpload.maxImages'));
       return;
     }
     const newPreviewUrls = files.map(file => URL.createObjectURL(file));
@@ -139,7 +143,8 @@ const Add = () => {
     setLoading(true);
     try {
       const formdata = new FormData();
-      formdata.append('title', formData.title);
+      formdata.append('titleEn', formData.titleEn);
+      formdata.append('titleAr', formData.titleAr);
       formdata.append('propertyType', formData.propertyType);
       formdata.append('city', formData.city);
       if (formData.seller) {
@@ -150,7 +155,8 @@ const Add = () => {
       }
       formdata.append('price', formData.price);
       formdata.append('mapUrl', formData.mapUrl);
-      formdata.append('description', formData.description);
+      formdata.append('descriptionEn', formData.descriptionEn);
+      formdata.append('descriptionAr', formData.descriptionAr);
       formdata.append('beds', formData.beds);
       formdata.append('baths', formData.baths);
       formdata.append('sqft', formData.sqft);
@@ -172,14 +178,16 @@ const Add = () => {
       if (response.data.success) {
         toast.success(response.data.message);
         setFormData({
-          title: '',
+          titleEn: '',
+          titleAr: '',
           propertyType: '',
           city: '',
           seller: '',
           agent: '',
           price: '',
           mapUrl: '',
-          description: '',
+          descriptionEn: '',
+          descriptionAr: '',
           beds: '',
           baths: '',
           sqft: '',
@@ -190,56 +198,88 @@ const Add = () => {
           vrTourLink: '',
         });
         setPreviewUrls([]);
-        toast.success('Property added successfully');
+        toast.success(t('forms.addProperty.success'));
       } else {
         toast.error(response.data.message);
       }
     } catch (error) {
-      toast.error('An error occurred. Please try again.');
+      toast.error(t('forms.addProperty.error'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen pt-32 px-4 bg-gray-50">
-      <div className="max-w-2xl mx-auto rounded-lg shadow-xl bg-white p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Add New Property</h2>
+    <div className="min-h-screen pt-32 px-4 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+      <div className="max-w-2xl mx-auto rounded-2xl shadow-2xl bg-white/90 backdrop-blur-sm p-8 border border-white/20">
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">{t('forms.addProperty.title')}</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div className="space-y-4">
             <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                Property Title
+              <label htmlFor="titleEn" className="block text-sm font-medium text-gray-700">
+                {t('forms.fields.titleEn')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                id="title"
-                name="title"
+                id="titleEn"
+                name="titleEn"
                 required
-                value={formData.title}
+                value={formData.titleEn}
                 onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                className="mt-1 block w-full rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
+                placeholder={t('forms.placeholders.enterTitleEn')}
               />
             </div>
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                Description
+              <label htmlFor="titleAr" className="block text-sm font-medium text-gray-700">
+                {t('forms.fields.titleAr')} <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="titleAr"
+                name="titleAr"
+                required
+                value={formData.titleAr}
+                onChange={handleInputChange}
+                className="mt-1 block w-full rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
+                placeholder={t('forms.placeholders.enterTitleAr')}
+              />
+            </div>
+            <div>
+              <label htmlFor="descriptionEn" className="block text-sm font-medium text-gray-700">
+                {t('forms.fields.descriptionEn')} <span className="text-red-500">*</span>
               </label>
               <textarea
-                id="description"
-                name="description"
+                id="descriptionEn"
+                name="descriptionEn"
                 required
-                value={formData.description}
+                value={formData.descriptionEn}
                 onChange={handleInputChange}
                 rows={3}
-                className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                className="mt-1 block w-full rounded-xl border border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
+                placeholder={t('forms.placeholders.enterDescriptionEn')}
+              />
+            </div>
+            <div>
+              <label htmlFor="descriptionAr" className="block text-sm font-medium text-gray-700">
+                {t('forms.fields.descriptionAr')} <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="descriptionAr"
+                name="descriptionAr"
+                required
+                value={formData.descriptionAr}
+                onChange={handleInputChange}
+                rows={3}
+                className="mt-1 block w-full rounded-xl border border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
+                placeholder={t('forms.placeholders.enterDescriptionAr')}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="propertyType" className="block text-sm font-medium text-gray-700">
-                  Property Type
+                  {t('forms.fields.propertyType')}
                 </label>
                 <select
                   id="propertyType"
@@ -247,17 +287,17 @@ const Add = () => {
                   required
                   value={formData.propertyType}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
                 >
-                  <option value="">Select Type</option>
+                  <option value="">{t('forms.placeholders.selectType')}</option>
                   {propertyTypes.map(type => (
-                    <option key={type._id} value={type._id}>{type.type_name}</option>
+                    <option key={type._id} value={type._id}>{i18n.language === 'ar' ? type.type_name?.ar : type.type_name?.en}</option>
                   ))}
                 </select>
               </div>
               <div>
                 <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-                  City
+                  {t('forms.fields.city')}
                 </label>
                 <select
                   id="city"
@@ -265,11 +305,11 @@ const Add = () => {
                   required
                   value={formData.city}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
                 >
-                  <option value="">Select City</option>
+                  <option value="">{t('forms.placeholders.selectCity')}</option>
                   {cities.map(city => (
-                    <option key={city._id} value={city._id}>{city.city_name}</option>
+                    <option key={city._id} value={city._id}>{i18n.language === 'ar' ? city.city_name?.ar : city.city_name?.en}</option>
                   ))}
                 </select>
               </div>
@@ -277,16 +317,16 @@ const Add = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="seller" className="block text-sm font-medium text-gray-700">
-                  Seller (Optional)
+                  {t('forms.fields.seller')}
                 </label>
                 <select
                   id="seller"
                   name="seller"
                   value={formData.seller}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
                 >
-                  <option value="">Select Seller</option>
+                  <option value="">{t('forms.placeholders.selectSeller')}</option>
                   {sellers.map(seller => (
                     <option key={seller._id} value={seller.user_id?._id}>{seller.user_id?.name}</option>
                   ))}
@@ -294,16 +334,16 @@ const Add = () => {
               </div>
               <div>
                 <label htmlFor="agent" className="block text-sm font-medium text-gray-700">
-                  Agent (Optional)
+                  {t('forms.fields.agent')}
                 </label>
                 <select
                   id="agent"
                   name="agent"
                   value={formData.agent || ''}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
                 >
-                  <option value="">Select Agent</option>
+                  <option value="">{t('forms.placeholders.selectAgent')}</option>
                   {agents.map(agent => (
                     <option key={agent._id} value={agent.user_id?._id}>{agent.user_id?.name}</option>
                   ))}
@@ -312,7 +352,7 @@ const Add = () => {
             </div>
             <div>
               <label htmlFor="availability" className="block text-sm font-medium text-gray-700">
-                Availability
+                {t('forms.fields.availability')}
               </label>
               <select
                 id="availability"
@@ -320,33 +360,33 @@ const Add = () => {
                 required
                 value={formData.availability}
                 onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                className="mt-1 block w-full rounded-xl border border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
               >
-                <option value="">Select Availability</option>
+                <option value="">{t('forms.placeholders.selectAvailability')}</option>
                 {AVAILABILITY_TYPES.map(type => (
-                  <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
+                  <option key={type} value={type}>{t(`forms.availability.${type}`)}</option>
                 ))}
               </select>
             </div>
             <div>
               <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-                Status
+                {t('forms.fields.status')}
               </label>
               <select
                 id="status"
                 name="status"
                 value={formData.status}
                 onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                className="mt-1 block w-full rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
               >
-                <option value="available">Available</option>
-                <option value="rented">Rented</option>
-                <option value="sold">Sold</option>
+                <option value="available">{t('properties.status.available')}</option>
+                <option value="rented">{t('properties.status.rented')}</option>
+                <option value="sold">{t('properties.status.sold')}</option>
               </select>
             </div>
             <div>
               <label htmlFor="mapUrl" className="block text-sm font-medium text-gray-700">
-                Map URL
+                {t('forms.fields.mapUrl')}
               </label>
               <input
                 type="text"
@@ -354,13 +394,13 @@ const Add = () => {
                 name="mapUrl"
                 value={formData.mapUrl}
                 onChange={handleInputChange}
-                placeholder="https://maps.google.com/..."
-                className="mt-1 block w-full rounded-md border border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                placeholder={t('forms.placeholders.mapUrlPlaceholder')}
+                className="mt-1 block w-full rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
               />
             </div>
             <div>
               <label htmlFor="vrTourLink" className="block text-sm font-medium text-gray-700">
-                VR Tour Link
+                {t('forms.fields.vrTourLink')}
               </label>
               <input
                 type="text"
@@ -368,14 +408,14 @@ const Add = () => {
                 name="vrTourLink"
                 value={formData.vrTourLink}
                 onChange={handleInputChange}
-                placeholder="https://uploads/.../file.glb"
-                className="mt-1 block w-full rounded-md border border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                placeholder={t('forms.placeholders.vrTourPlaceholder')}
+                className="mt-1 block w-full rounded-xl border border-gray-200 focus:border-blue-500 focus:ring-indigo-500 sm:text-sm py-3 px-4 transition-all duration-300"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="price" className="block text-sm font-medium text-gray-700">
-                  Price
+                  {t('forms.fields.price')}
                 </label>
                 <input
                   type="number"
@@ -385,14 +425,14 @@ const Add = () => {
                   min="0"
                   value={formData.price}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
                 />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label htmlFor="beds" className="block text-sm font-medium text-gray-700">
-                  Bedrooms
+                  {t('forms.fields.beds')}
                 </label>
                 <input
                   type="number"
@@ -402,12 +442,12 @@ const Add = () => {
                   min="0"
                   value={formData.beds}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
                 />
               </div>
               <div>
                 <label htmlFor="baths" className="block text-sm font-medium text-gray-700">
-                  Bathrooms
+                  {t('forms.fields.baths')}
                 </label>
                 <input
                   type="number"
@@ -417,12 +457,12 @@ const Add = () => {
                   min="0"
                   value={formData.baths}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
                 />
               </div>
               <div>
                 <label htmlFor="sqft" className="block text-sm font-medium text-gray-700">
-                  Square Feet
+                  {t('forms.fields.sqft')}
                 </label>
                 <input
                   type="number"
@@ -432,7 +472,7 @@ const Add = () => {
                   min="0"
                   value={formData.sqft}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border border-gray-100 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-3 px-3"
+                  className="mt-1 block w-full rounded-xl border border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
                 />
               </div>
             </div>
@@ -441,7 +481,7 @@ const Add = () => {
           {/* Amenities */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Amenities
+              {t('forms.fields.amenities')}
             </label>
             <div className="flex flex-wrap gap-2">
               {allAmenities.map(amenity => (
@@ -449,13 +489,13 @@ const Add = () => {
                   key={amenity._id}
                   type="button"
                   onClick={() => handleAmenityToggle(amenity._id)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
                     formData.amenities.includes(amenity._id)
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300 hover:shadow-md'
                   }`}
                 >
-                  {amenity.name}
+                  {i18n.language === 'ar' ? amenity.name?.ar : amenity.name?.en}
                 </button>
               ))}
             </div>
@@ -463,16 +503,16 @@ const Add = () => {
           {/* Image Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Property Images
+              {t('forms.fields.images')}
             </label>
             <div className="flex flex-wrap gap-4 mb-4">
               {previewUrls.map((url, idx) => (
                 <div key={idx} className="relative w-24 h-24">
-                  <img src={url} alt="Preview" className="w-full h-full object-cover rounded-md" />
+                  <img src={url} alt="Preview" className="w-full h-full object-cover rounded-xl shadow-lg" />
                   <button
                     type="button"
                     onClick={() => removeImage(idx)}
-                    className="absolute top-1 right-1 bg-white rounded-full p-1 shadow hover:bg-gray-100"
+                    className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-lg hover:bg-gray-100 transition-all duration-300"
                   >
                     <X className="w-4 h-4 text-gray-600" />
                   </button>
@@ -480,12 +520,12 @@ const Add = () => {
               ))}
             </div>
             {previewUrls.length < 4 && (
-              <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+              <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-blue-400 transition-all duration-300">
                 <div className="space-y-1 text-center">
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />
                   <div className="flex text-sm text-gray-600">
-                    <label htmlFor="images" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                      <span>Upload images</span>
+                    <label htmlFor="images" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 transition-all duration-300">
+                      <span>{t('forms.imageUpload.uploadImages')}</span>
                       <input
                         id="images"
                         name="images"
@@ -497,7 +537,7 @@ const Add = () => {
                       />
                     </label>
                   </div>
-                  <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                  <p className="text-xs text-gray-500">{t('forms.imageUpload.fileTypes')}</p>
                 </div>
               </div>
             )}
@@ -506,10 +546,10 @@ const Add = () => {
           <div>
             <button
               type="submit"
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:scale-105"
               disabled={loading}
             >
-              {loading ? 'Submitting...' : 'Submit Property'}
+              {loading ? t('forms.addProperty.submitting') : t('forms.addProperty.submit')}
             </button>
           </div>
         </form>

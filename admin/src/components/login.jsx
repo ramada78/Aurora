@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaUser, FaLock } from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
 
 const Login = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -35,24 +37,24 @@ const Login = () => {
         }
         const roles = response.data.user.roles || [];
         if (response.data.user.isAdmin) {
-          toast.success("Admin Login successful!");
+          toast.success(t('login.loginSuccess'));
           navigate("/dashboard");
         } else if (roles.includes('agent') || roles.includes('seller')) {
-          toast.success("Login successful!");
+          toast.success(t('login.loginSuccessGeneric'));
           navigate("/list");
         } else {
-          toast.error("You do not have permission to access the admin panel.");
+          toast.error(t('login.noPermission'));
           localStorage.removeItem('token');
           localStorage.removeItem('roles');
           localStorage.removeItem('isAdmin');
           localStorage.removeItem('user');
         }
       } else {
-        toast.error(response.data.message || "Login failed");
+        toast.error(response.data.message || t('login.loginFailed'));
       }
     } catch (error) {
       console.error('Error logging in:', error);
-      toast.error(error.response?.data?.message || 'Invalid credentials');
+      toast.error(error.response?.data?.message || t('login.invalidCredentials'));
     } finally {
       setLoading(false);
     }
@@ -65,11 +67,11 @@ const Login = () => {
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-tr from-purple-300 via-indigo-200 to-transparent rounded-full blur-2xl opacity-40 animate-pulse-slow" />
       <div className="relative z-10 w-full max-w-md">
         <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-8 md:p-10">
-          <h1 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">Admin Login</h1>
+          <h1 className="text-3xl font-bold text-center mb-8 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">{t('login.title')}</h1>
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Email Input */}
             <div>
-              <label htmlFor="email" className="block mb-2 text-sm font-semibold text-gray-700">Admin Email</label>
+              <label htmlFor="email" className="block mb-2 text-sm font-semibold text-gray-700">{t('login.adminEmail')}</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500">
                   <FaUser />
@@ -79,7 +81,7 @@ const Login = () => {
                   name="email"
                   id="email"
                   className="w-full pl-12 pr-4 py-3 rounded-xl bg-gray-50/80 border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-gray-800 placeholder-gray-400 transition-all duration-300"
-                  placeholder="admin@example.com"
+                  placeholder={t('login.emailPlaceholder')}
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -88,7 +90,7 @@ const Login = () => {
             </div>
             {/* Password Input */}
             <div>
-              <label htmlFor="password" className="block mb-2 text-sm font-semibold text-gray-700">Password</label>
+              <label htmlFor="password" className="block mb-2 text-sm font-semibold text-gray-700">{t('login.password')}</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500">
                   <FaLock />
@@ -97,7 +99,7 @@ const Login = () => {
                   type={showPassword ? "text" : "password"}
                   name="password"
                   id="password"
-                  placeholder="••••••••"
+                  placeholder={t('login.passwordPlaceholder')}
                   className="w-full pl-12 pr-12 py-3 rounded-xl bg-gray-50/80 border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 text-gray-800 placeholder-gray-400 transition-all duration-300"
                   required
                   value={password}
@@ -121,9 +123,9 @@ const Login = () => {
               className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-3 rounded-xl hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center gap-3 font-semibold shadow-xl shadow-blue-500/25 relative overflow-hidden group disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <span>Signing in...</span>
+                <span>{t('login.signingIn')}</span>
               ) : (
-                <span>Sign in</span>
+                <span>{t('login.signIn')}</span>
               )}
             </button>
           </form>

@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 const propertySchema = new mongoose.Schema({
   title: {
-    type: String,
-    required: true,
+    en: { type: String, required: true },
+    ar: { type: String, required: true }
   },
   price: {
     type: Number,
@@ -30,8 +30,8 @@ const propertySchema = new mongoose.Schema({
     required: true,
   },
   description: {
-    type: String,
-    required: true,
+    en: { type: String, required: true },
+    ar: { type: String, required: true }
   },
   amenities: [{
     type: mongoose.Schema.Types.ObjectId,

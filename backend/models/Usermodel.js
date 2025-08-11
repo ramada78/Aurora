@@ -25,7 +25,10 @@ const UserSchema = new mongoose.Schema({
             enum: ['appointment', 'system', 'message', 'other'],
             default: 'system'
         },
-        message: { type: String, required: true },
+        message: {
+            en: { type: String, required: true },
+            ar: { type: String, required: true }
+        },
         read: { type: Boolean, default: false },
         createdAt: { type: Date, default: Date.now },
         link: { type: String }

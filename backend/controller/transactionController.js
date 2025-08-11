@@ -20,11 +20,11 @@ function isAllowedTransaction({ req, property, action }) {
     userId: req.user && req.user._id,
     propertyAgent: property.agent,
     propertySeller: property.seller,
-    isAdmin: req.admin,
+    isAdmin: req.user.isAdmin,
     action
   });
   if (action === 'add') return true;
-  if (req.admin) return true;
+  if (req.user && req.user.isAdmin) return true;
   if (!req.user || !req.user._id) return false;
   if (property.agent && property.agent.toString() === req.user._id.toString()) return true;
   if (property.seller && property.seller.toString() === req.user._id.toString()) return true;

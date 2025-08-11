@@ -1,0 +1,642 @@
+{
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "subtitle": "نظرة عامة على نظام إدارة العقارات",
+    "refreshData": "تحديث البيانات",
+    "loading": "جاري تحميل بيانات لوحة التحكم...",
+    "loadingTitle": "جاري تحميل لوحة التحكم",
+    "error": {
+      "title": "خطأ في تحميل لوحة التحكم",
+      "retry": "إعادة المحاولة"
+    },
+    "stats": {
+      "totalProperties": "إجمالي العقارات",
+      "totalPropertiesDesc": "إجمالي العقارات المدرجة",
+      "completedTransactions": "الصفقات المكتملة",
+      "completedTransactionsDesc": "إجمالي المبيعات المكتملة",
+      "totalViews": "إجمالي المشاهدات",
+      "totalViewsDesc": "مشاهدات صفحات العقارات",
+      "pendingAppointments": "المواعيد المعلقة",
+      "pendingAppointmentsDesc": "في انتظار التأكيد"
+    },
+    "charts": {
+      "propertyViews": "مشاهدات العقارات",
+      "propertyViewsTitle": "مشاهدات العقارات عبر الزمن",
+      "noViewData": "لا توجد بيانات مشاهدات متاحة"
+    },
+    "recentActivity": {
+      "title": "النشاط الأخير",
+      "noActivity": "لا يوجد نشاط حديث"
+    },
+    "charts": {
+      "propertyViews": "مشاهدات العقارات",
+      "propertyViewsTitle": "مشاهدات العقارات عبر الزمن",
+      "propertyStatusTitle": "توزيع حالة العقارات",
+      "inventoryStatus": "حالة المخزون",
+      "noViewData": "لا توجد بيانات مشاهدات متاحة",
+      "noStatusData": "لا توجد بيانات حالة العقارات متاحة",
+      "liveData": "بيانات مباشرة"
+    },
+    "propertyStatus": {
+      "available": "متاح",
+      "sold": "مباع",
+      "rented": "مؤجر"
+    },
+    "activity": {
+      "realTime": "في الوقت الفعلي",
+      "clientScheduledViewing": "قام عميل بطلب موعد مشاهدة للعقار ",
+      "newPropertyListed": "تم إدراج عقار جديد",
+      "propertyAdded": "تم إضافة عقار",
+      "propertyUpdated": "تم تحديث عقار",
+      "propertyDeleted": "تم حذف عقار",
+      "appointmentConfirmed": "تم تأكيد الموعد",
+      "appointmentCancelled": "تم إلغاء الموعد",
+      "transactionCompleted": "تم إكمال الصفقة"
+    }
+  },
+  "common": {
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "retry": "إعادة المحاولة",
+    "refresh": "تحديث",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "view": "عرض",
+    "add": "إضافة",
+    "update": "تحديث",
+    "search": "بحث",
+    "filter": "فلتر",
+    "clear": "مسح",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "submit": "إرسال",
+    "close": "إغلاق",
+    "confirm": "تأكيد",
+    "yes": "نعم",
+    "no": "لا",
+    "ok": "موافق",
+    "actions": "الإجراءات",
+    "status": "الحالة",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "phone": "الهاتف",
+    "description": "الوصف",
+    "price": "السعر",
+    "location": "الموقع",
+    "type": "النوع",
+    "category": "الفئة",
+    "created": "تم الإنشاء",
+    "updated": "تم التحديث",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "pending": "معلق",
+    "approved": "موافق عليه",
+    "rejected": "مرفوض",
+    "completed": "مكتمل",
+    "cancelled": "ملغي"
+  },
+  "navigation": {
+    "dashboard": "لوحة التحكم",
+    "properties": "العقارات",
+    "appointments": "المواعيد",
+    "transactions": "الصفقات",
+    "users": "المستخدمون",
+    "metaData": "البيانات الوصفية",
+    "amenities": "المرافق",
+    "cities": "المدن",
+    "propertyTypes": "أنواع العقارات",
+    "reviews": "التقييمات",
+    "logout": "تسجيل الخروج",
+    "adminPanel": "لوحة الإدارة"
+  },
+  "login": {
+    "title": "تسجيل دخول الإدارة",
+    "adminEmail": "بريد الإدارة الإلكتروني",
+    "password": "كلمة المرور",
+    "emailPlaceholder": "admin@example.com",
+    "passwordPlaceholder": "••••••••",
+    "signIn": "تسجيل الدخول",
+    "signingIn": "جاري تسجيل الدخول...",
+    "loginSuccess": "تم تسجيل دخول الإدارة بنجاح!",
+    "loginSuccessGeneric": "تم تسجيل الدخول بنجاح!",
+    "noPermission": "ليس لديك صلاحية للوصول إلى لوحة الإدارة.",
+    "loginFailed": "فشل تسجيل الدخول",
+    "invalidCredentials": "بيانات اعتماد غير صحيحة"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "new": "جديد",
+    "refresh": "تحديث الإشعارات",
+    "markAllRead": "تحديد الكل كمقروء",
+    "loading": "جاري تحميل الإشعارات...",
+    "noNotifications": "لا توجد إشعارات بعد",
+    "notifyWhenSomethingHappens": "سنقوم بإعلامك عند حدوث أي جديد",
+    "view": "عرض ←",
+    "clearAll": "مسح جميع الإشعارات ←"
+  },
+  "properties": {
+    "title": "قائمة العقارات",
+    "loading": "جاري تحميل العقارات...",
+    "searchPlaceholder": "ابحث في العقارات...",
+    "addProperty": "إضافة عقار",
+    "showAll": "عرض الكل",
+    "showMyPropertiesOnly": "عرض عقاراتي فقط",
+    "filters": {
+      "allTypes": "جميع الأنواع",
+      "allCities": "جميع المدن",
+      "newestFirst": "الأحدث أولاً",
+      "priceLowToHigh": "السعر: من الأقل إلى الأعلى",
+      "priceHighToLow": "السعر: من الأعلى إلى الأقل"
+    },
+    "property": {
+      "unknownType": "نوع غير معروف",
+      "unknownCity": "مدينة غير معروفة",
+      "forRent": "للإيجار",
+      "forSale": "للبيع",
+      "beds": "غرف نوم",
+      "baths": "حمامات",
+      "sqft": "متر مربع",
+      "views": "مشاهدات",
+      "edit": "تعديل",
+      "remove": "حذف",
+      "deleteConfirm": "هل أنت متأكد من حذف العقار: {{title}}؟",
+      "deleteSuccess": "تم حذف العقار بنجاح",
+      "deleteError": "فشل في حذف العقار",
+      "deleteErrorGeneric": "خطأ في حذف العقار"
+    },
+    "status": {
+      "available": "متاح",
+      "rented": "مؤجر",
+      "sold": "مباع"
+    }
+  },
+  "forms": {
+    "addProperty": {
+      "title": "إضافة عقار جديد",
+      "submit": "إرسال العقار",
+      "submitting": "جاري الإرسال...",
+      "success": "تم إضافة العقار بنجاح",
+      "error": "حدث خطأ. يرجى المحاولة مرة أخرى."
+    },
+    "updateProperty": {
+      "title": "تحديث العقار",
+      "submit": "تحديث العقار",
+      "updating": "جاري التحديث...",
+      "success": "تم تحديث العقار بنجاح",
+      "error": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+      "notAllowed": "غير مسموح لك بتحديث هذا العقار.",
+      "loading": "جاري تحميل العقار..."
+    },
+    "fields": {
+      "titleEn": "عنوان العقار (الإنجليزية)",
+      "titleAr": "عنوان العقار (العربية)",
+      "descriptionEn": "الوصف (الإنجليزية)",
+      "descriptionAr": "الوصف (العربية)",
+      "title": "عنوان العقار",
+      "description": "الوصف",
+      "propertyType": "نوع العقار",
+      "city": "المدينة",
+      "seller": "البائع (اختياري)",
+      "agent": "الوكيل (اختياري)",
+      "availability": "التوفر",
+      "status": "الحالة",
+      "mapUrl": "رابط الخريطة",
+      "vrTourLink": "رابط الجولة الافتراضية",
+      "price": "السعر",
+      "beds": "غرف النوم",
+      "baths": "الحمامات",
+      "sqft": "المتر المربع",
+      "amenities": "المرافق",
+      "images": "صور العقار"
+    },
+    "placeholders": {
+      "enterTitleEn": "أدخل عنوان العقار باللغة الإنجليزية",
+      "enterTitleAr": "أدخل عنوان العقار باللغة العربية",
+      "enterDescriptionEn": "أدخل وصف العقار باللغة الإنجليزية",
+      "enterDescriptionAr": "أدخل وصف العقار باللغة العربية",
+      "selectType": "اختر النوع",
+      "selectCity": "اختر المدينة",
+      "selectSeller": "اختر البائع",
+      "selectAgent": "اختر الوكيل",
+      "selectAvailability": "اختر التوفر",
+      "mapUrlPlaceholder": "https://maps.google.com/...",
+      "vrTourPlaceholder": "https://uploads/.../file.glb"
+    },
+    "availability": {
+      "rent": "إيجار",
+      "buy": "شراء"
+    },
+    "imageUpload": {
+      "uploadImages": "رفع الصور",
+      "maxImages": "الحد الأقصى 4 صور مسموح",
+      "fileTypes": "PNG, JPG, GIF حتى 10 ميجابايت"
+    }
+  },
+  "users": {
+    "title": "إدارة المستخدمين",
+    "subtitle": "إدارة جميع المستخدمين بما في ذلك العملاء والوكلاء والبائعين.",
+    "loading": "جاري تحميل المستخدمين...",
+    "searchPlaceholder": "ابحث في المستخدمين...",
+    "addUser": "إضافة مستخدم",
+    "editUser": "تعديل المستخدم",
+    "filters": {
+      "allRoles": "جميع الأدوار",
+      "client": "عميل",
+      "agent": "وكيل",
+      "seller": "بائع"
+    },
+    "table": {
+      "user": "المستخدم",
+      "role": "الدور",
+      "contact": "التواصل",
+      "actions": "الإجراءات"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "غير نشط",
+      "pending": "في الانتظار"
+    },
+    "form": {
+      "name": "الاسم الكامل",
+      "email": "عنوان البريد الإلكتروني",
+      "phone": "رقم الهاتف",
+      "password": "كلمة المرور",
+      "roles": "أدوار المستخدم",
+      "submit": "إنشاء مستخدم",
+      "update": "تحديث المستخدم",
+      "submitting": "جاري الإنشاء...",
+      "updating": "جاري التحديث...",
+      "success": "تم إنشاء المستخدم بنجاح",
+      "updateSuccess": "تم تحديث المستخدم بنجاح",
+      "error": "فشل في إنشاء المستخدم",
+      "updateError": "فشل في تحديث المستخدم",
+      "deleteSuccess": "تم حذف المستخدم بنجاح",
+      "deleteError": "فشل في حذف المستخدم",
+      "requiredFields": "يرجى ملء جميع الحقول المطلوبة، واختيار دور واحد على الأقل، وتعيين كلمة مرور"
+    },
+    "messages": {
+      "noPhone": "لا يوجد هاتف",
+      "noUsersFound": "لم يتم العثور على مستخدمين",
+      "noUsersFiltered": "لم يتم العثور على مستخدمين يطابقون معاييرك"
+    },
+    "modal": {
+      "addTitle": "إضافة مستخدم جديد",
+      "editTitle": "تعديل المستخدم",
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "phone": "رقم الهاتف",
+      "password": "كلمة المرور",
+      "roles": "الأدوار",
+      "enterName": "أدخل الاسم",
+      "enterEmail": "أدخل البريد الإلكتروني",
+      "enterPhone": "أدخل رقم الهاتف (اختياري)",
+      "enterPassword": "أدخل كلمة المرور",
+      "keepPassword": "اتركه فارغاً للاحتفاظ بكلمة المرور الحالية",
+      "selectRoles": "اختر الأدوار"
+    },
+    "actions": {
+      "edit": "تعديل",
+      "delete": "حذف",
+      "deleteConfirm": "هل أنت متأكد من حذف هذا المستخدم؟",
+      "editUser": "تعديل المستخدم",
+      "deleteUser": "حذف المستخدم"
+    }
+  },
+  "appointments": {
+    "title": "المواعيد",
+    "subtitle": "إدارة وتتبع مواعيد عرض العقارات",
+    "loading": "جاري تحميل المواعيد...",
+    "searchPlaceholder": "ابحث في المواعيد...",
+    "noAppointments": "لم يتم العثور على مواعيد",
+    "filters": {
+      "allAppointments": "جميع المواعيد",
+      "pending": "في الانتظار",
+      "confirmed": "مؤكد",
+      "cancelled": "ملغي",
+      "completed": "مكتمل"
+    },
+    "visitTypes": {
+      "property": "في العقار",
+      "online": "اجتماع عبر الإنترنت",
+      "office_vr": "جولة افتراضية في المكتب"
+    },
+    "table": {
+      "property": "العقار",
+      "client": "العميل",
+      "dateTime": "التاريخ والوقت",
+      "status": "الحالة",
+      "visitType": "نوع الزيارة",
+      "vrCity": "مدينة الواقع الافتراضي",
+      "meetingLink": "رابط الاجتماع",
+      "cancelReason": "سبب الإلغاء",
+      "actions": "الإجراءات"
+    },
+    "status": {
+      "pending": "في الانتظار",
+      "confirmed": "مؤكد",
+      "cancelled": "ملغي",
+      "completed": "مكتمل"
+    },
+    "actions": {
+      "confirm": "تأكيد",
+      "cancel": "إلغاء",
+      "edit": "تعديل",
+      "viewLink": "عرض الرابط",
+      "noLinkYet": "لا يوجد رابط بعد",
+      "enterMeetingLink": "أدخل رابط الاجتماع"
+    },
+    "editModal": {
+      "title": "تعديل الموعد",
+      "property": "العقار",
+      "date": "التاريخ",
+      "time": "الوقت",
+      "visitType": "نوع الزيارة",
+      "vrCity": "مدينة الواقع الافتراضي",
+      "selectVrCity": "اختر مدينة الواقع الافتراضي",
+      "meetingPlatform": "منصة الاجتماع",
+      "meetingLink": "رابط الاجتماع",
+      "meetingLinkPlaceholder": "أدخل رابط الاجتماع (إن أمكن)",
+      "notes": "ملاحظات",
+      "status": "الحالة",
+      "cancel": "إلغاء",
+      "save": "حفظ",
+      "saving": "جاري الحفظ..."
+    },
+    "messages": {
+      "fetchError": "فشل في تحميل المواعيد",
+      "statusUpdateSuccess": "تم {{status}} الموعد بنجاح",
+      "statusUpdateError": "فشل في تحديث حالة الموعد",
+      "meetingLinkError": "يرجى إدخال رابط الاجتماع",
+      "meetingLinkSuccess": "تم تحديث رابط الاجتماع بنجاح",
+      "meetingLinkUpdateError": "فشل في تحديث رابط الاجتماع",
+      "editSuccess": "تم تحديث الموعد بنجاح",
+      "editError": "فشل في تحديث الموعد"
+    }
+  },
+  "transactions": {
+    "title": "المعاملات",
+    "subtitle": "إدارة وتتبع معاملات بيع العقارات",
+    "loading": "جاري تحميل المعاملات...",
+    "searchPlaceholder": "البحث في المعاملات...",
+    "filters": {
+      "allTransactions": "جميع المعاملات",
+      "pending": "قيد الانتظار",
+      "completed": "مكتملة",
+      "cancelled": "ملغية"
+    },
+    "table": {
+      "property": "العقار",
+      "seller": "البائع",
+      "buyer": "المشتري",
+      "agent": "الوسيط",
+      "dealType": "نوع الصفقة",
+      "date": "التاريخ",
+      "price": "السعر",
+      "status": "الحالة",
+      "actions": "الإجراءات"
+    },
+    "status": {
+      "pending": "قيد الانتظار",
+      "completed": "مكتملة",
+      "cancelled": "ملغية"
+    },
+    "dealTypes": {
+      "sale": "بيع",
+      "rent": "إيجار"
+    },
+    "actions": {
+      "addTransaction": "إضافة معاملة",
+      "edit": "تعديل",
+      "delete": "حذف",
+      "cancel": "إلغاء",
+      "save": "حفظ",
+      "add": "إضافة"
+    },
+    "noTransactions": "لم يتم العثور على معاملات",
+    "noTransactionsFiltered": "لم يتم العثور على معاملات تطابق معاييرك",
+    "addModal": {
+      "title": "إضافة معاملة جديدة",
+      "transactionDate": "تاريخ المعاملة",
+      "salePrice": "سعر البيع / الإيجار الشهري",
+      "status": "الحالة",
+      "dealType": "نوع الصفقة",
+      "property": "العقار",
+      "seller": "البائع",
+      "agent": "الوسيط",
+      "buyer": "المشتري (العميل)",
+      "selectStatus": "اختر الحالة",
+      "selectDealType": "اختر نوع الصفقة",
+      "selectProperty": "اختر العقار",
+      "selectSeller": "اختر البائع",
+      "selectAgent": "اختر الوسيط",
+      "selectBuyer": "اختر المشتري",
+      "enterSalePrice": "أدخل سعر البيع"
+    },
+    "editModal": {
+      "title": "تعديل المعاملة",
+      "transactionDate": "تاريخ المعاملة",
+      "salePrice": "سعر البيع / الإيجار الشهري",
+      "status": "الحالة",
+      "dealType": "نوع الصفقة",
+      "property": "العقار",
+      "seller": "البائع",
+      "agent": "الوسيط",
+      "buyer": "المشتري (العميل)",
+      "selectStatus": "اختر الحالة",
+      "selectDealType": "اختر نوع الصفقة",
+      "selectProperty": "اختر العقار",
+      "selectSeller": "اختر البائع",
+      "selectAgent": "اختر الوسيط",
+      "selectBuyer": "اختر المشتري",
+      "enterSalePrice": "أدخل سعر البيع"
+    },
+    "messages": {
+      "fillRequiredFields": "يرجى ملء جميع الحقول المطلوبة",
+      "transactionAdded": "تمت إضافة المعاملة بنجاح",
+      "transactionUpdated": "تم تحديث المعاملة",
+      "transactionDeleted": "تم حذف المعاملة",
+      "failedToAdd": "فشل في إضافة المعاملة",
+      "failedToUpdate": "فشل في تحديث المعاملة",
+      "failedToDelete": "فشل في حذف المعاملة",
+      "confirmDelete": "هل أنت متأكد من حذف هذه المعاملة؟"
+    }
+  },
+  "reviews": {
+    "title": "التقييمات",
+    "subtitle": "إدارة تقييمات العقارات من زوار الموقع",
+    "loading": "جاري تحميل التقييمات...",
+    "searchPlaceholder": "البحث في التقييمات...",
+    "table": {
+      "property": "العقار",
+      "reviewer": "المقيّم",
+      "rating": "التقييم",
+      "comment": "التعليق",
+      "date": "التاريخ",
+      "actions": "الإجراءات"
+    },
+    "actions": {
+      "delete": "حذف",
+      "deleteConfirm": "هل أنت متأكد من حذف هذا التقييم؟"
+    },
+    "noReviews": "لم يتم العثور على تقييمات",
+    "noReviewsFiltered": "لم يتم العثور على تقييمات تطابق بحثك",
+    "messages": {
+      "fetchError": "فشل في جلب التقييمات",
+      "deleteSuccess": "تم حذف التقييم بنجاح",
+      "deleteError": "فشل في حذف التقييم"
+    },
+    "labels": {
+      "unknownProperty": "عقار غير معروف",
+      "unknownLocation": "موقع غير معروف",
+      "anonymous": "مجهول",
+      "noEmail": "لا يوجد بريد إلكتروني",
+      "noComment": "لا يوجد تعليق"
+    }
+  },
+  "amenities": {
+    "title": "المرافق",
+    "subtitle": "إدارة مرافق ومميزات العقارات",
+    "loading": "جاري تحميل المرافق...",
+    "searchPlaceholder": "البحث في المرافق...",
+    "table": {
+      "amenityName": "اسم المرفق",
+      "actions": "الإجراءات"
+    },
+    "actions": {
+      "addAmenity": "إضافة مرفق",
+      "edit": "تعديل",
+      "delete": "حذف",
+      "cancel": "إلغاء",
+      "add": "إضافة",
+      "update": "تحديث"
+    },
+    "noAmenities": "لم يتم العثور على مرافق",
+    "noAmenitiesFiltered": "لم يتم العثور على مرافق تطابق بحثك",
+    "modal": {
+      "addTitle": "إضافة مرفق جديد",
+      "editTitle": "تعديل المرفق",
+      "amenityName": "اسم المرفق",
+      "amenityNameEn": "الاسم بالإنجليزية",
+      "amenityNameAr": "الاسم بالعربية",
+      "enterAmenityName": "أدخل اسم المرفق",
+      "enterAmenityNameEn": "أدخل الاسم بالإنجليزية",
+      "enterAmenityNameAr": "أدخل الاسم بالعربية"
+    },
+    "messages": {
+      "fetchError": "فشل في جلب المرافق",
+      "addSuccess": "تمت إضافة المرفق بنجاح",
+      "updateSuccess": "تم تحديث المرفق بنجاح",
+      "deleteSuccess": "تم حذف المرفق بنجاح",
+      "addError": "فشل في إضافة المرفق",
+      "updateError": "فشل في تحديث المرفق",
+      "deleteError": "فشل في حذف المرفق",
+      "enterAmenityName": "يرجى إدخال اسم المرفق",
+      "fillAllFields": "يرجى ملء الاسمين بالإنجليزية والعربية",
+      "confirmDelete": "هل أنت متأكد من حذف هذا المرفق؟"
+    }
+  },
+      "cities": {
+      "title": "المدن",
+      "subtitle": "إدارة المدن والمواقع للعقارات",
+      "loading": "جاري تحميل المدن...",
+      "searchPlaceholder": "البحث في المدن...",
+      "table": {
+        "cityName": "اسم المدينة",
+        "country": "البلد",
+        "region": "المنطقة",
+        "actions": "الإجراءات"
+      },
+      "actions": {
+        "addCity": "إضافة مدينة",
+        "edit": "تعديل",
+        "delete": "حذف",
+        "cancel": "إلغاء",
+        "add": "إضافة",
+        "update": "تحديث"
+      },
+      "noCities": "لم يتم العثور على مدن",
+      "noCitiesFiltered": "لم يتم العثور على مدن تطابق بحثك",
+          "modal": {
+      "addTitle": "إضافة مدينة جديدة",
+      "editTitle": "تعديل المدينة",
+      "cityName": "اسم المدينة",
+      "cityNameEn": "اسم المدينة بالإنجليزية",
+      "cityNameAr": "اسم المدينة بالعربية",
+      "country": "البلد",
+      "countryEn": "اسم البلد بالإنجليزية",
+      "countryAr": "اسم البلد بالعربية",
+      "enterCityName": "أدخل اسم المدينة",
+      "enterCityNameEn": "أدخل اسم المدينة بالإنجليزية",
+      "enterCityNameAr": "أدخل اسم المدينة بالعربية",
+      "enterCountry": "أدخل البلد",
+      "enterCountryEn": "أدخل اسم البلد بالإنجليزية",
+      "enterCountryAr": "أدخل اسم البلد بالعربية"
+    },
+      "messages": {
+        "fetchError": "فشل في جلب المدن",
+        "addSuccess": "تمت إضافة المدينة بنجاح",
+        "updateSuccess": "تم تحديث المدينة بنجاح",
+        "deleteSuccess": "تم حذف المدينة بنجاح",
+        "addError": "فشل في إضافة المدينة",
+        "updateError": "فشل في تحديث المدينة",
+        "deleteError": "فشل في حذف المدينة",
+        "fillAllFields": "يرجى ملء الاسمين بالإنجليزية والعربية للمدينة والبلد",
+        "confirmDelete": "هل أنت متأكد من حذف هذه المدينة؟"
+      }
+    },
+    "propertyTypes": {
+      "title": "أنواع العقارات",
+      "subtitle": "إدارة أنواع العقارات والفئات",
+      "loading": "جاري تحميل أنواع العقارات...",
+      "searchPlaceholder": "البحث في أنواع العقارات...",
+      "table": {
+        "typeName": "اسم النوع",
+        "category": "الفئة",
+        "actions": "الإجراءات"
+      },
+      "actions": {
+        "addPropertyType": "إضافة نوع عقار",
+        "edit": "تعديل",
+        "delete": "حذف",
+        "cancel": "إلغاء",
+        "add": "إضافة",
+        "update": "تحديث"
+      },
+      "noPropertyTypes": "لم يتم العثور على أنواع عقارات",
+      "noPropertyTypesFiltered": "لم يتم العثور على أنواع عقارات تطابق بحثك",
+          "modal": {
+      "addTitle": "إضافة نوع عقار جديد",
+      "editTitle": "تعديل نوع العقار",
+      "typeName": "اسم النوع",
+      "typeNameEn": "الاسم بالإنجليزية",
+      "typeNameAr": "الاسم بالعربية",
+      "category": "الفئة",
+      "enterTypeName": "أدخل اسم النوع",
+      "enterTypeNameEn": "أدخل الاسم بالإنجليزية",
+      "enterTypeNameAr": "أدخل الاسم بالعربية",
+      "selectCategory": "اختر الفئة"
+    },
+      "categories": {
+        "residential": "سكني",
+        "commercial": "تجاري",
+        "land": "أرض",
+        "industrial": "صناعي"
+      },
+      "messages": {
+        "fetchError": "فشل في جلب أنواع العقارات",
+        "addSuccess": "تمت إضافة نوع العقار بنجاح",
+        "updateSuccess": "تم تحديث نوع العقار بنجاح",
+        "deleteSuccess": "تم حذف نوع العقار بنجاح",
+        "addError": "فشل في إضافة نوع العقار",
+        "updateError": "فشل في تحديث نوع العقار",
+        "deleteError": "فشل في حذف نوع العقار",
+        "fillAllFields": "يرجى ملء الاسمين بالإنجليزية والعربية",
+        "confirmDelete": "هل أنت متأكد من حذف نوع العقار هذا؟"
+      }
+    }
+} 

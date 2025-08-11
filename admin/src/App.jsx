@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { ErrorBoundary } from "react-error-boundary";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
 
 // Components
 import Navbar from "./components/Navbar";
@@ -15,7 +17,7 @@ import List from "./pages/List";
 import Add from "./pages/Add";
 import Update from "./pages/Update";
 import Appointments from "./pages/Appointments";
-import ManageData from './pages/ManageData';
+
 import Amenities from './pages/Amenities';
 import Cities from './pages/Cities';
 import PropertyTypes from './pages/PropertyTypes';
@@ -34,6 +36,15 @@ const pageVariants = {
 };
 
 const App = () => {
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    // Set document direction based on current language
+    const currentLang = i18n.language;
+    document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = currentLang;
+  }, [i18n.language]);
+
   return (
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
@@ -48,6 +59,7 @@ const App = () => {
             exit="exit"
             variants={pageVariants}
             transition={{ duration: 0.3 }}
+            className="pt-16"
           >
             <Routes>
               {/* Public Routes */}
@@ -61,7 +73,7 @@ const App = () => {
                 <Route path="/add" element={<Add />} />
                 <Route path="/update/:id" element={<Update />} />
                 <Route path="/appointments" element={<Appointments />} />
-                <Route path="/manage-data" element={<ManageData />} />
+        
                 <Route path="/amenities" element={<Amenities />} />
                 <Route path="/cities" element={<Cities />} />
                 <Route path="/property-types" element={<PropertyTypes />} />

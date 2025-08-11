@@ -1,10 +1,27 @@
 import PropertyType from '../models/PropertyType.js';
 import Property from '../models/propertymodel.js';
 
+// Helper function to get property type name based on language
+const getPropertyTypeName = (propertyType, language = 'en') => {
+  if (propertyType.type_name && propertyType.type_name[language]) {
+    return propertyType.type_name[language];
+  }
+  // Fallback to English if translation not available
+  return propertyType.type_name?.en || propertyType.type_name || 'Unknown';
+};
+
 export const listPropertyTypes = async (req, res) => {
   try {
-    const types = await PropertyType.find();
-    res.json({ success: true, types });
+    const { lang = 'en' } = req.query; // Get language from query parameter
+    const types = await PropertyType.find().sort({ 'type_name.en': 1 });
+    
+    // Transform property types to include the appropriate name for the requested language
+    const transformedTypes = types.map(type => ({
+      ...type.toObject(),
+      displayName: getPropertyTypeName(type, lang)
+    }));
+    
+    res.json({ success: true, types: transformedTypes });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -12,8 +29,37 @@ export const listPropertyTypes = async (req, res) => {
 
 export const addPropertyType = async (req, res) => {
   try {
-    const { type_name, category } = req.body;
-    const type = new PropertyType({ type_name, category });
+    const { typeNameEn, typeNameAr, category } = req.body;
+    
+    if (!typeNameEn || !typeNameEn.trim() || !typeNameAr || !typeNameAr.trim() || !category) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Both English and Arabic names are required, along with category' 
+      });
+    }
+
+    // Check if property type already exists (check both languages)
+    const existingType = await PropertyType.findOne({
+      $or: [
+        { 'type_name.en': typeNameEn.trim() },
+        { 'type_name.ar': typeNameAr.trim() }
+      ]
+    });
+    
+    if (existingType) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Property type already exists' 
+      });
+    }
+
+    const type = new PropertyType({
+      type_name: {
+        en: typeNameEn.trim(),
+        ar: typeNameAr.trim()
+      },
+      category
+    });
     await type.save();
     res.status(201).json({ success: true, type });
   } catch (error) {
@@ -24,8 +70,43 @@ export const addPropertyType = async (req, res) => {
 export const updatePropertyType = async (req, res) => {
   try {
     const { id } = req.params;
-    const { type_name, category } = req.body;
-    const type = await PropertyType.findByIdAndUpdate(id, { type_name, category }, { new: true });
+    const { typeNameEn, typeNameAr, category } = req.body;
+    
+    if (!typeNameEn || !typeNameEn.trim() || !typeNameAr || !typeNameAr.trim() || !category) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Both English and Arabic names are required, along with category' 
+      });
+    }
+
+    // Check if property type already exists (excluding current type)
+    const existingType = await PropertyType.findOne({
+      _id: { $ne: id },
+      $or: [
+        { 'type_name.en': typeNameEn.trim() },
+        { 'type_name.ar': typeNameAr.trim() }
+      ]
+    });
+    
+    if (existingType) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Property type already exists' 
+      });
+    }
+
+    const type = await PropertyType.findByIdAndUpdate(
+      id, 
+      {
+        type_name: {
+          en: typeNameEn.trim(),
+          ar: typeNameAr.trim()
+        },
+        category
+      }, 
+      { new: true }
+    );
+    
     if (!type) return res.status(404).json({ success: false, message: 'Not found' });
     res.json({ success: true, type });
   } catch (error) {
