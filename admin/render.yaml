@@ -6,7 +6,7 @@ services:
     staticPublishPath: ./dist
     envVars:
       - key: VITE_BACKEND_URL
-        value: https://real-estate-website-backend-fullcode.onrender.com
+        value: http://localhost:4000
     routes:
       - type: rewrite
         source: /*

@@ -59,15 +59,12 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // CORS Configuration
 app.use(cors({
   origin: [
-    'http://localhost:4000',
-    'http://localhost:5174',
-    'http://localhost:5173',
-    'https://Aurora.vercel.app',
-    'https://real-estate-website-admin.onrender.com',
-    'https://real-estate-website-backend-zfu7.onrender.com',
+    'http://localhost:5173',  // Frontend - Vite default port
+    'http://localhost:5174',  // Admin panel
+    'http://localhost:4000',  // Backend API
   ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'], // Added HEAD
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
