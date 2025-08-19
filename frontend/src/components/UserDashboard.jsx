@@ -21,7 +21,7 @@ const roleColors = {
 const sidebarLinks = [
   { to: '/dashboard/profile', label: 'dashboard.profile', icon: User },
   { to: '/dashboard/saved-properties', label: 'dashboard.saved_properties', icon: Heart },
-  { to: '/dashboard/appointments', label: 'dashboard.appointments', icon: CalendarCheck2 },
+  { to: '/dashboard/appointments', label: 'appointments', icon: CalendarCheck2 },
 ];
 
 const UserDashboard = () => {

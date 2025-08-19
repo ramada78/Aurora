@@ -12,7 +12,7 @@ const availableRoles = [
 ];
 
 const UserProfile = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, setUser } = useAuth();
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '', roles: [], password: '', confirmPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -104,6 +104,19 @@ const UserProfile = () => {
       if (res.data.success) {
         setMessage({ type: 'success', text: t('userProfile.updateSuccess') });
         setEditMode(false);
+        
+        // Refresh user data from server to ensure we have the latest data
+        try {
+          const token = localStorage.getItem('token');
+          const userResponse = await axios.get(`${Backendurl}/api/users/roles`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (userResponse.data && userResponse.data.user) {
+            setUser(userResponse.data.user);
+          }
+        } catch (error) {
+          console.error('Failed to refresh user data:', error);
+        }
       } else {
         setMessage({ type: 'error', text: res.data.message || t('userProfile.updateError') });
       }

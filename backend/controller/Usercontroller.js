@@ -1,21 +1,14 @@
-import express from "express";
-import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import validator from "validator";
 import crypto from "crypto";
 import userModel from "../models/Usermodel.js";
 import transporter from "../config/nodemailer.js";
-import { getWelcomeTemplate } from "../email.js";
 import { getPasswordResetTemplate } from "../email.js";
-import Property from '../models/propertymodel.js';
 import Seller from "../models/Seller.js";
 import Agent from "../models/Agent.js";
 import Client from "../models/Client.js";
-
-const backendurl = process.env.BACKEND_URL;
 
 const createtoken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -24,6 +17,10 @@ const createtoken = (id) => {
 };
 
 dotenv.config();
+
+// ========================================
+// AUTHENTICATION FUNCTIONS
+// ========================================
 
 const login = async (req, res) => {
   try {
@@ -364,11 +361,15 @@ const logout = async (req, res) => {
     }
 };
 
+// ========================================
+// USER PROFILE FUNCTIONS
+// ========================================
+
 // get name and email
 
 const getname = async (req, res) => {
   try {
-    const user = await userModel.findById(req.user.id).select("-password");
+    const user = await userModel.findById(req.user._id).select("-password");
     return res.json(user);
   }
   catch (error) {
@@ -377,22 +378,32 @@ const getname = async (req, res) => {
   }
 }
 
-// Function to update user profile with phone numbers
+// Function to update user profile
 const updateUserProfile = async (req, res) => {
   try {
-    const { phone } = req.body; // phone number for user
-    const userId = req.user.id;
+    const { name, email, phone, roles, password } = req.body;
+    const userId = req.user._id;
 
     const user = await userModel.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found", success: false });
     }
 
-    // Update phone number in User only
-    if (phone) {
-      user.phone = phone;
-      await user.save();
+    // Build update object
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (email) updateData.email = email;
+    if (phone !== undefined) updateData.phone = phone;
+    if (roles && Array.isArray(roles) && roles.length > 0) {
+      updateData.roles = roles;
     }
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData.password = hashedPassword;
+    }
+
+    // Use findByIdAndUpdate to avoid validation issues with notifications
+    await userModel.findByIdAndUpdate(userId, updateData, { new: true });
 
     res.json({ 
       success: true, 
@@ -411,7 +422,7 @@ const updateUserProfile = async (req, res) => {
 // Function to get user's role information
 const getUserRoles = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
 
     const user = await userModel.findById(userId);
     if (!user) {
@@ -447,6 +458,7 @@ const getUserRoles = async (req, res) => {
       user: {
         name: user.name,
         email: user.email,
+        phone: user.phone,
         roles: user.roles,
         primaryRole: user.primaryRole,
         profileCompleted: user.profileCompleted,
@@ -464,6 +476,10 @@ const getUserRoles = async (req, res) => {
     });
   }
 };
+
+// ========================================
+// ADMIN FUNCTIONS
+// ========================================
 
 // Function to get all users with roles for admin panel
 const getAllUsersWithRoles = async (req, res) => {
@@ -609,10 +625,14 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// ========================================
+// USER FEATURES (SEARCH, WISHLIST, NOTIFICATIONS)
+// ========================================
+
 // Save last search/filter for logged-in user (supports last 10)
 const saveLastSearch = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
     const { lastSearch } = req.body;
     if (!lastSearch) {
       return res.status(400).json({ success: false, message: 'Missing lastSearch data' });
@@ -632,7 +652,7 @@ const saveLastSearch = async (req, res) => {
 // Get last 10 search/filter actions for logged-in user
 const getLastSearch = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user._id;
     const user = await userModel.findById(userId);
     res.json({ success: true, lastSearches: user?.lastSearches || [] });
   } catch (error) {
@@ -644,7 +664,7 @@ const getLastSearch = async (req, res) => {
 // Get user's wishlist (populated)
 const getWishlist = async (req, res) => {
   try {
-    const user = await userModel.findById(req.user.id).populate({
+    const user = await userModel.findById(req.user._id).populate({
       path: 'wishlist',
       populate: [
         { path: 'propertyType' },
@@ -666,7 +686,7 @@ const addToWishlist = async (req, res) => {
   try {
     const { propertyId } = req.body;
     if (!propertyId) return res.status(400).json({ success: false, message: 'Missing propertyId' });
-    const user = await userModel.findById(req.user.id);
+    const user = await userModel.findById(req.user._id);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     if (user.wishlist.includes(propertyId)) {
       return res.status(400).json({ success: false, message: 'Property already in wishlist' });
@@ -684,7 +704,7 @@ const removeFromWishlist = async (req, res) => {
   try {
     const { propertyId } = req.body;
     if (!propertyId) return res.status(400).json({ success: false, message: 'Missing propertyId' });
-    const user = await userModel.findById(req.user.id);
+    const user = await userModel.findById(req.user._id);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     user.wishlist = user.wishlist.filter(id => id.toString() !== propertyId);
     await user.save();
@@ -697,7 +717,7 @@ const removeFromWishlist = async (req, res) => {
 // In-app notifications endpoints
 const getNotifications = async (req, res) => {
   try {
-    const user = await userModel.findById(req.user.id).select('notifications');
+    const user = await userModel.findById(req.user._id).select('notifications');
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     // Sort notifications by createdAt descending (newest first)
     const sorted = (user.notifications || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -709,7 +729,7 @@ const getNotifications = async (req, res) => {
 
 const markNotificationsRead = async (req, res) => {
   try {
-    const user = await userModel.findById(req.user.id);
+    const user = await userModel.findById(req.user._id);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     user.notifications.forEach(n => { n.read = true; });
     await user.save();
