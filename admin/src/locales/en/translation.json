@@ -106,6 +106,7 @@
     "appointments": "Appointments",
     "transactions": "Transactions",
     "users": "Users",
+    "news": "News",
     "metaData": "Meta Data",
     "amenities": "Amenities",
     "cities": "Cities",
@@ -638,5 +639,81 @@
       "fillAllFields": "Please fill in both English and Arabic names",
       "confirmDelete": "Are you sure you want to delete this property type?"
     }
+    },
+    "news": {
+      "title": "News Management",
+      "subtitle": "Manage articles and blog posts",
+      "loading": "Loading articles...",
+      "searchPlaceholder": "Search articles...",
+      "noNews": "No articles found",
+      "noNewsFiltered": "No articles found matching your search",
+      "table": {
+        "title": "Title",
+        "excerpt": "Excerpt",
+        "category": "Category",
+        "author": "Author",
+        "status": "Status",
+        "views": "Views",
+        "actions": "Actions"
+      },
+      "actions": {
+        "addNews": "Add an Article",
+        "edit": "Edit",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "add": "Add",
+        "update": "Update"
+      },
+      "modal": {
+        "addTitle": "Add New Article",
+        "editTitle": "Edit Article",
+        "titleEn": "English Title",
+        "titleAr": "Arabic Title",
+        "contentEn": "English Content",
+        "contentAr": "Arabic Content",
+        "excerptEn": "English Excerpt",
+        "excerptAr": "Arabic Excerpt",
+        "imageUrl": "Image URL",
+        "author": "Author",
+        "category": "Category",
+        "tags": "Tags",
+        "tagsHelp": "Separate with commas",
+        "status": "Status",
+        "featured": "Featured Article",
+        "enterTitleEn": "Enter English title",
+        "enterTitleAr": "Enter Arabic title",
+        "enterContentEn": "Enter English content",
+        "enterContentAr": "Enter Arabic content",
+        "enterExcerptEn": "Enter English excerpt",
+        "enterExcerptAr": "Enter Arabic excerpt",
+        "enterImageUrl": "Enter image URL",
+        "enterAuthor": "Enter author name",
+        "selectCategory": "Select category",
+        "selectStatus": "Select status"
+      },
+      "categories": {
+        "buying": "Buying Guide",
+        "selling": "Selling Tips",
+        "investment": "Investment",
+        "tips": "Real Estate Tips",
+        "market_trends": "Market Trends",
+        "real_estate": "Real Estate News"
+      },
+      "status": {
+        "draft": "Draft",
+        "published": "Published",
+        "archived": "Archived"
+      },
+      "messages": {
+        "fetchError": "Failed to fetch news articles",
+        "createSuccess": "News article created successfully",
+        "createError": "Failed to create news article",
+        "updateSuccess": "News article updated successfully",
+        "updateError": "Failed to update news article",
+        "deleteSuccess": "News article deleted successfully",
+        "deleteError": "Failed to delete news article",
+        "deleteConfirm": "Are you sure you want to delete this news article?",
+        "fillAllFields": "Please fill in all required fields"
+      }
     }
 } 

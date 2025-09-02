@@ -106,6 +106,7 @@
     "appointments": "المواعيد",
     "transactions": "الصفقات",
     "users": "المستخدمون",
+    "news": "الأخبار",
     "metaData": "البيانات الوصفية",
     "amenities": "المرافق",
     "cities": "المدن",
@@ -637,6 +638,82 @@
         "deleteError": "فشل في حذف نوع العقار",
         "fillAllFields": "يرجى ملء الاسمين بالإنجليزية والعربية",
         "confirmDelete": "هل أنت متأكد من حذف نوع العقار هذا؟"
+      }
+    },
+    "news": {
+      "title": "إدارة الأخبار",
+      "subtitle": "إدارة المقالات والمدونات",
+      "loading": "جاري تحميل المقالات...",
+      "searchPlaceholder": "البحث في المقالات...",
+      "noNews": "لم يتم العثور على مقالات",
+      "noNewsFiltered": "لم يتم العثور على مقالات إخبارية تطابق بحثك",
+      "table": {
+        "title": "العنوان",
+        "excerpt": "ملخص",
+        "category": "الفئة",
+        "author": "الكاتب",
+        "status": "الحالة",
+        "views": "المشاهدات",
+        "actions": "الإجراءات"
+      },
+      "actions": {
+        "addNews": "إضافة مقال",
+        "edit": "تعديل",
+        "delete": "حذف",
+        "cancel": "إلغاء",
+        "add": "إضافة",
+        "update": "تحديث"
+      },
+      "modal": {
+        "addTitle": "إضافة مقال جديد",
+        "editTitle": "تعديل المقال",
+        "titleEn": "العنوان بالإنجليزية",
+        "titleAr": "العنوان بالعربية",
+        "contentEn": "المحتوى بالإنجليزية",
+        "contentAr": "المحتوى بالعربية",
+        "excerptEn": "الملخص بالإنجليزية",
+        "excerptAr": "الملخص بالعربية",
+        "imageUrl": "رابط الصورة",
+        "author": "الكاتب",
+        "category": "الفئة",
+        "tags": "العلامات",
+        "tagsHelp": "افصل بفواصل",
+        "status": "الحالة",
+        "featured": "مقال مميز",
+        "enterTitleEn": "أدخل العنوان بالإنجليزية",
+        "enterTitleAr": "أدخل العنوان بالعربية",
+        "enterContentEn": "أدخل المحتوى بالإنجليزية",
+        "enterContentAr": "أدخل المحتوى بالعربية",
+        "enterExcerptEn": "أدخل الملخص بالإنجليزية",
+        "enterExcerptAr": "أدخل الملخص بالعربية",
+        "enterImageUrl": "أدخل رابط الصورة",
+        "enterAuthor": "أدخل اسم الكاتب",
+        "selectCategory": "اختر الفئة",
+        "selectStatus": "اختر الحالة"
+      },
+      "categories": {
+        "buying": "دليل الشراء",
+        "selling": "نصائح البيع",
+        "investment": "الاستثمار",
+        "tips": "نصائح العقارات",
+        "market_trends": "اتجاهات السوق",
+        "real_estate": "أخبار العقارات"
+      },
+      "status": {
+        "draft": "مسودة",
+        "published": "منشور",
+        "archived": "مؤرشف"
+      },
+      "messages": {
+        "fetchError": "فشل في جلب المقالات",
+        "createSuccess": "تم إنشاء المقال بنجاح",
+        "createError": "فشل في إنشاء المقال",
+        "updateSuccess": "تم تحديث المقال بنجاح",
+        "updateError": "فشل في تحديث المقال",
+        "deleteSuccess": "تم حذف المقال بنجاح",
+        "deleteError": "فشل في حذف المقال",
+        "deleteConfirm": "هل أنت متأكد من حذف هذا المقال؟",
+        "fillAllFields": "يرجى ملء جميع الحقول المطلوبة"
       }
     }
 } 

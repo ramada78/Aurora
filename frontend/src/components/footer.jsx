@@ -17,7 +17,7 @@ import {
   Heart,
   Star,
   Zap,
-  Clock,
+  FileText,
   Shield
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -194,7 +194,7 @@ const Newsletter = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post(`${Backendurl || 'http://localhost:4000'}/news/newsdata`, { email });
+      const response = await axios.post(`${Backendurl || 'http://localhost:4000'}/api/news/newsletter`, { email });
       if (response.status === 200) {
         toast.success(t('footer.subscribe_success'));
         setEmail('');
@@ -286,6 +286,7 @@ const companyLinks = [
   { name: 'footer.home', href: '/', icon: Home },
   { name: 'footer.properties', href: '/properties', icon: MapPin },
   { name: 'footer.about_us', href: '/about', icon: Star },
+  { name: 'blog', href: '/blog', icon: FileText },
   { name: 'footer.contact', href: '/contact', icon: Mail },
   { name: 'footer.ai_property_hub', href: '/ai-agent', icon: Zap },
 ];

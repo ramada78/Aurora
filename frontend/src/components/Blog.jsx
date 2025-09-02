@@ -1,10 +1,13 @@
-import { useState } from 'react';
-import { Calendar, ArrowRight, ArrowLeft, Clock, Share2, Bookmark, BookmarkCheck, Search, Tag, ExternalLink, ChevronRight, ChevronLeft, TrendingUp, Eye } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Calendar, ArrowRight, ArrowLeft, Clock, Share2, Search, Tag, ExternalLink, ChevronRight, ChevronLeft, TrendingUp, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { blogPosts } from '../assets/blogdata';
 import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { Backendurl } from '../App.jsx';
 
 // Animation variants
 const containerVariants = {
@@ -65,10 +68,10 @@ const floatingAnimation = {
 // BlogCard component
 const BlogCard = ({ post }) => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const isRTL = i18n.language === 'ar';
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [views] = useState(Math.floor(Math.random() * 1000) + 100);
+  const [views] = useState(post.views || 0);
 
   const handleShare = async (e) => {
     e.stopPropagation();
@@ -96,23 +99,17 @@ const BlogCard = ({ post }) => {
     }
   };
 
-  const handleBookmark = (e) => {
-    e.stopPropagation();
-    setIsBookmarked(!isBookmarked);
-    
-    if (!isBookmarked) {
-      toast.success(t('saved_to_reading_list', { title: isRTL ? (post.title_ar || post.title) : post.title }), {
-        style: { borderRadius: '12px', background: '#3B82F6', color: '#fff' }
-      });
-    } else {
-      toast.info(t('removed_from_reading_list', { title: isRTL ? (post.title_ar || post.title) : post.title }), {
-        style: { borderRadius: '12px', background: '#6B7280', color: '#fff' }
-      });
-    }
-  };
+
 
   const handleReadMore = () => {
-    window.open(post.link, '_blank', 'noopener,noreferrer');
+    // Check if it's an internal news article or external demo article
+    if (post.link.startsWith('/news/')) {
+      // Internal news article - navigate to single news page
+      navigate(post.link);
+    } else {
+      // External demo article - open in new tab
+      window.open(post.link, '_blank', 'noopener,noreferrer');
+    }
   };
 
   const estimatedReadTime = Math.ceil((isRTL ? (post.excerpt_ar || post.excerpt) : post.excerpt).split(' ').length / 200);
@@ -194,23 +191,7 @@ const BlogCard = ({ post }) => {
           )}
         </AnimatePresence>
 
-        <div className="absolute top-6 right-6 flex flex-col gap-3">
-          <motion.button
-            whileTap={pulseAnimation}
-            onClick={handleBookmark}
-            className={`p-3 backdrop-blur-md rounded-full shadow-lg border border-white/20 transition-all duration-300
-              ${isBookmarked 
-                ? 'bg-blue-600 text-white shadow-blue-500/25' 
-                : 'bg-white/90 text-gray-700 hover:bg-blue-50 hover:text-blue-600'
-              }`}
-          >
-            {isBookmarked ? (
-              <BookmarkCheck className="w-4 h-4" />
-            ) : (
-              <Bookmark className="w-4 h-4" />
-            )}
-          </motion.button>
-          
+        <div className="absolute top-6 right-6">
           <motion.button
             whileTap={pulseAnimation}
             onClick={handleShare}
@@ -268,10 +249,14 @@ const BlogCard = ({ post }) => {
 // Main Blog component
 const Blog = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const isRTL = i18n.dir() === 'rtl';
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [newsArticles, setNewsArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   // Use category keys, not translated labels
   const categories = [
@@ -283,9 +268,71 @@ const Blog = () => {
     { key: 'market_trends', label: t('market_trends') },
     { key: 'real_estate', label: t('real_estate') },
   ];
+
+  // Fetch news articles from database
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const params = new URLSearchParams({
+          page: '1',
+          limit: '6', // Limit to 6 articles for home page
+          lang: i18n.language
+        });
+        
+        const response = await axios.get(`${Backendurl}/api/news/news?${params}`);
+        
+        if (response.data.success && response.data.news && response.data.news.length > 0) {
+          setNewsArticles(response.data.news);
+        } else {
+          setNewsArticles([]);
+        }
+      } catch (error) {
+        console.error('Error fetching news:', error);
+        setError('Failed to fetch news articles');
+        setNewsArticles([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNews();
+  }, [i18n.language]);
+
+  // Transform news articles to match blog post format
+  const transformedNews = newsArticles.map(article => ({
+    id: article._id,
+    title: article.title?.en || article.title?.ar || 'Untitled',
+    title_ar: article.title?.ar || article.title?.en || 'بدون عنوان',
+    excerpt: article.excerpt?.en || article.excerpt?.ar || 'No excerpt available',
+    excerpt_ar: article.excerpt?.ar || article.excerpt?.en || 'No excerpt available',
+    date: new Date(article.publishedAt || article.createdAt).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }),
+    image: article.image || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+    link: `/news/${article._id}`, // Link to single news page
+    category: article.category || 'real_estate',
+    views: article.views || 0
+  }));
+
+
+
+  // Use news articles if available, otherwise fall back to demo articles
+  // Always ensure we have something to display
+  const postsToDisplay = transformedNews.length > 0 ? transformedNews : blogPosts;
+  
+  // If no posts to display at all, force demo articles
+  if (postsToDisplay.length === 0) {
+    console.log('No posts to display, forcing demo articles');
+    postsToDisplay.push(...blogPosts);
+  }
   
   // Filtering logic uses keys
-  const filteredPosts = blogPosts.filter(post => {
+  const filteredPosts = postsToDisplay.filter(post => {
     const matchesSearch = (i18n.language === 'ar'
       ? (post.title_ar || post.title)
       : post.title
@@ -297,6 +344,8 @@ const Blog = () => {
     const matchesCategory = selectedCategory === 'all' || (post.category || 'real_estate') === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+
 
   return (
     <section className="py-32 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50 relative overflow-hidden">
@@ -376,7 +425,7 @@ const Blog = () => {
               </motion.div>
             </div>
             
-            <div className="flex flex-wrap gap-3 justify-center lg:justify-end">
+            <div className="flex flex-wrap gap-2 justify-center lg:justify-end">
               {categories.map((cat, index) => (
                 <motion.button
                   key={cat.key}
@@ -386,7 +435,7 @@ const Blog = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setSelectedCategory(cat.key)}
-                  className={`px-6 py-3 rounded-full text-sm font-semibold transition-all duration-300 shadow-lg ${
+                  className={`px-4 py-2 rounded-full text-xs font-medium transition-all duration-300 shadow-lg ${
                     selectedCategory === cat.key
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/25 transform scale-105'
                       : 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 border border-gray-200'
@@ -399,13 +448,52 @@ const Blog = () => {
           </div>
         </motion.div>
         
-        {filteredPosts.length > 0 ? (
+        {loading ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center py-20 bg-white/60 backdrop-blur-sm rounded-3xl border border-gray-200 shadow-xl"
+          >
+            <div className="relative">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center"
+              >
+                <Clock className="w-8 h-8 text-white" />
+              </motion.div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-4">{t('loading_articles')}</h3>
+              <p className="text-gray-600 max-w-md mx-auto mb-8 leading-relaxed">
+                {t('fetching_latest_news')}
+              </p>
+            </div>
+          </motion.div>
+        ) : error ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center py-20 bg-white/60 backdrop-blur-sm rounded-3xl border border-gray-200 shadow-xl"
+          >
+            <div className="relative">
+              <motion.div
+                animate={{ pulse: true }}
+                transition={{ duration: 1, repeat: Infinity }}
+                className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-red-400 to-red-500 rounded-full flex items-center justify-center"
+              >
+                <Search className="w-8 h-8 text-white" />
+              </motion.div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-4">{t('error_loading_articles')}</h3>
+              <p className="text-gray-600 max-w-md mx-auto mb-8 leading-relaxed">
+                {error}. {t('showing_demo_articles')}
+              </p>
+            </div>
+          </motion.div>
+        ) : filteredPosts.length > 0 ? (
           <motion.div
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
+            initial="visible"
+            animate="visible"
           >
             {filteredPosts.map((post) => (
               <BlogCard key={post.id} post={{...post, id: String(post.id)}} />
@@ -454,8 +542,9 @@ const Blog = () => {
           <motion.button
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.98 }}
+            onClick={() => navigate('/news')}
             className="px-10 py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white rounded-2xl 
-              shadow-2xl hover:shadow-blue-500/25 transition-all font-bold text-lg inline-flex items-center group relative overflow-hidden"
+              shadow-2xl hover:shadow-blue-500/25 transition-all font-bold text-lg inline-flex items-center group relative overflow-hidden cursor-pointer"
           >
             <span className="relative z-10 flex items-center">
               {t('explore_all_articles')}

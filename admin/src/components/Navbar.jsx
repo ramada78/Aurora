@@ -22,6 +22,7 @@ import {
   Users,
   MessageCircle,
   Bell,
+  FileText,
 } from 'lucide-react';
 import axios from 'axios';
 import { AnimatePresence } from 'framer-motion';
@@ -146,6 +147,7 @@ const Navbar = () => {
     { path: '/appointments', label: t('navigation.appointments'), icon: Calendar },
     { path: '/transactions', label: t('navigation.transactions'), icon: TrendingUp },
     { path: '/users', label: t('navigation.users'), icon: Users },
+    { path: '/news', label: t('navigation.news'), icon: FileText },
   ];
 
   const metaDataItems = [

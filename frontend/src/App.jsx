@@ -23,6 +23,8 @@ import UserDashboard from './components/UserDashboard';
 import UserProfile from './pages/UserProfile';
 import SavedProperties from './pages/SavedProperties';
 import Appointments from './pages/Appointments';
+import News from './pages/News';
+import SingleNews from './pages/SingleNews';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -78,6 +80,8 @@ const App = () => {
         <Route path="/about" element={<Aboutus />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/ai-property-hub" element={<AIPropertyHub />} />
+        <Route path="/news" element={<News />} />
+        <Route path="/news/:id" element={<SingleNews />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <Footer />

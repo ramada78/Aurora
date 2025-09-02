@@ -677,5 +677,66 @@
     "info": {
       "agentGuide": "A qualified agent will guide you through the viewing"
     }
-  }
+  },
+  "news": {
+    "title": "Latest News",
+    "description": "Stay updated with the latest real estate news, market trends, and expert insights",
+    "searchPlaceholder": "Search news articles...",
+    "views": "views",
+    "readMore": "Read More",
+    "featured": "Featured",
+    "noNewsFound": "No news articles found",
+    "noNewsDescription": "We couldn't find any news articles matching your search criteria. Try adjusting your filters or check back later for new content.",
+    "categories": {
+      "buying": "Buying Guide",
+      "selling": "Selling Tips",
+      "investment": "Investment",
+      "tips": "Real Estate Tips",
+      "market_trends": "Market Trends",
+      "real_estate": "Real Estate News"
+    },
+    "filters": {
+      "allCategories": "All Categories",
+      "allStatuses": "All Statuses"
+    },
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page",
+      "of": "of"
+    }
+  },
+  "all": "All",
+  "buying": "Buying",
+  "selling": "Selling",
+  "investment": "Investment",
+  "tips": "Tips",
+  "market_trends": "Market Trends",
+  "real_estate": "Real Estate",
+  "blog": "Blog",
+  "loading_news": "Loading news...",
+  "latest_news": "Latest news and insights",
+  "min_read": "min read",
+  "trending": "Trending",
+  "read_full_article": "Read Full Article",
+  "continue_reading": "Continue Reading",
+  "post_shared_successfully": "Post shared successfully! 🎉",
+  "link_copied_to_clipboard": "Link copied to clipboard! 📋",
+  "unable_to_share_post": "Unable to share post 😕",
+  "saved_to_reading_list": "Saved \"{{title}}\" to reading list 💾",
+  "removed_from_reading_list": "Removed \"{{title}}\" from reading list 🗑️",
+  "loading_article": "Loading article...",
+  "article_not_found": "Article Not Found",
+  "article_not_found_description": "The article you're looking for doesn't exist or has been removed.",
+  "back_to_news": "Back to News",
+  "error_loading_article": "Error loading article",
+  "author": "Author",
+  "tags": "Tags",
+  "share_article": "Share Article",
+  "related_articles": "Related Articles",
+  "views": "views",
+  "loading_articles": "Loading Articles...",
+  "fetching_latest_news": "Fetching the latest news and insights...",
+  "error_loading_articles": "Error Loading Articles",
+  "showing_demo_articles": "Showing demo articles instead."
 } 

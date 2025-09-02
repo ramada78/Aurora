@@ -107,7 +107,13 @@ All API endpoints follow this pattern:
 - `POST /api/forms/submit` - Submit contact form
 
 #### **News** (`/api/news`)
-- `POST /api/news/newsdata` - Submit newsletter
+- `GET /api/news/news` - Get all published news articles (public)
+- `GET /api/news/admin/news` - Get all news articles for admin (includes all data and statuses)
+- `GET /api/news/news/:id` - Get single news article by ID
+- `POST /api/news/news` - Create new news article (admin only)
+- `PUT /api/news/news/:id` - Update news article (admin only)
+- `DELETE /api/news/news/:id` - Delete news article (admin only)
+- `POST /api/news/newsletter` - Submit newsletter subscription
 
 #### **Admin** (`/api/admin`)
 - `GET /api/admin/stats` - Admin statistics

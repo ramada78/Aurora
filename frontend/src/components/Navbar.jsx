@@ -26,6 +26,7 @@ import {
   Info,
   Phone,
   Brain,
+  FileText,
 } from "lucide-react";
 import logo from "../assets/images/logo.png";
 import { useAuth } from "../context/AuthContext";
@@ -239,10 +240,10 @@ const Navbar = () => {
       {/* Premium gradient border */}
       <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
       
-      <div className="max-w-7xl mx-auto mt-2 mb-1 px-2 sm:px-6 lg:px-10">
-        <div className="flex items-center justify-between h-14 md:h-16 gap-2 md:gap-4">
+      <div className="max-w-7xl mx-auto mt-1 mb-1 px-2 sm:px-4 lg:px-6">
+        <div className="flex items-center justify-between h-12 md:h-14 gap-1 md:gap-2">
           {/* Logo */}
-          <Link to="/" className="flex flex-col items-center justify-center group mr-2 md:flex-row md:items-center md:space-x-3 md:mr-4 min-w-[60px]">
+          <Link to="/" className="flex flex-col items-center justify-center group mr-1 md:flex-row md:items-center md:space-x-2 md:mr-2 min-w-[50px]">
             <motion.div
               variants={logoVariants}
               whileHover={{ 
@@ -253,7 +254,7 @@ const Navbar = () => {
               transition={{ duration: 0.5 }}
               className={`relative p-1 md:p-0.5 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg group-hover:shadow-blue-500/30 ${isRTL ? 'ml-2 md:ml-4' : 'mr-2'}`}
             >
-              <img src={logo} alt="Aurora logo" className="w-10 h-10 md:w-18 md:h-18 brightness-0 invert mx-auto" />
+              <img src={logo} alt="Aurora logo" className="w-8 h-8 md:w-12 md:h-12 brightness-0 invert mx-auto" />
               {/* Floating sparkles */}
               <motion.div
                 animate={floatingAnimation}
@@ -263,10 +264,10 @@ const Navbar = () => {
               </motion.div>
             </motion.div>
             <div className="flex flex-col items-center md:items-start mt-1 md:mt-0 hidden md:flex">
-              <span className="text-lg md:text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent group-hover:from-indigo-600 group-hover:via-blue-600 group-hover:to-purple-600 transition-all duration-500">
+              <span className="text-sm md:text-lg font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent group-hover:from-indigo-600 group-hover:via-blue-600 group-hover:to-purple-600 transition-all duration-500">
                 {t('navbar.aurora')}
               </span>
-              <span className="text-[10px] md:text-xs text-gray-500 font-medium -mt-0.5 md:-mt-1">
+              <span className="text-[8px] md:text-[10px] text-gray-500 font-medium -mt-0.5 md:-mt-1">
                 {t('navbar.future_real_estate')}
               </span>
             </div>
@@ -276,22 +277,22 @@ const Navbar = () => {
             <NavLinks currentPath={location.pathname} navItemClass="font-medium" />
           </div>
           {/* Notification Bell, Language Switcher, and User Avatar */}
-          <div className="flex items-center gap-1 md:gap-3">
+          <div className="flex items-center gap-1 md:gap-2">
             {/* Notification Bell - Only show when logged in */}
             {isLoggedIn && (
             <div className="relative" ref={notifRef}>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="relative p-2.5 rounded-xl hover:bg-gray-100 transition-all duration-200 group"
+                className="relative p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 group"
                 onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
               >
-                <Bell className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                <Bell className="w-4 h-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
                 {unreadCount > 0 && (
                   <motion.span 
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg"
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold shadow-lg"
                   >
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </motion.span>
@@ -426,11 +427,11 @@ const Navbar = () => {
             {/* Language Switcher */}
             <button
               onClick={handleLanguageChange}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-blue-200 bg-white text-blue-700 text-xs font-semibold shadow-sm hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 focus:outline-none"
+              className="flex items-center gap-1 px-2 py-1 rounded-full border border-blue-200 bg-white text-blue-700 text-[10px] font-semibold shadow-sm hover:bg-blue-50 hover:border-blue-400 transition-all duration-200 focus:outline-none"
               aria-label={i18n.language === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
-              style={{ minWidth: 40 }}
+              style={{ minWidth: 35 }}
             >
-              <Globe className="w-4 h-4" />
+              <Globe className="w-3 h-3" />
               {i18n.language === 'ar' ? 'En' : 'Ar'}
             </button>
             {/* Conditional Auth Section */}
@@ -440,19 +441,19 @@ const Navbar = () => {
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={toggleDropdown}
-                className="flex items-center p-1.5 rounded-xl hover:bg-gray-50 transition-all duration-200 focus:outline-none"
+                className="flex items-center p-1 rounded-lg hover:bg-gray-50 transition-all duration-200 focus:outline-none"
                 aria-label={t('user_menu')}
                 aria-expanded={isDropdownOpen}
               >
                 <div className="relative">
                   <motion.div
                     whileHover={{ scale: 1.05 }}
-                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-500/30"
+                    className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-blue-500/30"
                   >
-                    <User className="w-5 h-5" />
+                    <User className="w-4 h-4" />
                   </motion.div>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-400 border-2 border-white rounded-full flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 bg-green-600 rounded-full" />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white rounded-full flex items-center justify-center">
+                    <div className="w-1 h-1 bg-green-600 rounded-full" />
                   </div>
                 </div>
                 <motion.div
@@ -518,18 +519,18 @@ const Navbar = () => {
             </div>
             ) : (
               /* Sign In and Get Started Buttons */
-              <div className="hidden md:flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-1.5">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium transition-colors"
+                  className="px-3 py-1.5 text-gray-700 hover:text-blue-600 font-medium transition-colors text-sm"
                 >
                   <Link to="/login">{t('sign_in')}</Link>
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-medium shadow-lg shadow-blue-500/30"
+                  className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-medium shadow-lg shadow-blue-500/30 text-sm"
                 >
                   <Link to="/signup">{t('get_started')}</Link>
                 </motion.button>
@@ -540,7 +541,7 @@ const Navbar = () => {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={toggleMobileMenu}
-            className="md:hidden relative p-2.5 rounded-xl hover:bg-gray-100 transition-colors focus:outline-none"
+            className="md:hidden relative p-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none"
             aria-label={t('toggle_menu')}
             aria-expanded={isMobileMenuOpen}
           >
@@ -549,9 +550,9 @@ const Navbar = () => {
               transition={{ duration: 0.3 }}
             >
               {isMobileMenuOpen ? (
-                <X className="w-6 h-6 text-gray-700" />
+                <X className="w-5 h-5 text-gray-700" />
               ) : (
-                <Menu className="w-6 h-6 text-gray-700" />
+                <Menu className="w-5 h-5 text-gray-700" />
               )}
             </motion.div>
             {isLoggedIn && notifications > 0 && (
@@ -629,6 +630,13 @@ const NavLinks = ({ currentPath, navItemClass }) => {
       color: "from-orange-500 to-red-500",
       description: t('get_in_touch')
     },
+    { 
+      name: t('blog'), 
+      path: "/news", 
+      icon: FileText, 
+      color: "from-indigo-500 to-purple-500",
+      description: t('latest_news')
+    },
   ];
 
   // Special animation for sparkles
@@ -645,7 +653,7 @@ const NavLinks = ({ currentPath, navItemClass }) => {
   const isAIHubActive = currentPath.startsWith("/ai-property-hub");
 
   return (
-    <div className="flex space-x-2 items-center">
+    <div className="flex space-x-1 items-center">
       {navLinks.map(({ name, path, icon: Icon, color, description }) => {
         const isActive = path === "/" ? currentPath === path : currentPath.startsWith(path);
         const isAIHub = name === t('ai_property_hub');
@@ -658,7 +666,7 @@ const NavLinks = ({ currentPath, navItemClass }) => {
             <Link
               to={path}
               onClick={() => window.scrollTo(0, 0)}
-              className={`relative group transition-all duration-300 flex items-center ${isRTL ? 'gap-1 text-[15px] whitespace-nowrap' : 'gap-2'} px-4 py-2.5 rounded-xl
+              className={`relative group transition-all duration-300 flex items-center ${isRTL ? 'gap-1 text-[13px] whitespace-nowrap' : 'gap-1.5'} px-3 py-2 rounded-lg
                 ${isAIHub ? 'font-normal' : navItemClass || ''}
                 ${isActive
                   ? `text-white bg-gradient-to-r ${color} shadow-lg shadow-blue-500/30`
@@ -666,8 +674,8 @@ const NavLinks = ({ currentPath, navItemClass }) => {
                 }
               `}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-gray-600 group-hover:text-blue-600'}`} />
-              <span className={isAIHub ? 'font-normal' : navItemClass || ''}>{name}</span>
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-gray-600 group-hover:text-blue-600'}`} />
+              <span className={`${isAIHub ? 'font-normal' : navItemClass || ''} text-sm`}>{name}</span>
               
               {/* Tooltip */}
               <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
@@ -698,14 +706,14 @@ const NavLinks = ({ currentPath, navItemClass }) => {
         <Link
           to="/ai-property-hub"
           onClick={() => window.scrollTo(0, 0)}
-          className={`relative group font-semibold transition-all duration-300 flex items-center gap-2.5 px-5 py-2.5 rounded-xl overflow-hidden ${
+          className={`relative group font-semibold transition-all duration-300 flex items-center gap-2 px-3 py-2 rounded-lg overflow-hidden text-sm ${
             isAIHubActive
               ? "text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-xl shadow-purple-500/40"
               : "text-indigo-700 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 hover:text-white border border-indigo-200 hover:border-transparent"
           }`}
         >
           <div className="relative">
-            <BotMessageSquare className={`w-5 h-5 ${isAIHubActive ? "text-white" : "text-indigo-600 group-hover:text-white"}`} />
+            <BotMessageSquare className={`w-4 h-4 ${isAIHubActive ? "text-white" : "text-indigo-600 group-hover:text-white"}`} />
             {/* Animated sparkles */}
             <motion.div
               key={sparkleKey}
@@ -718,10 +726,10 @@ const NavLinks = ({ currentPath, navItemClass }) => {
               transition={{ duration: 2, ease: "easeInOut" }}
               className="absolute -top-1 -right-1"
             >
-              <Sparkles className="w-3 h-3 text-yellow-400" />
+              <Sparkles className="w-2.5 h-2.5 text-yellow-400" />
             </motion.div>
           </div>
-          <span>{t('ai_property_hub')}</span>
+          <span className="text-sm">{t('ai_property_hub')}</span>
           
           {/* Animated background */}
           <motion.div
@@ -801,6 +809,13 @@ const MobileNavLinks = ({
       icon: MessageCircle, 
       color: "from-orange-500 to-red-500",
       description: t('get_in_touch')
+    },
+    { 
+      name: t('blog'), 
+      path: "/news", 
+      icon: FileText, 
+      color: "from-indigo-500 to-purple-500",
+      description: t('latest_news')
     },
   ];
 

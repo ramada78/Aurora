@@ -24,6 +24,7 @@ import PropertyTypes from './pages/PropertyTypes';
 import Reviews from './pages/Reviews';
 import Transactions from './pages/Transactions';
 import UsersPage from './pages/Users';
+import News from './pages/News';
 
 // Config
 export const backendurl = import.meta.env.VITE_BACKEND_URL;
@@ -80,6 +81,7 @@ const App = () => {
                 <Route path="/reviews" element={<Reviews />} />
                 <Route path="/transactions" element={<Transactions />} />
                 <Route path="/users" element={<UsersPage />} />
+                <Route path="/news" element={<News />} />
               </Route>
 
               {/* 404 Route */}

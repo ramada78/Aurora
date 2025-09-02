@@ -95,6 +95,16 @@
   "unable_to_share_post": "تعذر مشاركة المنشور 😕",
   "saved_to_reading_list": "تم حفظ \"{{title}}\" في قائمة القراءة 💾",
   "removed_from_reading_list": "تمت إزالة \"{{title}}\" من قائمة القراءة 🗑️",
+  "loading_article": "جاري تحميل المقال...",
+  "article_not_found": "المقال غير موجود",
+  "article_not_found_description": "المقال الذي تبحث عنه غير موجود أو تم حذفه.",
+  "back_to_news": "العودة إلى الأخبار",
+  "error_loading_article": "خطأ في تحميل المقال",
+  "author": "الكاتب",
+  "tags": "العلامات",
+  "share_article": "مشاركة المقال",
+  "related_articles": "مقالات ذات صلة",
+  "views": "مشاهدات",
   "real_estate": "عقارات",
   "read_full_article": "اقرأ المقال كاملاً",
   "min_read": "دقيقة قراءة",
@@ -680,5 +690,59 @@
     "info": {
       "agentGuide": "سيرشدك وكيل مؤهل خلال الزيارة"
     }
-  }
+  },
+  "news": {
+    "title": "أحدث الأخبار",
+    "description": "ابق على اطلاع بأحدث أخبار العقارات واتجاهات السوق ورؤى الخبراء",
+    "searchPlaceholder": "البحث في المقالات الإخبارية...",
+    "views": "مشاهدات",
+    "readMore": "اقرأ المزيد",
+    "featured": "مميز",
+    "noNewsFound": "لم يتم العثور على مقالات إخبارية",
+    "noNewsDescription": "لم نتمكن من العثور على أي مقالات إخبارية تطابق معايير البحث الخاصة بك. حاول تعديل الفلاتر أو تحقق لاحقًا للحصول على محتوى جديد.",
+    "categories": {
+      "buying": "دليل الشراء",
+      "selling": "نصائح البيع",
+      "investment": "الاستثمار",
+      "tips": "نصائح العقارات",
+      "market_trends": "اتجاهات السوق",
+      "real_estate": "أخبار العقارات"
+    },
+    "filters": {
+      "allCategories": "جميع الفئات",
+      "allStatuses": "جميع الحالات"
+    },
+    "pagination": {
+      "previous": "السابق",
+      "next": "التالي",
+      "page": "صفحة",
+      "of": "من"
+    }
+  },
+  "all": "الكل",
+  "buying": "الشراء",
+  "selling": "البيع",
+  "investment": "الاستثمار",
+  "tips": "النصائح",
+  "market_trends": "اتجاهات السوق",
+  "real_estate": "العقارات",
+  "search": "بحث",
+  "previous": "السابق",
+  "next": "التالي",
+  "blog": "المدونة",
+  "latest_news": "أحدث الأخبار والرؤى",
+  "min_read": "دقيقة قراءة",
+  "trending": "رائج",
+  "read_full_article": "اقرأ المقال كاملاً",
+  "continue_reading": "استمر في القراءة",
+  "post_shared_successfully": "تمت مشاركة المنشور بنجاح! 🎉",
+  "link_copied_to_clipboard": "تم نسخ الرابط إلى الحافظة! 📋",
+  "unable_to_share_post": "تعذر مشاركة المنشور 😕",
+  "saved_to_reading_list": "تم حفظ \"{{title}}\" في قائمة القراءة 💾",
+  "removed_from_reading_list": "تمت إزالة \"{{title}}\" من قائمة القراءة 🗑️",
+  "loading_news": "جاري تحميل المقالات...",
+  "loading_articles": "جاري تحميل المقالات...",
+  "fetching_latest_news": "جاري جلب أحدث الأخبار والرؤى...",
+  "error_loading_articles": "خطأ في تحميل المقالات",
+  "showing_demo_articles": "عرض مقالات تجريبية بدلاً من ذلك."
 } 
