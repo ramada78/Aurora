@@ -26,5 +26,16 @@ userrouter.post('/wishlist/add', authMiddleware, addToWishlist);
 userrouter.post('/wishlist/remove', authMiddleware, removeFromWishlist);
 userrouter.get('/notifications', authMiddleware, getNotifications);
 userrouter.put('/notifications/read', authMiddleware, markNotificationsRead);
+userrouter.delete('/notifications', authMiddleware, (req, res) => {
+  // Clear all notifications for the logged-in user
+  try {
+    const user = req.user;
+    user.notifications = [];
+    user.save();
+    res.json({ success: true, message: 'All notifications cleared' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to clear notifications' });
+  }
+});
 
 export default userrouter;

@@ -53,7 +53,7 @@ const UsersPage = () => {
     try {
       setLoading(true);
       // Fetch all users with their roles from the new unified endpoint
-      const response = await axios.get(`${backendurl}/api/users/all-with-roles`, {
+      const response = await axios.get(`${backendurl}/api/admin/users`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
 
@@ -81,8 +81,8 @@ const UsersPage = () => {
       setActionLoading(true);
       
       // Use the new unified API endpoint
-      const response = await axios.post(
-        `${backendurl}/api/users/create-with-role`,
+              const response = await axios.post(
+          `${backendurl}/api/admin/users`,
         {
           name: formData.name,
           email: formData.email,
@@ -126,8 +126,8 @@ const UsersPage = () => {
       setActionLoading(true);
       
       // Use the new unified API endpoint for updating users
-      const response = await axios.put(
-        `${backendurl}/api/users/update-with-role`,
+              const response = await axios.put(
+          `${backendurl}/api/admin/users/${editingUser._id}`,
         {
           userId: editingUser.user_id || editingUser._id,
           name: formData.name,
@@ -181,7 +181,7 @@ const UsersPage = () => {
           endpoint = `${backendurl}/api/sellers/${userId}`;
           break;
         default:
-          endpoint = `${backendurl}/api/users/${userId}`;
+          endpoint = `${backendurl}/api/admin/users/${userId}`;
           break;
       }
 
@@ -197,7 +197,7 @@ const UsersPage = () => {
       } catch (error) {
         // If the first delete fails, try the generic endpoint
         try {
-          const response = await axios.delete(`${backendurl}/api/users/${userId}`, {
+          const response = await axios.delete(`${backendurl}/api/admin/users/${userId}`, {
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
           });
           if (response.data.success) {

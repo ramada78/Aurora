@@ -13,17 +13,37 @@ export const protect = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await userModel.findById(decoded.id).select("-password");
-
-    if (!user) {
+    
+    // Check if this is an admin token (contains email instead of id)
+    if (decoded.email && decoded.email === process.env.ADMIN_EMAIL) {
+      // For main admin, we need to find the user in the database to get full user object
+      const adminUser = await userModel.findOne({ email: decoded.email });
+      if (adminUser) {
+        req.user = adminUser;
+        next();
+      } else {
+        return res.status(401).json({
+          success: false,
+          message: "Admin user not found in database",
+        });
+      }
+    } else if (decoded.id) {
+      // Regular user token
+      const user = await userModel.findById(decoded.id).select("-password");
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+      req.user = user;
+      next();
+    } else {
       return res.status(401).json({
         success: false,
-        message: "User not found",
+        message: "Invalid token format",
       });
     }
-
-    req.user = user;
-    next();
   } catch (error) {
     console.error("Auth error:", error);
     return res.status(401).json({

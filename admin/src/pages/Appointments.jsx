@@ -45,7 +45,7 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendurl}/api/appointments/all`, {
+      const response = await axios.get(`${backendurl}/api/admin/appointments`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
 
@@ -69,7 +69,7 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
   const handleStatusChange = async (appointmentId, newStatus) => {
     try {
       const response = await axios.put(
-        `${backendurl}/api/appointments/status`,
+        `${backendurl}/api/admin/appointments/status`,
         {
           appointmentId,
           status: newStatus,
@@ -100,7 +100,7 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
       }
 
       const response = await axios.put(
-        `${backendurl}/api/appointments/update-meeting`,
+        `${backendurl}/api/admin/appointments/update-meeting`,
         {
           appointmentId,
           meetingLink,
@@ -152,7 +152,7 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
     setEditLoading(true);
     try {
       const response = await axios.put(
-        `${backendurl}/api/appointments/update-details`,
+        `${backendurl}/api/admin/appointments/update-details`,
         editForm,
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );

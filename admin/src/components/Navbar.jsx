@@ -27,6 +27,7 @@ import {
 import axios from 'axios';
 import { AnimatePresence } from 'framer-motion';
 import LanguageSwitcher from './LanguageSwitcher';
+import { backendurl } from '../App';
 
 const Navbar = () => {
   const { t, i18n } = useTranslation();
@@ -77,7 +78,7 @@ const Navbar = () => {
     const token = localStorage.getItem('token');
     if (token) {
       setNotifLoading(true);
-      axios.get('/api/users/notifications', {
+      axios.get(`${backendurl}/api/users/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(res => setNotifications(res.data.notifications || []))
@@ -103,7 +104,7 @@ const Navbar = () => {
   // Mark notifications as read
   const markAllRead = () => {
     const token = localStorage.getItem('token');
-    axios.put('/api/users/notifications/read', {}, {
+    axios.put(`${backendurl}/api/users/notifications/read`, {}, {
       headers: { Authorization: `Bearer ${token}` },
     }).then(() => {
       setNotifications(notifications.map(n => ({ ...n, read: true })));
@@ -116,7 +117,7 @@ const Navbar = () => {
   // Clear all notifications
   const clearAllNotifications = () => {
     const token = localStorage.getItem('token');
-    axios.delete('/api/users/notifications', {
+    axios.delete(`${backendurl}/api/users/notifications`, {
       headers: { Authorization: `Bearer ${token}` },
     }).then(() => {
       setNotifications([]);
