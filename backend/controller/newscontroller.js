@@ -28,7 +28,7 @@ export const getAllNews = async (req, res) => {
       .sort({ publishedAt: -1, featured: -1 })
       .skip(skip)
       .limit(parseInt(limit))
-      .select(`title.${lang} content.${lang} excerpt.${lang} image category author tags featured views publishedAt`);
+      .select('title content excerpt image category author tags featured views publishedAt');
     
     const total = await News.countDocuments(query);
     
