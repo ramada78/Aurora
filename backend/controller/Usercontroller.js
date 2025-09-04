@@ -204,7 +204,7 @@ const adminlogin = async (req, res) => {
 
     // 1. Allow .env admin credentials
     if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
-      const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '24h' });
       return res.json({ token, user: { email, isAdmin: true }, success: true });
     }
 
@@ -213,7 +213,7 @@ const adminlogin = async (req, res) => {
     if (adminUser) {
       const isMatch = await bcrypt.compare(password, adminUser.password);
       if (isMatch) {
-        const token = jwt.sign({ id: adminUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ id: adminUser._id }, process.env.JWT_SECRET, { expiresIn: '24h' });
         return res.json({ token, user: { _id: adminUser._id, name: adminUser.name, email: adminUser.email, isAdmin: true, roles: adminUser.roles }, success: true });
       }
     }
