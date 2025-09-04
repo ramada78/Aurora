@@ -23,6 +23,7 @@ import {
   MessageCircle,
   Bell,
   FileText,
+  ClipboardList,
 } from 'lucide-react';
 import axios from 'axios';
 import { AnimatePresence } from 'framer-motion';
@@ -149,6 +150,7 @@ const Navbar = () => {
     { path: '/transactions', label: t('navigation.transactions'), icon: TrendingUp },
     { path: '/users', label: t('navigation.users'), icon: Users },
     { path: '/news', label: t('navigation.news'), icon: FileText },
+    { path: '/forms', label: t('navigation.forms'), icon: ClipboardList },
   ];
 
   const metaDataItems = [
@@ -189,8 +191,7 @@ const Navbar = () => {
             <div className="p-2 bg-blue-100 rounded-lg">
               <Home className="h-5 w-5 text-blue-600" />
             </div>
-            <span className="ml-2 text-xl font-bold text-gray-900">{t('navigation.adminPanel')}</span>
-          </Link>
+            </Link>
           
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-1 items-center">

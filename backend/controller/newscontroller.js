@@ -300,7 +300,7 @@ export const submitNewsletter = async (req, res) => {
 
     // Send welcome email
     const mailOptions = {
-      from: process.env.EMAIL,
+      from: process.env.SMTP_USER,
       to: email,
       subject: "Welcome to Aurora Newsletter! 🏠",
       html: getNewsletterTemplate(email),

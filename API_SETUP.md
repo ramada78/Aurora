@@ -104,7 +104,13 @@ All API endpoints follow this pattern:
 - `GET /api/transactions/count/completed` - Count completed transactions
 
 #### **Forms** (`/api/forms`)
-- `POST /api/forms/submit` - Submit contact form
+- `POST /api/forms/submit` - Submit contact form (public)
+- `GET /api/forms/admin` - Get all forms with filtering and pagination (admin only)
+- `GET /api/forms/admin/stats` - Get form statistics (admin only)
+- `GET /api/forms/admin/:id` - Get single form by ID (admin only)
+- `PUT /api/forms/admin/:id` - Update form status, priority, assignment (admin only)
+- `POST /api/forms/admin/:id/reply` - Add reply to form (admin only)
+- `DELETE /api/forms/admin/:id` - Delete form (admin only)
 
 #### **News** (`/api/news`)
 - `GET /api/news/news` - Get all published news articles (public)

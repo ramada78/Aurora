@@ -98,7 +98,7 @@ const register = async (req, res) => {
     // Try to send welcome email, but don't fail if email fails
     try {
     const mailOptions = {
-      from: process.env.EMAIL,
+      from: process.env.SMTP_USER,
       to: email,
         subject: "Welcome to Aurora - Your Multi-Role Account",
         html: `
@@ -162,7 +162,7 @@ const forgotpassword = async (req, res) => {
     await user.save();
     const resetUrl = `${process.env.WEBSITE_URL}/reset/${resetToken}`;
     const mailOptions = {
-      from: process.env.EMAIL,
+      from: process.env.SMTP_USER,
       to: email,
       subject: "Password Reset - Aurora Security",
       html: getPasswordResetTemplate(resetUrl)
@@ -297,7 +297,7 @@ const createUserWithRole = async (req, res) => {
     // Try to send welcome email with credentials, but don't fail if email fails
     try {
       const mailOptions = {
-        from: process.env.EMAIL,
+        from: process.env.SMTP_USER,
         to: email,
         subject: `Welcome to Aurora - Your ${primaryRole.charAt(0).toUpperCase() + primaryRole.slice(1)} Account`,
         html: `

@@ -107,6 +107,7 @@
     "transactions": "الصفقات",
     "users": "المستخدمون",
     "news": "الأخبار",
+    "forms": "النماذج",
     "metaData": "البيانات الوصفية",
     "amenities": "المرافق",
     "cities": "المدن",
@@ -714,6 +715,91 @@
         "deleteError": "فشل في حذف المقال",
         "deleteConfirm": "هل أنت متأكد من حذف هذا المقال؟",
         "fillAllFields": "يرجى ملء جميع الحقول المطلوبة"
+      }
+    },
+    "forms": {
+      "title": "إدارة النماذج",
+      "subtitle": "إدارة استمارات الاتصال والاستفسارات",
+      "loading": "جاري تحميل النماذج...",
+      "loadingSubtitle": "يرجى الانتظار بينما نجلب بيانات النماذج",
+      "totalForms": "إجمالي النماذج",
+      "refresh": "تحديث",
+      "searchPlaceholder": "البحث في النماذج...",
+      "noForms": "لم يتم العثور على نماذج",
+      "noFormsFiltered": "لم يتم العثور على نماذج تطابق معاييرك",
+      "page": "صفحة",
+      "of": "من",
+      "next": "التالي",
+      "previous": "السابق",
+      "stats": {
+        "total": "إجمالي النماذج",
+        "new": "جديدة",
+        "replied": "تم الرد عليها",
+        "urgent": "عاجلة"
+      },
+      "status": {
+        "new": "جديدة",
+        "read": "مقروءة",
+        "replied": "تم الرد عليها",
+        "closed": "مغلقة"
+      },
+      "priority": {
+        "low": "منخفضة",
+        "medium": "متوسطة",
+        "high": "عالية",
+        "urgent": "عاجلة"
+      },
+      "table": {
+        "contact": "التواصل",
+        "message": "الرسالة",
+        "status": "الحالة",
+        "priority": "الأولوية",
+        "date": "التاريخ",
+        "actions": "الإجراءات"
+      },
+      "filters": {
+        "status": "الحالة",
+        "priority": "الأولوية",
+        "allStatuses": "جميع الحالات",
+        "allPriorities": "جميع الأولويات"
+      },
+      "actions": {
+        "view": "عرض",
+        "reply": "رد",
+        "delete": "حذف",
+        "close": "إغلاق",
+        "cancel": "إلغاء",
+        "sendReply": "إرسال الرد"
+      },
+      "detail": {
+        "title": "تفاصيل النموذج",
+        "contactInfo": "معلومات الاتصال",
+        "name": "الاسم",
+        "email": "البريد الإلكتروني",
+        "phone": "الهاتف",
+        "date": "التاريخ",
+        "message": "الرسالة",
+        "status": "الحالة",
+        "priority": "الأولوية",
+        "replies": "الردود",
+        "admin": "المدير"
+      },
+      "reply": {
+        "title": "الرد على النموذج",
+        "message": "رسالة الرد",
+        "placeholder": "اكتب ردك هنا..."
+      },
+      "messages": {
+        "fetchError": "فشل في جلب النماذج",
+        "statusUpdated": "تم تحديث حالة النموذج بنجاح",
+        "priorityUpdated": "تم تحديث أولوية النموذج بنجاح",
+        "updateError": "فشل في تحديث النموذج",
+        "deleteSuccess": "تم حذف النموذج بنجاح",
+        "deleteError": "فشل في حذف النموذج",
+        "deleteConfirm": "هل أنت متأكد من حذف هذا النموذج؟",
+        "replySent": "تم إرسال الرد بنجاح",
+        "replyError": "فشل في إرسال الرد",
+        "replyRequired": "يرجى إدخال رسالة الرد"
       }
     }
 } 

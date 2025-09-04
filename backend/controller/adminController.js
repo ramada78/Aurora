@@ -207,7 +207,7 @@ export const updateAppointmentStatus = async (req, res) => {
 
     // Send email notification using the template from email.js
     const mailOptions = {
-      from: process.env.EMAIL,
+      from: process.env.SMTP_USER,
       to: appointment.userId.email,
       subject: `Viewing Appointment ${
         status.charAt(0).toUpperCase() + status.slice(1)

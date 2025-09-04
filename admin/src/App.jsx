@@ -25,6 +25,7 @@ import Reviews from './pages/Reviews';
 import Transactions from './pages/Transactions';
 import UsersPage from './pages/Users';
 import News from './pages/News';
+import Forms from './pages/Forms';
 
 // Config
 export const backendurl = import.meta.env.VITE_BACKEND_URL;
@@ -82,6 +83,7 @@ const App = () => {
                 <Route path="/transactions" element={<Transactions />} />
                 <Route path="/users" element={<UsersPage />} />
                 <Route path="/news" element={<News />} />
+                <Route path="/forms" element={<Forms />} />
               </Route>
 
               {/* 404 Route */}
