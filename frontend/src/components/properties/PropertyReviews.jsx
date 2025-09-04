@@ -44,7 +44,7 @@ const PropertyReviews = ({ propertyId }) => {
     const fetchReviews = async () => {
       setLoading(true);
       const data = await getReviewsByPropertyId(propertyId);
-      setReviews(data);
+      setReviews(data.filter(r => r.property_id === propertyId || r.property_id?._id === propertyId));
       setLoading(false);
     };
     fetchReviews();
@@ -71,7 +71,7 @@ const PropertyReviews = ({ propertyId }) => {
       setComment('');
       // Refresh reviews
       const data = await getReviewsByPropertyId(propertyId);
-      setReviews(data);
+      setReviews(data.filter(r => r.property_id === propertyId || r.property_id?._id === propertyId));
     } catch (err) {
       setError(t('reviews.failedToSubmit'));
     } finally {

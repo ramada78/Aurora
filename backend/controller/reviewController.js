@@ -2,15 +2,7 @@ import Review from '../models/Review.js';
 
 export const listReviews = async (req, res) => {
   try {
-    const { property_id } = req.query;
-    
-    // Build query object
-    const query = {};
-    if (property_id) {
-      query.property_id = property_id;
-    }
-    
-    const reviews = await Review.find(query)
+    const reviews = await Review.find()
       .populate({
         path: 'property_id',
         populate: { path: 'city', select: 'city_name' }
