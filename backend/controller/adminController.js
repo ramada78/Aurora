@@ -8,7 +8,10 @@ import { getEmailTemplate } from "../email.js";
 const formatRecentProperties = (properties) => {
   return properties.map((property) => ({
     type: "property",
-    description: `New property listed: ${property.title}`,
+    description: {
+      en: `New property listed: ${property.title?.en || property.title || 'Property'}`,
+      ar: `تم إدراج عقار جديد: ${property.title?.ar || property.title || 'عقار'}`
+    },
     timestamp: property.createdAt,
   }));
 };
@@ -16,10 +19,15 @@ const formatRecentProperties = (properties) => {
 const formatRecentAppointments = (appointments) => {
   return appointments.map((appointment) => ({
     type: "appointment",
-    description:
-      appointment.userId && appointment.propertyId
-        ? `${appointment.userId.name} scheduled viewing for ${appointment.propertyId.title}`
-        : "Appointment scheduled",
+    description: appointment.userId && appointment.propertyId
+      ? {
+          en: `${appointment.userId.name} scheduled viewing for ${appointment.propertyId.title?.en || appointment.propertyId.title || 'property'}`,
+          ar: `${appointment.userId.name} قام بطلب موعد مشاهدة للعقار ${appointment.propertyId.title?.ar || appointment.propertyId.title || 'عقار'}`
+        }
+      : {
+          en: "Appointment scheduled",
+          ar: "تم جدولة موعد"
+        },
     timestamp: appointment.createdAt,
   }));
 };

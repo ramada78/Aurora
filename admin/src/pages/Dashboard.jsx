@@ -71,87 +71,13 @@ const Dashboard = () => {
 
   // Helper function to process activity descriptions
   const processActivityDescription = (description) => {
-    if (typeof description === 'string') {
-      // Handle cases where the description contains JSON-like structures
-      if (description.includes('{') && description.includes('}')) {
-        try {
-          // Extract the JSON part and replace it with translated content
-          const parts = description.split(/(\{[^}]+\})/);
-          const processedParts = parts.map(part => {
-            if (part.startsWith('{') && part.endsWith('}')) {
-              try {
-                // Handle the specific format: { en: 'Villa 2', ar: 'فيلا 2' }
-                // First replace single quotes with double quotes, then add quotes around property names
-                let cleanPart = part.replace(/'/g, '"'); // Replace single quotes with double quotes
-                cleanPart = cleanPart.replace(/(\w+):/g, '"$1":'); // Add quotes around property names
-                const jsonContent = JSON.parse(cleanPart);
-                const currentLang = i18n.language;
-                const result = jsonContent[currentLang] || jsonContent['en'] || jsonContent['ar'] || Object.values(jsonContent)[0];
-                return result;
-              } catch (error) {
-                // Fallback to regex parsing if JSON parsing fails
-                try {
-                  // Use regex to extract language values directly
-                  const langMatch = part.match(/ar:\s*'([^']+)'/);
-                  const enMatch = part.match(/en:\s*'([^']+)'/);
-                  const currentLang = i18n.language;
-                  
-                  if (currentLang === 'ar' && langMatch) {
-                    return langMatch[1];
-                  } else if (currentLang === 'en' && enMatch) {
-                    return enMatch[1];
-                  } else if (enMatch) {
-                    return enMatch[1]; // fallback to English
-                  } else if (langMatch) {
-                    return langMatch[1]; // fallback to Arabic
-                  }
-                } catch (regexError) {
-                  // If all parsing methods fail, return the original part
-                }
-                return part;
-              }
-            }
-            return part;
-          });
-          
-          // Now translate the static parts of the message
-          const fullMessage = processedParts.join('');
-          
-          // Translate common activity message patterns
-          if (fullMessage.includes('Client scheduled viewing for')) {
-            return fullMessage.replace('Client scheduled viewing for', t('dashboard.activity.clientScheduledViewing'));
-          }
-          if (fullMessage.includes('New property listed:')) {
-            return fullMessage.replace('New property listed:', t('dashboard.activity.newPropertyListed') + ':');
-          }
-          if (fullMessage.includes('Property added:')) {
-            return fullMessage.replace('Property added:', t('dashboard.activity.propertyAdded') + ':');
-          }
-          if (fullMessage.includes('Property updated:')) {
-            return fullMessage.replace('Property updated:', t('dashboard.activity.propertyUpdated') + ':');
-          }
-          if (fullMessage.includes('Property deleted:')) {
-            return fullMessage.replace('Property deleted:', t('dashboard.activity.propertyDeleted') + ':');
-          }
-          if (fullMessage.includes('Appointment confirmed:')) {
-            return fullMessage.replace('Appointment confirmed:', t('dashboard.activity.appointmentConfirmed') + ':');
-          }
-          if (fullMessage.includes('Appointment cancelled:')) {
-            return fullMessage.replace('Appointment cancelled:', t('dashboard.activity.appointmentCancelled') + ':');
-          }
-          if (fullMessage.includes('Transaction completed:')) {
-            return fullMessage.replace('Transaction completed:', t('dashboard.activity.transactionCompleted') + ':');
-          }
-          
-          return fullMessage;
-        } catch {
-          return description;
-        }
-      }
-      return description;
+    // If it's already a multilingual object, use the existing helper
+    if (typeof description === 'object' && description !== null) {
+      return processMultilingualContent(description);
     }
     
-    return processMultilingualContent(description);
+    // If it's a string, return as is (for backward compatibility)
+    return description;
   };
 
   // Enhanced Chart options
