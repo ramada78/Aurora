@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import heroimage from "../assets/images/hero_bg.png";
 import { RadialGradient } from "react-text-gradients";
-import { getPropertyTypeCounts, getAdminStats, getTotalPropertyViews, getCompletedTransactions } from "../services/api";
+import { getPropertyTypeCounts, getPublicStats, getTotalPropertyViews, getCompletedTransactions } from "../services/api";
 import { useRef } from "react";
 import { useTranslation } from 'react-i18next';
 
@@ -106,14 +106,14 @@ const Hero = () => {
     });
     // Fetch stats for the first three cards
     Promise.all([
-      getAdminStats(),
+      getPublicStats(),
       getCompletedTransactions(),
       getTotalPropertyViews()
-    ]).then(([adminStats, completedTransactions, totalViews]) => {
+    ]).then(([publicStats, completedTransactions, totalViews]) => {
       setStats((prev) => [
         {
           ...prev[0],
-          value: adminStats.totalProperties !== undefined ? adminStats.totalProperties : "-"
+          value: publicStats.totalProperties !== undefined ? publicStats.totalProperties : "-"
         },
         {
           ...prev[1],

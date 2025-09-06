@@ -5,7 +5,6 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import compression from 'compression';
 import connectdb from './config/mongodb.js';
-import { trackAPIStats } from './middleware/statsMiddleware.js';
 import propertyrouter from './routes/ProductRouter.js';
 import userrouter from './routes/UserRoute.js';
 import formrouter from './routes/formrouter.js';
@@ -23,6 +22,7 @@ import sellerRoutes from './routes/sellerRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
 import transactionRoutes from './routes/transactionRoutes.js';
 import amenityRoutes from './routes/amenityRoutes.js';
+import { getPublicStats } from './controller/adminController.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,7 +48,6 @@ app.use(compression());
 // Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(trackAPIStats);
 app.use('/uploads', (req, res, next) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   next();
@@ -62,6 +61,8 @@ app.use(cors({
     'http://localhost:5173',  // Frontend - Vite default port
     'http://localhost:5174',  // Admin panel
     'http://localhost:4000',  // Backend API
+    'http://192.168.1.5:5173', // Mobile frontend
+    'http://192.168.1.5:5174', // Mobile admin panel
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
@@ -75,6 +76,9 @@ connectdb().then(() => {
   console.error('Database connection error:', err);
 });
 
+
+// Public API Routes (no authentication required)
+app.get('/api/stats/public', getPublicStats);
 
 // API Routes
 app.use('/api/products', propertyrouter);

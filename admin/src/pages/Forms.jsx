@@ -58,17 +58,17 @@ const Forms = () => {
   const [replyLoading, setReplyLoading] = useState(false);
 
   const statuses = [
-    { value: "new", label: t('forms.status.new'), color: "bg-blue-100 text-blue-800", icon: MessageCircle },
-    { value: "read", label: t('forms.status.read'), color: "bg-yellow-100 text-yellow-800", icon: Eye },
-    { value: "replied", label: t('forms.status.replied'), color: "bg-green-100 text-green-800", icon: CheckCircle },
-    { value: "closed", label: t('forms.status.closed'), color: "bg-gray-100 text-gray-800", icon: XCircle },
+    { value: "new", label: t('formsManagement.status.new'), color: "bg-blue-100 text-blue-800", icon: MessageCircle },
+    { value: "read", label: t('formsManagement.status.read'), color: "bg-yellow-100 text-yellow-800", icon: Eye },
+    { value: "replied", label: t('formsManagement.status.replied'), color: "bg-green-100 text-green-800", icon: CheckCircle },
+    { value: "closed", label: t('formsManagement.status.closed'), color: "bg-gray-100 text-gray-800", icon: XCircle },
   ];
 
   const priorities = [
-    { value: "low", label: t('forms.priority.low'), color: "bg-gray-100 text-gray-800" },
-    { value: "medium", label: t('forms.priority.medium'), color: "bg-blue-100 text-blue-800" },
-    { value: "high", label: t('forms.priority.high'), color: "bg-orange-100 text-orange-800" },
-    { value: "urgent", label: t('forms.priority.urgent'), color: "bg-red-100 text-red-800" },
+    { value: "low", label: t('formsManagement.priority.low'), color: "bg-gray-100 text-gray-800" },
+    { value: "medium", label: t('formsManagement.priority.medium'), color: "bg-blue-100 text-blue-800" },
+    { value: "high", label: t('formsManagement.priority.high'), color: "bg-orange-100 text-orange-800" },
+    { value: "urgent", label: t('formsManagement.priority.urgent'), color: "bg-red-100 text-red-800" },
   ];
 
 
@@ -100,11 +100,11 @@ const Forms = () => {
         setTotalPages(response.data.pagination.totalPages);
         setTotalItems(response.data.pagination.totalItems);
       } else {
-        toast.error(t('forms.messages.fetchError'));
+        toast.error(t('formsManagement.messages.fetchError'));
       }
     } catch (error) {
       console.error("Error fetching forms:", error);
-      toast.error(t('forms.messages.fetchError'));
+      toast.error(t('formsManagement.messages.fetchError'));
     } finally {
       setLoading(false);
     }
@@ -144,15 +144,15 @@ const Forms = () => {
       );
 
       if (response.data.success) {
-        toast.success(t('forms.messages.statusUpdated'));
+        toast.success(t('formsManagement.messages.statusUpdated'));
         fetchForms();
         fetchStats();
       } else {
-        toast.error(t('forms.messages.updateError'));
+        toast.error(t('formsManagement.messages.updateError'));
       }
     } catch (error) {
       console.error("Error updating status:", error);
-      toast.error(t('forms.messages.updateError'));
+      toast.error(t('formsManagement.messages.updateError'));
     } finally {
       setActionLoading(false);
     }
@@ -172,21 +172,21 @@ const Forms = () => {
       );
 
       if (response.data.success) {
-        toast.success(t('forms.messages.priorityUpdated'));
+        toast.success(t('formsManagement.messages.priorityUpdated'));
         fetchForms();
       } else {
-        toast.error(t('forms.messages.updateError'));
+        toast.error(t('formsManagement.messages.updateError'));
       }
     } catch (error) {
       console.error("Error updating priority:", error);
-      toast.error(t('forms.messages.updateError'));
+      toast.error(t('formsManagement.messages.updateError'));
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleDeleteForm = async (formId) => {
-    if (!window.confirm(t('forms.messages.deleteConfirm'))) return;
+    if (!window.confirm(t('formsManagement.messages.deleteConfirm'))) return;
 
     try {
       setActionLoading(true);
@@ -197,15 +197,15 @@ const Forms = () => {
       });
 
       if (response.data.success) {
-        toast.success(t('forms.messages.deleteSuccess'));
+        toast.success(t('formsManagement.messages.deleteSuccess'));
         fetchForms();
         fetchStats();
       } else {
-        toast.error(t('forms.messages.deleteError'));
+        toast.error(t('formsManagement.messages.deleteError'));
       }
     } catch (error) {
       console.error("Error deleting form:", error);
-      toast.error(t('forms.messages.deleteError'));
+      toast.error(t('formsManagement.messages.deleteError'));
     } finally {
       setActionLoading(false);
     }
@@ -227,18 +227,18 @@ const Forms = () => {
           handleStatusChange(formId, 'read');
         }
       } else {
-        toast.error(t('forms.messages.fetchError'));
+        toast.error(t('formsManagement.messages.fetchError'));
       }
     } catch (error) {
       console.error("Error fetching form details:", error);
-      toast.error(t('forms.messages.fetchError'));
+      toast.error(t('formsManagement.messages.fetchError'));
     }
   };
 
   const handleReply = async (e) => {
     e.preventDefault();
     if (!replyMessage.trim()) {
-      toast.error(t('forms.messages.replyRequired'));
+      toast.error(t('formsManagement.messages.replyRequired'));
       return;
     }
 
@@ -255,7 +255,7 @@ const Forms = () => {
       );
 
       if (response.data.success) {
-        toast.success(t('forms.messages.replySent'));
+        toast.success(t('formsManagement.messages.replySent'));
         setReplyMessage("");
         setShowReplyModal(false);
         fetchForms();
@@ -264,11 +264,11 @@ const Forms = () => {
         // Update selected form with new reply
         setSelectedForm(response.data.form);
       } else {
-        toast.error(t('forms.messages.replyError'));
+        toast.error(t('formsManagement.messages.replyError'));
       }
     } catch (error) {
       console.error("Error sending reply:", error);
-      toast.error(t('forms.messages.replyError'));
+      toast.error(t('formsManagement.messages.replyError'));
     } finally {
       setReplyLoading(false);
     }
@@ -306,8 +306,8 @@ const Forms = () => {
           <div className="flex items-center justify-center py-32">
             <div className="text-center">
               <Loader className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">{t('forms.loading')}</h3>
-              <p className="text-gray-600">{t('forms.loadingSubtitle')}</p>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">{t('formsManagement.loading')}</h3>
+              <p className="text-gray-600">{t('formsManagement.loadingSubtitle')}</p>
             </div>
           </div>
         </div>
@@ -326,10 +326,10 @@ const Forms = () => {
         >
           <div className="mb-4 lg:mb-0">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              {t('forms.title')}
+              {t('formsManagement.title')}
             </h1>
             <p className="text-gray-600">
-              {t('forms.subtitle')} ({totalItems} {t('forms.totalForms')})
+              {t('formsManagement.subtitle')} ({totalItems} {t('formsManagement.totalForms')})
             </p>
           </div>
 
@@ -339,7 +339,7 @@ const Forms = () => {
               className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all duration-200"
             >
               <RefreshCw className="w-4 h-4" />
-              {t('forms.refresh')}
+              {t('formsManagement.refresh')}
             </button>
           </div>
         </motion.div>
@@ -354,7 +354,7 @@ const Forms = () => {
             <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{t('forms.stats.total')}</p>
+                  <p className="text-sm font-medium text-gray-600">{t('formsManagement.stats.total')}</p>
                   <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
                 </div>
                 <BarChart3 className="w-8 h-8 text-blue-600" />
@@ -364,7 +364,7 @@ const Forms = () => {
             <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{t('forms.stats.new')}</p>
+                  <p className="text-sm font-medium text-gray-600">{t('formsManagement.stats.new')}</p>
                   <p className="text-2xl font-bold text-blue-600">{stats.new}</p>
                 </div>
                 <MessageCircle className="w-8 h-8 text-blue-600" />
@@ -374,7 +374,7 @@ const Forms = () => {
             <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{t('forms.stats.replied')}</p>
+                  <p className="text-sm font-medium text-gray-600">{t('formsManagement.stats.replied')}</p>
                   <p className="text-2xl font-bold text-green-600">{stats.replied}</p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-600" />
@@ -384,7 +384,7 @@ const Forms = () => {
             <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">{t('forms.stats.urgent')}</p>
+                  <p className="text-sm font-medium text-gray-600">{t('formsManagement.stats.urgent')}</p>
                   <p className="text-2xl font-bold text-red-600">{stats.urgent}</p>
                 </div>
                 <AlertCircle className="w-8 h-8 text-red-600" />
@@ -404,7 +404,7 @@ const Forms = () => {
             <div className="flex-1 relative">
               <input
                 type="text"
-                placeholder={t('forms.searchPlaceholder')}
+                placeholder={t('formsManagement.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white/80 backdrop-blur-sm text-gray-900 placeholder-gray-500"
@@ -434,14 +434,14 @@ const Forms = () => {
                 {/* Status Filter */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('forms.filters.status')}
+                    {t('formsManagement.filters.status')}
                   </label>
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="all">{t('forms.filters.allStatuses')}</option>
+                    <option value="all">{t('formsManagement.filters.allStatuses')}</option>
                     {statuses.map((status) => (
                       <option key={status.value} value={status.value}>
                         {status.label}
@@ -453,14 +453,14 @@ const Forms = () => {
                 {/* Priority Filter */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('forms.filters.priority')}
+                    {t('formsManagement.filters.priority')}
                   </label>
                   <select
                     value={priorityFilter}
                     onChange={(e) => setPriorityFilter(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="all">{t('forms.filters.allPriorities')}</option>
+                    <option value="all">{t('formsManagement.filters.allPriorities')}</option>
                     {priorities.map((priority) => (
                       <option key={priority.value} value={priority.value}>
                         {priority.label}
@@ -485,22 +485,22 @@ const Forms = () => {
               <thead className="bg-gradient-to-r from-blue-50 to-purple-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    {t('forms.table.contact')}
+                    {t('formsManagement.table.contact')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    {t('forms.table.message')}
+                    {t('formsManagement.table.message')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    {t('forms.table.status')}
+                    {t('formsManagement.table.status')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    {t('forms.table.priority')}
+                    {t('formsManagement.table.priority')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    {t('forms.table.date')}
+                    {t('formsManagement.table.date')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    {t('forms.table.actions')}
+                    {t('formsManagement.table.actions')}
                   </th>
                 </tr>
               </thead>
@@ -570,7 +570,7 @@ const Forms = () => {
                           <button
                             onClick={() => handleViewForm(form._id)}
                             className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-all duration-200"
-                            title={t('forms.actions.view')}
+                            title={t('formsManagement.actions.view')}
                           >
                             <Eye className="w-3 h-3" />
                           </button>
@@ -580,7 +580,7 @@ const Forms = () => {
                               setShowReplyModal(true);
                             }}
                             className="p-1.5 text-green-600 hover:text-green-800 hover:bg-green-50 rounded transition-all duration-200"
-                            title={t('forms.actions.reply')}
+                            title={t('formsManagement.actions.reply')}
                           >
                             <Reply className="w-3 h-3" />
                           </button>
@@ -588,7 +588,7 @@ const Forms = () => {
                             onClick={() => handleDeleteForm(form._id)}
                             className="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-all duration-200"
                             disabled={actionLoading}
-                            title={t('forms.actions.delete')}
+                            title={t('formsManagement.actions.delete')}
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
@@ -604,8 +604,8 @@ const Forms = () => {
           {forms.length === 0 && (
             <div className="text-center py-8 text-gray-500">
               {searchTerm || statusFilter !== 'all' || priorityFilter !== 'all' 
-                ? t('forms.noFormsFiltered') 
-                : t('forms.noForms')
+                ? t('formsManagement.noFormsFiltered') 
+                : t('formsManagement.noForms')
               }
             </div>
           )}
@@ -623,11 +623,11 @@ const Forms = () => {
               disabled={currentPage === 1}
               className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('forms.previous')}
+              {t('formsManagement.previous')}
             </button>
             
             <span className="px-4 py-2 text-sm text-gray-700">
-              {t('forms.page')} {currentPage} {t('forms.of')} {totalPages}
+              {t('formsManagement.page')} {currentPage} {t('formsManagement.of')} {totalPages}
             </span>
             
             <button
@@ -635,7 +635,7 @@ const Forms = () => {
               disabled={currentPage === totalPages}
               className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('forms.next')}
+              {t('formsManagement.next')}
             </button>
           </motion.div>
         )}
@@ -647,7 +647,7 @@ const Forms = () => {
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {t('forms.detail.title')}
+                {t('formsManagement.detail.title')}
               </h2>
               <button
                 onClick={() => setShowDetailModal(false)}
@@ -660,19 +660,19 @@ const Forms = () => {
             <div className="space-y-6">
               {/* Contact Information */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('forms.detail.contactInfo')}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('formsManagement.detail.contactInfo')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center">
                     <User className="w-5 h-5 text-gray-400 mr-3" />
                     <div>
-                      <p className="text-sm text-gray-600">{t('forms.detail.name')}</p>
+                      <p className="text-sm text-gray-600">{t('formsManagement.detail.name')}</p>
                       <p className="font-medium text-gray-900">{selectedForm.name}</p>
                     </div>
                   </div>
                   <div className="flex items-center">
                     <Mail className="w-5 h-5 text-gray-400 mr-3" />
                     <div>
-                      <p className="text-sm text-gray-600">{t('forms.detail.email')}</p>
+                      <p className="text-sm text-gray-600">{t('formsManagement.detail.email')}</p>
                       <p className="font-medium text-gray-900">{selectedForm.email}</p>
                     </div>
                   </div>
@@ -680,7 +680,7 @@ const Forms = () => {
                     <div className="flex items-center">
                       <Phone className="w-5 h-5 text-gray-400 mr-3" />
                       <div>
-                        <p className="text-sm text-gray-600">{t('forms.detail.phone')}</p>
+                        <p className="text-sm text-gray-600">{t('formsManagement.detail.phone')}</p>
                         <p className="font-medium text-gray-900">{selectedForm.phone}</p>
                       </div>
                     </div>
@@ -688,7 +688,7 @@ const Forms = () => {
                   <div className="flex items-center">
                     <Calendar className="w-5 h-5 text-gray-400 mr-3" />
                     <div>
-                      <p className="text-sm text-gray-600">{t('forms.detail.date')}</p>
+                      <p className="text-sm text-gray-600">{t('formsManagement.detail.date')}</p>
                       <p className="font-medium text-gray-900">{formatDate(selectedForm.createdAt)}</p>
                     </div>
                   </div>
@@ -697,7 +697,7 @@ const Forms = () => {
 
               {/* Message */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('forms.detail.message')}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('formsManagement.detail.message')}</h3>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-gray-900 whitespace-pre-wrap">{selectedForm.message}</p>
                 </div>
@@ -706,7 +706,7 @@ const Forms = () => {
               {/* Status and Priority */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('forms.detail.status')}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('formsManagement.detail.status')}</h3>
                   <select
                     value={selectedForm.status}
                     onChange={(e) => {
@@ -724,7 +724,7 @@ const Forms = () => {
                   </select>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('forms.detail.priority')}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('formsManagement.detail.priority')}</h3>
                   <select
                     value={selectedForm.priority}
                     onChange={(e) => {
@@ -746,7 +746,7 @@ const Forms = () => {
               {/* Replies */}
               {selectedForm.replies && selectedForm.replies.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('forms.detail.replies')}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('formsManagement.detail.replies')}</h3>
                   <div className="space-y-3">
                     {selectedForm.replies.map((reply, index) => (
                       <div key={index} className="bg-blue-50 rounded-lg p-4">
@@ -754,7 +754,7 @@ const Forms = () => {
                           <div className="flex items-center">
                             <UserCheck className="w-4 h-4 text-blue-600 mr-2" />
                             <span className="font-medium text-gray-900">
-                              {reply.repliedBy?.name || t('forms.detail.admin')}
+                              {reply.repliedBy?.name || t('formsManagement.detail.admin')}
                             </span>
                           </div>
                           <span className="text-sm text-gray-500">
@@ -778,13 +778,13 @@ const Forms = () => {
                   className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
                   <Reply className="w-4 h-4" />
-                  {t('forms.actions.reply')}
+                  {t('formsManagement.actions.reply')}
                 </button>
                 <button
                   onClick={() => setShowDetailModal(false)}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
                 >
-                  {t('forms.actions.close')}
+                  {t('formsManagement.actions.close')}
                 </button>
               </div>
             </div>
@@ -798,7 +798,7 @@ const Forms = () => {
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 w-full max-w-2xl shadow-2xl">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {t('forms.reply.title')}
+                {t('formsManagement.reply.title')}
               </h2>
               <button
                 onClick={() => setShowReplyModal(false)}
@@ -811,14 +811,14 @@ const Forms = () => {
             <form onSubmit={handleReply}>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('forms.reply.message')} <span className="text-red-500">*</span>
+                  {t('formsManagement.reply.message')} <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={replyMessage}
                   onChange={(e) => setReplyMessage(e.target.value)}
                   rows={6}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
-                  placeholder={t('forms.reply.placeholder')}
+                  placeholder={t('formsManagement.reply.placeholder')}
                   required
                 />
               </div>
@@ -830,7 +830,7 @@ const Forms = () => {
                   className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
                   disabled={replyLoading}
                 >
-                  {t('forms.actions.cancel')}
+                  {t('formsManagement.actions.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -842,7 +842,7 @@ const Forms = () => {
                   ) : (
                     <>
                       <Reply className="w-4 h-4" />
-                      {t('forms.actions.sendReply')}
+                      {t('formsManagement.actions.sendReply')}
                     </>
                   )}
                 </button>

@@ -118,6 +118,13 @@ export const rolesOrAdmin = (allowedRoles = []) => async (req, res, next) => {
     // Main admin always allowed
     if (decoded.email && decoded.email === process.env.ADMIN_EMAIL) {
       req.admin = { email: decoded.email };
+      // Create a mock user object for main admin
+      req.user = { 
+        _id: 'admin', 
+        email: decoded.email, 
+        isAdmin: true, 
+        roles: ['admin'] 
+      };
       return next();
     }
     

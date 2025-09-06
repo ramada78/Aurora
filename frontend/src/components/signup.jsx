@@ -99,6 +99,7 @@ const Signup = () => {
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
     phone: '',
     roles: ['client'], // Default to client
   });
@@ -108,6 +109,7 @@ const Signup = () => {
     name: false,
     email: false,
     password: false,
+    confirmPassword: false,
     phone: false
   });
   const [passwordStrength, setPasswordStrength] = useState(0);
@@ -204,7 +206,7 @@ const Signup = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        `${Backendurl}/api/users/signup`,
+        `${Backendurl}/api/users/register`,
         formData
       );
       if (response.data.success) {
@@ -535,6 +537,59 @@ const Signup = () => {
                       className={`mt-1 text-sm text-red-600 ${isRTL ? 'text-right' : ''}`}
                     >
                       {validationErrors.password}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+
+              {/* Confirm Password Field */}
+              <motion.div variants={inputVariants}>
+                <label htmlFor="confirmPassword" className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'text-right font-[Tajawal]' : ''}`}>
+                  {t('signup.confirmPasswordLabel')}
+                </label>
+                <div className="relative group">
+                  <div className={`absolute ${isRTL ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 transition-colors duration-200 ${
+                    fieldFocus.confirmPassword ? 'text-blue-500' : 'text-gray-400'
+                  }`}>
+                    <Key className="h-5 w-5" />
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    id="confirmPassword"
+                    required
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    onFocus={() => handleFocus('confirmPassword')}
+                    onBlur={() => handleBlur('confirmPassword')}
+                    className={`w-full ${isRTL ? 'pr-10 pl-10 text-right font-[Tajawal]' : 'pl-10 pr-10'} py-3 rounded-xl bg-gray-50/50 border-2 transition-all duration-200 placeholder-gray-400 ${
+                      validationErrors.confirmPassword
+                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
+                        : fieldFocus.confirmPassword
+                        ? 'border-blue-500 focus:border-blue-500 focus:ring-blue-500/20'
+                        : 'border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-blue-500/20'
+                    } focus:ring-4 focus:outline-none`}
+                    placeholder={t('signup.confirmPasswordPlaceholder')}
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className={`absolute ${isRTL ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100`}
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </motion.button>
+                </div>
+                <AnimatePresence>
+                  {validationErrors.confirmPassword && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className={`mt-1 text-sm text-red-600 ${isRTL ? 'text-right' : ''}`}
+                    >
+                      {validationErrors.confirmPassword}
                     </motion.p>
                   )}
                 </AnimatePresence>

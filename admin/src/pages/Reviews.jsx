@@ -15,11 +15,21 @@ import { backendurl } from "../App";
 import { useTranslation } from "react-i18next";
 
 const Reviews = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Helper function to safely extract multilingual text
+  const getMultilingualText = (textObj, fallback = '') => {
+    if (!textObj) return fallback;
+    if (typeof textObj === 'string') return textObj;
+    if (typeof textObj === 'object') {
+      return (i18n.language === 'ar' ? textObj.ar : textObj.en) || textObj.en || fallback;
+    }
+    return fallback;
+  };
 
   const fetchReviews = async () => {
     try {
@@ -81,11 +91,17 @@ const Reviews = () => {
     fetchReviews();
   }, []);
 
-  const filteredReviews = reviews.filter((review) =>
-    review.property_id?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    review.user_id?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    review.comment?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter reviews based on search term
+  const filteredReviews = reviews.filter((review) => {
+    const propertyTitle = getMultilingualText(review.property_id?.title, '');
+    const searchLower = searchTerm.toLowerCase();
+    
+    return (
+      propertyTitle.toLowerCase().includes(searchLower) ||
+      review.user_id?.name?.toLowerCase().includes(searchLower) ||
+      review.comment?.toLowerCase().includes(searchLower)
+    );
+  });
 
   if (loading) {
     return (
@@ -180,10 +196,10 @@ const Reviews = () => {
                         <Home className="w-4 h-4 text-gray-400 mr-2" />
                         <div>
                           <p className="font-medium text-gray-900 text-sm">
-                            {review.property_id?.title || t('reviews.labels.unknownProperty')}
+                            {getMultilingualText(review.property_id?.title, t('reviews.labels.unknownProperty'))}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {review.property_id?.city?.city_name || t('reviews.labels.unknownLocation')}
+                            {getMultilingualText(review.property_id?.city?.city_name, t('reviews.labels.unknownLocation'))}
                           </p>
                         </div>
                       </div>

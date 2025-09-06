@@ -22,20 +22,15 @@
     "charts": {
       "propertyViews": "مشاهدات العقارات",
       "propertyViewsTitle": "مشاهدات العقارات عبر الزمن",
-      "noViewData": "لا توجد بيانات مشاهدات متاحة"
-    },
-    "recentActivity": {
-      "title": "النشاط الأخير",
-      "noActivity": "لا يوجد نشاط حديث"
-    },
-    "charts": {
-      "propertyViews": "مشاهدات العقارات",
-      "propertyViewsTitle": "مشاهدات العقارات عبر الزمن",
       "propertyStatusTitle": "توزيع حالة العقارات",
       "inventoryStatus": "حالة المخزون",
       "noViewData": "لا توجد بيانات مشاهدات متاحة",
       "noStatusData": "لا توجد بيانات حالة العقارات متاحة",
       "liveData": "بيانات مباشرة"
+    },
+    "recentActivity": {
+      "title": "النشاط الأخير",
+      "noActivity": "لا يوجد نشاط حديث"
     },
     "propertyStatus": {
       "available": "متاح",
@@ -107,7 +102,7 @@
     "transactions": "الصفقات",
     "users": "المستخدمون",
     "news": "الأخبار",
-    "forms": "النماذج",
+    "formsPage": "النماذج",
     "metaData": "البيانات الوصفية",
     "amenities": "المرافق",
     "cities": "المدن",
@@ -717,7 +712,7 @@
         "fillAllFields": "يرجى ملء جميع الحقول المطلوبة"
       }
     },
-    "forms": {
+    "formsManagement": {
       "title": "إدارة النماذج",
       "subtitle": "إدارة استمارات الاتصال والاستفسارات",
       "loading": "جاري تحميل النماذج...",

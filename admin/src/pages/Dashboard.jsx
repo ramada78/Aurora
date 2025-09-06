@@ -46,7 +46,6 @@ const Dashboard = () => {
     totalViews: 0,
     pendingAppointments: 0,
     recentActivity: [],
-    viewsData: {},
     loading: true,
     error: null,
   });

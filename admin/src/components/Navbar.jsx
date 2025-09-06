@@ -150,7 +150,7 @@ const Navbar = () => {
     { path: '/transactions', label: t('navigation.transactions'), icon: TrendingUp },
     { path: '/users', label: t('navigation.users'), icon: Users },
     { path: '/news', label: t('navigation.news'), icon: FileText },
-    { path: '/forms', label: t('navigation.forms'), icon: ClipboardList },
+    { path: '/forms', label: t('navigation.formsPage'), icon: ClipboardList },
   ];
 
   const metaDataItems = [

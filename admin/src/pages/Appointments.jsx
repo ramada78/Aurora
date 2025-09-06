@@ -181,7 +181,10 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
   const filteredAppointments = appointments.filter((apt) => {
     const matchesSearch =
       searchTerm === "" ||
-      apt.propertyId?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (apt.propertyId?.title ? 
+        (i18n.language === 'ar' ? apt.propertyId.title.ar : apt.propertyId.title.en) || 
+        apt.propertyId.title.en || '' : ''
+      ).toLowerCase().includes(searchTerm.toLowerCase()) ||
       apt.userId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       apt.userId?.email?.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -495,7 +498,10 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
                 <label className="block text-sm font-medium mb-1">{t('appointments.editModal.property')}</label>
                 <input
                   type="text"
-                  value={editingAppointment?.propertyId?.title || ''}
+                  value={editingAppointment?.propertyId?.title ? 
+                    (i18n.language === 'ar' ? editingAppointment.propertyId.title.ar : editingAppointment.propertyId.title.en) || 
+                    editingAppointment.propertyId.title.en || 
+                    'Property' : ''}
                   className="w-full px-3 py-2 border rounded-xl bg-gray-100 text-gray-700"
                   readOnly
                 />

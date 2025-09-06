@@ -100,6 +100,16 @@ export const getAdminStats = async () => {
   }
 };
 
+export const getPublicStats = async () => {
+  try {
+    const response = await api.get('/api/stats/public');
+    return response.data.stats || {};
+  } catch (error) {
+    console.error('Error fetching public stats:', error);
+    return {};
+  }
+};
+
 export const getTotalPropertyViews = async () => {
   try {
     const response = await api.get('/api/products/total-views');

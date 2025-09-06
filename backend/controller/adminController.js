@@ -1,4 +1,3 @@
-import Stats from "../models/statsModel.js";
 import Property from "../models/propertymodel.js";
 import Appointment from "../models/appointmentModel.js";
 import User from "../models/Usermodel.js";
@@ -41,14 +40,12 @@ export const getAdminStats = async (req, res) => {
       totalUsers,
       pendingAppointments,
       recentActivity,
-      viewsData,
     ] = await Promise.all([
       Property.countDocuments(),
       Property.countDocuments({ status: "active" }),
       User.countDocuments(),
       Appointment.countDocuments({ status: "pending" }),
       getRecentActivity(),
-      getViewsData(),
     ]);
 
     res.json({
@@ -59,7 +56,6 @@ export const getAdminStats = async (req, res) => {
         totalUsers,
         pendingAppointments,
         recentActivity,
-        viewsData,
       },
     });
   } catch (error) {
@@ -99,71 +95,37 @@ const getRecentActivity = async () => {
   }
 };
 
-const getViewsData = async () => {
-  try {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const stats = await Stats.aggregate([
-      {
-        $match: {
-          endpoint: /^\/api\/products\/single\//,
-          method: "GET",
-          timestamp: { $gte: thirtyDaysAgo },
-        },
-      },
-      {
-        $group: {
-          _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$timestamp" },
-          },
-          count: { $sum: 1 },
-        },
-      },
-      { $sort: { _id: 1 } },
+// Public stats endpoint for home page (no authentication required)
+export const getPublicStats = async (req, res) => {
+  try {
+    const [
+      totalProperties,
+      activeListings,
+      totalUsers,
+      pendingAppointments,
+    ] = await Promise.all([
+      Property.countDocuments(),
+      Property.countDocuments({ status: "active" }),
+      User.countDocuments(),
+      Appointment.countDocuments({ status: "pending" }),
     ]);
 
-    // Generate dates for last 30 days
-    const labels = [];
-    const data = [];
-    for (let i = 30; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateString = date.toISOString().split("T")[0];
-      labels.push(dateString);
-
-      const stat = stats.find((s) => s._id === dateString);
-      data.push(stat ? stat.count : 0);
-    }
-
-    return {
-      labels,
-      datasets: [
-        {
-          label: "Property Views",
-          data,
-          borderColor: "rgb(75, 192, 192)",
-          backgroundColor: "rgba(75, 192, 192, 0.2)",
-          tension: 0.4,
-          fill: true,
-        },
-      ],
-    };
+    res.json({
+      success: true,
+      stats: {
+        totalProperties,
+        activeListings,
+        totalUsers,
+        pendingAppointments,
+      },
+    });
   } catch (error) {
-    console.error("Error generating chart data:", error);
-    return {
-      labels: [],
-      datasets: [
-        {
-          label: "Property Views",
-          data: [],
-          borderColor: "rgb(75, 192, 192)",
-          backgroundColor: "rgba(75, 192, 192, 0.2)",
-          tension: 0.4,
-          fill: true,
-        },
-      ],
-    };
+    console.error("Public stats error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching public statistics",
+    });
   }
 };
 

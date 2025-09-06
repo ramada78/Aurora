@@ -22,20 +22,15 @@
     "charts": {
       "propertyViews": "Property Views",
       "propertyViewsTitle": "Property Views Over Time",
-      "noViewData": "No view data available"
-    },
-    "recentActivity": {
-      "title": "Recent Activity",
-      "noActivity": "No recent activity"
-    },
-    "charts": {
-      "propertyViews": "Property Views",
-      "propertyViewsTitle": "Property Views Over Time",
       "propertyStatusTitle": "Property Status Distribution",
       "inventoryStatus": "Inventory Status",
       "noViewData": "No view data available",
       "noStatusData": "No property status data available",
       "liveData": "Live Data"
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "noActivity": "No recent activity"
     },
     "propertyStatus": {
       "available": "Available",
@@ -107,7 +102,7 @@
     "transactions": "Transactions",
     "users": "Users",
     "news": "News",
-    "forms": "Forms",
+    "formsPage": "Forms",
     "metaData": "Meta Data",
     "amenities": "Amenities",
     "cities": "Cities",
@@ -717,7 +712,7 @@
         "fillAllFields": "Please fill in all required fields"
       }
     },
-    "forms": {
+    "formsManagement": {
       "title": "Forms Management",
       "subtitle": "Manage contact form submissions and inquiries",
       "loading": "Loading forms...",

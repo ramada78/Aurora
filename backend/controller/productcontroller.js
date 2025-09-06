@@ -94,7 +94,7 @@ const removeproperty = async (req, res) => {
         // Authorization: compare user _id directly
         const isAgent = property.agent && property.agent.toString() === req.user._id.toString();
         const isSeller = property.seller && property.seller.toString() === req.user._id.toString();
-        const isAdmin = !!req.admin;
+        const isAdmin = req.user && req.user.isAdmin;
         if (!(isAgent || isSeller || isAdmin)) {
           return res.status(403).json({ message: "You do not have permission to delete this property", success: false });
         }
@@ -124,7 +124,7 @@ const updateproperty = async (req, res) => {
         // Authorization: compare user _id directly
         const isAgent = property.agent && property.agent.toString() === req.user._id.toString();
         const isSeller = property.seller && property.seller.toString() === req.user._id.toString();
-        const isAdmin = !!req.admin;
+        const isAdmin = req.user && req.user.isAdmin;
         if (!(isAgent || isSeller || isAdmin)) {
           return res.status(403).json({ message: "You do not have permission to update this property", success: false });
         }
@@ -173,7 +173,8 @@ const updateproperty = async (req, res) => {
         await property.save();
         return res.json({ message: "Property updated successfully", success: true });
     } catch (error) {
-        res.status(500).json({ message: "Server Error", success: false });
+        console.error('Update property error:', error);
+        res.status(500).json({ message: "Server Error", success: false, error: error.message });
     }
 };
 
@@ -196,14 +197,19 @@ const singleproperty = async (req, res) => {
             await property.save();
         }
         
-        // Transform property to include the appropriate names for the requested language
-        const transformedProperty = {
-            ...property.toObject(),
-            displayTitle: property.title && property.title[lang] ? property.title[lang] : (property.title?.en || property.title || 'Unknown'),
-            displayDescription: property.description && property.description[lang] ? property.description[lang] : (property.description?.en || property.description || 'Unknown')
-        };
-        
-        res.json({ property: transformedProperty, success: true });
+        // For edit mode, return raw multilingual data without transformation
+        if (req.query.edit === 'true') {
+            res.json({ property: property, success: true });
+        } else {
+            // Transform property to include the appropriate names for the requested language
+            const transformedProperty = {
+                ...property.toObject(),
+                displayTitle: property.title && property.title[lang] ? property.title[lang] : (property.title?.en || property.title || 'Unknown'),
+                displayDescription: property.description && property.description[lang] ? property.description[lang] : (property.description?.en || property.description || 'Unknown')
+            };
+            
+            res.json({ property: transformedProperty, success: true });
+        }
     } catch (error) {
         res.status(500).json({ message: "Server Error", success: false });
     }
