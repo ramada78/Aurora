@@ -154,11 +154,9 @@ export const updateAppointmentStatus = async (req, res) => {
   try {
     const { appointmentId, status } = req.body;
 
-    const appointment = await Appointment.findByIdAndUpdate(
-      appointmentId,
-      { status },
-      { new: true }
-    ).populate("propertyId userId");
+    // Find appointment first for better performance
+    const appointment = await Appointment.findById(appointmentId)
+      .populate("propertyId userId");
 
     if (!appointment) {
       return res.status(404).json({
@@ -167,22 +165,79 @@ export const updateAppointmentStatus = async (req, res) => {
       });
     }
 
-    // Send email notification using the template from email.js
-    const mailOptions = {
-      from: process.env.SMTP_USER,
-      to: appointment.userId.email,
-      subject: `Viewing Appointment ${
-        status.charAt(0).toUpperCase() + status.slice(1)
-      } - Aurora`,
-      html: getEmailTemplate(appointment, status),
+    // Update status
+    appointment.status = status;
+    await appointment.save();
+
+    // Get property title for notifications
+    const propertyTitle = appointment.propertyId.displayTitle || (appointment.propertyId.title?.en || appointment.propertyId.title) || 'Property';
+    const propertyTitleAr = appointment.propertyId.title?.ar || 'العقار';
+    
+    // Create notification messages
+    const notifMsg = {
+      en: `Appointment for property "${propertyTitle}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been ${status}.`,
+      ar: `تم ${status === 'confirmed' ? 'تأكيد' : status === 'cancelled' ? 'إلغاء' : 'تحديث'} الموعد للعقار "${propertyTitleAr}" في ${new Date(appointment.date).toLocaleDateString('ar-EG')} الساعة ${appointment.time} بنجاح.`
+    };
+    
+    const clientMsg = {
+      en: `Your appointment for property "${propertyTitle}" on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.time} has been ${status}.`,
+      ar: `تم ${status === 'confirmed' ? 'تأكيد' : status === 'cancelled' ? 'إلغاء' : 'تحديث'} موعدك للعقار "${propertyTitleAr}" في ${new Date(appointment.date).toLocaleDateString('ar-EG')} الساعة ${appointment.time} بنجاح.`
     };
 
-    await transporter.sendMail(mailOptions);
+    // Create in-app notification for the client
+    if (appointment.userId && appointment.userId._id) {
+      try {
+        const notification = {
+          type: 'appointment',
+          message: {
+            en: clientMsg.en || `Your appointment has been ${status}`,
+            ar: clientMsg.ar || `تم ${status === 'confirmed' ? 'تأكيد' : status === 'cancelled' ? 'إلغاء' : 'تحديث'} موعدك بنجاح`
+          },
+          link: '/dashboard/appointments',
+          read: false,
+          createdAt: new Date()
+        };
+        
+        await User.findByIdAndUpdate(appointment.userId._id, { 
+          $push: { notifications: notification } 
+        });
+        console.log(`Notification created for user ${appointment.userId._id} for appointment ${appointmentId}`);
+      } catch (notifError) {
+        console.error('Error creating notification:', notifError);
+        // Don't fail the entire operation if notification creation fails
+      }
+    }
 
+    // Send response immediately for faster UI update
+    const statusMessage = {
+      en: `Appointment ${status} successfully`,
+      ar: `تم ${status === 'confirmed' ? 'تأكيد' : status === 'cancelled' ? 'إلغاء' : 'تحديث'} الموعد بنجاح`
+    };
+    
     res.json({
       success: true,
-      message: `Appointment ${status} successfully`,
+      message: statusMessage.en,
+      messageAr: statusMessage.ar,
       appointment,
+    });
+
+    // Send email notification asynchronously (non-blocking)
+    setImmediate(async () => {
+      try {
+        const mailOptions = {
+          from: process.env.SMTP_USER,
+          to: appointment.userId.email,
+          subject: `Viewing Appointment ${
+            status.charAt(0).toUpperCase() + status.slice(1)
+          } - Aurora`,
+          html: getEmailTemplate(appointment, status),
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`Email sent to ${appointment.userId.email} for appointment ${appointmentId}`);
+      } catch (emailError) {
+        console.error('Error sending email:', emailError);
+      }
     });
   } catch (error) {
     console.error("Error updating appointment:", error);

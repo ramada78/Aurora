@@ -18,7 +18,9 @@ async function notifyAppointment({ appointment, property, clientMsg, notifMsg })
       $push: { notifications: { 
         type: 'appointment', 
         message: clientMsg, 
-        link: '/dashboard/appointments' 
+        link: '/dashboard/appointments',
+        read: false,
+        createdAt: new Date()
       } } 
     });
   }
@@ -27,7 +29,9 @@ async function notifyAppointment({ appointment, property, clientMsg, notifMsg })
       $push: { notifications: { 
         type: 'appointment', 
         message: notifMsg, 
-        link: '/appointments' 
+        link: '/appointments',
+        read: false,
+        createdAt: new Date()
       } } 
     }, { new: true });
   }
@@ -36,7 +40,9 @@ async function notifyAppointment({ appointment, property, clientMsg, notifMsg })
       $push: { notifications: { 
         type: 'appointment', 
         message: notifMsg, 
-        link: '/appointments' 
+        link: '/appointments',
+        read: false,
+        createdAt: new Date()
       } } 
     }, { new: true });
   }
@@ -44,7 +50,9 @@ async function notifyAppointment({ appointment, property, clientMsg, notifMsg })
     $push: { notifications: { 
       type: 'appointment', 
       message: notifMsg, 
-      link: '/appointments' 
+      link: '/appointments',
+      read: false,
+      createdAt: new Date()
     } } 
   });
 }
@@ -64,7 +72,11 @@ export const updateAppointmentStatus = async (req, res) => {
       .populate('userId');
     if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
     if (!isAllowedAppointment({ req, property: appointment.propertyId })) {
-      return res.status(403).json({ success: false, message: 'You do not have permission to change the status of this appointment.' });
+      return res.status(403).json({ 
+        success: false, 
+        message: 'You do not have permission to change the status of this appointment.',
+        messageAr: 'ليس لديك إذن لتغيير حالة هذا الموعد.'
+      });
     }
     appointment.status = status;
     await appointment.save();
@@ -194,7 +206,11 @@ export const updateAppointmentDetails = async (req, res) => {
     ).populate({ path: 'propertyId' }).populate('userId');
     if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found' });
     if (!isAllowedAppointment({ req, property: appointment.propertyId })) {
-      return res.status(403).json({ success: false, message: 'You do not have permission to update this appointment.' });
+      return res.status(403).json({ 
+        success: false, 
+        message: 'You do not have permission to update this appointment.',
+        messageAr: 'ليس لديك إذن لتحديث هذا الموعد.'
+      });
     }
     const propertyTitle = appointment.propertyId.displayTitle || (appointment.propertyId.title?.en || appointment.propertyId.title) || 'Property';
     const propertyTitleAr = appointment.propertyId.title?.ar || 'العقار';
@@ -208,7 +224,18 @@ export const updateAppointmentDetails = async (req, res) => {
       `تم تحديث موعدك للعقار "${propertyTitleAr}" في ${new Date(appointment.date).toLocaleDateString('ar-EG')} الساعة ${appointment.time}.`
     );
     await notifyAppointment({ appointment, property: appointment.propertyId, clientMsg, notifMsg });
-    res.json({ success: true, message: 'Appointment updated successfully', appointment });
+    
+    const statusMessage = {
+      en: 'Appointment updated successfully',
+      ar: 'تم تحديث الموعد بنجاح'
+    };
+    
+    res.json({ 
+      success: true, 
+      message: statusMessage.en,
+      messageAr: statusMessage.ar,
+      appointment 
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error updating appointment details' });
   }

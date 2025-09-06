@@ -70,6 +70,13 @@ export const adminAuth = async (req, res, next) => {
     // Check if this is an admin token (contains email instead of id)
     if (decoded.email && decoded.email === process.env.ADMIN_EMAIL) {
       req.admin = { email: decoded.email };
+      // Create a mock user object for main admin
+      req.user = { 
+        _id: 'admin', 
+        email: decoded.email, 
+        isAdmin: true, 
+        roles: ['admin'] 
+      };
       next();
     } else if (decoded.id) {
       // Check for database user with isAdmin: true

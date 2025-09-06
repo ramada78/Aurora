@@ -80,14 +80,16 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
       );
 
       if (response.data.success) {
-        toast.success(t('appointments.messages.statusUpdateSuccess', { status: newStatus }));
+        // Use the backend message if available, otherwise fall back to translation
+        const successMessage = response.data.messageAr || response.data.message || t('appointments.messages.statusUpdateSuccess', { status: newStatus });
+        toast.success(successMessage);
         fetchAppointments();
       } else {
         toast.error(response.data.message);
       }
     } catch (error) {
       console.error("Error updating appointment:", error);
-      const errorMessage = error.response?.data?.message || t('appointments.messages.statusUpdateError');
+      const errorMessage = error.response?.data?.messageAr || error.response?.data?.message || t('appointments.messages.statusUpdateError');
       toast.error(errorMessage);
     }
   };
@@ -157,7 +159,9 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
       if (response.data.success) {
-        toast.success(t('appointments.messages.editSuccess'));
+        // Use the backend message if available, otherwise fall back to translation
+        const successMessage = response.data.messageAr || response.data.message || t('appointments.messages.editSuccess');
+        toast.success(successMessage);
         closeEditModal();
         fetchAppointments();
       } else {
@@ -165,7 +169,8 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
       }
     } catch (error) {
       if (error.response && error.response.status === 403) {
-        toast.error("You do not have permission to edit this appointment.");
+        const errorMessage = error.response.data?.messageAr || error.response.data?.message || "You do not have permission to edit this appointment.";
+        toast.error(errorMessage);
       } else {
         toast.error(t('appointments.messages.editError'));
       }

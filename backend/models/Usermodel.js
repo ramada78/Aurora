@@ -26,8 +26,8 @@ const UserSchema = new mongoose.Schema({
             default: 'system'
         },
         message: {
-            en: { type: String, required: true },
-            ar: { type: String, required: true }
+            en: { type: String, required: false },
+            ar: { type: String, required: false }
         },
         read: { type: Boolean, default: false },
         createdAt: { type: Date, default: Date.now },

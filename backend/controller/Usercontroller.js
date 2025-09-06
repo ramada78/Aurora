@@ -732,11 +732,21 @@ const markNotificationsRead = async (req, res) => {
   try {
     const user = await userModel.findById(req.user._id);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
-    user.notifications.forEach(n => { n.read = true; });
-    await user.save();
-    res.json({ success: true });
+    
+    // Mark all notifications as read
+    if (user.notifications && user.notifications.length > 0) {
+      user.notifications.forEach(n => { 
+        if (n && typeof n === 'object') {
+          n.read = true;
+        }
+      });
+      await user.save();
+    }
+    
+    res.json({ success: true, message: 'All notifications marked as read' });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to mark notifications as read' });
+    console.error('Error marking notifications as read:', error);
+    res.status(500).json({ success: false, message: 'Failed to mark notifications as read', error: error.message });
   }
 };
 
