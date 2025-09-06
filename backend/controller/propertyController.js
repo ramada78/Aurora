@@ -3,7 +3,6 @@ import aiService from '../services/aiService.js';
 import Property from '../models/propertymodel.js';
 import PropertyType from '../models/PropertyType.js';
 import City from '../models/City.js';
-import * as tf from '@tensorflow/tfjs';
 
 // Helper: Encode categorical fields to numbers
 const encodeCategories = (items) => {
@@ -95,12 +94,16 @@ export const getLocationTrends = async (req, res) => {
 export const recommendProperties = async (req, res) => {
     try {
         const { beds, price, sqft, propertyType, city, topN = 5 } = req.body;
+        console.log('Recommendation request:', { beds, price, sqft, propertyType, city, topN });
+        
         // Validate and provide defaults
         const safeBeds = typeof beds === 'number' && !isNaN(beds) ? beds : 1;
         const safePrice = typeof price === 'number' && !isNaN(price) ? price : 100000;
         const safeSqft = typeof sqft === 'number' && !isNaN(sqft) ? sqft : 100;
         const safePropertyType = propertyType || '';
         const safeCity = city || '';
+        
+        console.log('Safe values:', { safeBeds, safePrice, safeSqft, safePropertyType, safeCity });
         // Fetch all properties with populated fields
         let properties = await Property.find({})
             .populate('propertyType')
@@ -160,84 +163,82 @@ export const recommendProperties = async (req, res) => {
             return res.json({ success: true, recommended: [] });
         }
 
-        // Prepare lists for encoding - extract English names consistently
-        const propertyTypes = [...new Set(preFilteredProperties.map(p => {
-            if (typeof p.propertyType?.type_name === 'string') {
-                return p.propertyType.type_name;
-            } else if (typeof p.propertyType?.type_name === 'object') {
-                return p.propertyType.type_name.en || 'Unknown';
+        // Simple similarity-based recommendation algorithm
+        const calculateSimilarity = (property, userPrefs) => {
+            let score = 0;
+            let factors = 0;
+
+            // Price similarity (closer to user's preferred price = higher score)
+            if (userPrefs.price && property.price) {
+                const priceDiff = Math.abs(property.price - userPrefs.price);
+                const priceScore = Math.max(0, 100 - (priceDiff / userPrefs.price) * 100);
+                score += priceScore * 0.3; // 30% weight
+                factors += 0.3;
             }
-            return 'Unknown';
-        }))];
-        
-        const cities = [...new Set(preFilteredProperties.map(p => {
-            if (typeof p.city?.city_name === 'string') {
-                return p.city.city_name;
-            } else if (typeof p.city?.city_name === 'object') {
-                return p.city.city_name.en || 'Unknown';
+
+            // Bedrooms similarity
+            if (userPrefs.beds && property.beds) {
+                const bedsScore = property.beds === userPrefs.beds ? 100 : 
+                                 Math.abs(property.beds - userPrefs.beds) === 1 ? 70 : 30;
+                score += bedsScore * 0.2; // 20% weight
+                factors += 0.2;
             }
-            return 'Unknown';
-        }))];
-        
-        const availabilities = [...new Set(preFilteredProperties.map(p => p.availability || 'Unknown'))];
-        const propertyTypeMap = encodeCategories(propertyTypes);
-        const cityMap = encodeCategories(cities);
-        const availabilityMap = encodeCategories(availabilities);
 
-        // Build feature vectors for all pre-filtered properties
-        const featureVectors = preFilteredProperties.map(p => {
-            const propType = typeof p.propertyType?.type_name === 'string' 
-                ? p.propertyType.type_name 
-                : (p.propertyType?.type_name?.en || 'Unknown');
-            const propCity = typeof p.city?.city_name === 'string' 
-                ? p.city.city_name 
-                : (p.city?.city_name?.en || 'Unknown');
-            
-            return [
-                p.beds,
-                p.price,
-                p.sqft,
-                propertyTypeMap[propType],
-                cityMap[propCity],
-                availabilityMap[p.availability || 'Unknown']
-            ];
-        });
+            // Property type similarity
+            if (userPrefs.propertyType && property.propertyType) {
+                const propType = typeof property.propertyType.type_name === 'string' 
+                    ? property.propertyType.type_name 
+                    : (property.propertyType.type_name?.en || '');
+                const typeScore = propType.toLowerCase() === userPrefs.propertyType.toLowerCase() ? 100 : 0;
+                score += typeScore * 0.25; // 25% weight
+                factors += 0.25;
+            }
 
-        // Build user preference vector
-        const userVector = [
-            safeBeds,
-            safePrice,
-            safeSqft,
-            propertyTypeMap[safePropertyType],
-            cityMap[safeCity],
-            availabilityMap[req.body.availability]
-        ];
-        if ((safePropertyType && propertyTypeMap[safePropertyType] === undefined) || (safeCity && cityMap[safeCity] === undefined) || (req.body.availability && availabilityMap[req.body.availability] === undefined)) {
-            console.warn('User preference propertyType, city, or availability not found in mapping. Returning no recommendations.');
-            return res.json({ success: true, recommended: [] });
-        }
+            // City similarity
+            if (userPrefs.city && property.city) {
+                const propCity = typeof property.city.city_name === 'string' 
+                    ? property.city.city_name 
+                    : (property.city.city_name?.en || '');
+                const cityScore = propCity.toLowerCase() === userPrefs.city.toLowerCase() ? 100 : 0;
+                score += cityScore * 0.15; // 15% weight
+                factors += 0.15;
+            }
 
-        // Convert to tensors
-        const propertyTensor = tf.tensor2d(featureVectors);
-        const userTensor = tf.tensor1d(userVector);
+            // Availability similarity
+            if (userPrefs.availability && property.availability) {
+                const availScore = property.availability.toLowerCase() === userPrefs.availability.toLowerCase() ? 100 : 0;
+                score += availScore * 0.1; // 10% weight
+                factors += 0.1;
+            }
 
-        // Compute Euclidean distances
-        const diffs = propertyTensor.sub(userTensor);
-        const sqDiffs = diffs.square();
-        const dists = sqDiffs.sum(1).sqrt();
-        const distsArray = await dists.array();
+            // Return normalized score
+            return factors > 0 ? score / factors : 0;
+        };
 
-        // Get top N indices
-        const sortedIndices = distsArray
-            .map((dist, idx) => ({ dist, idx }))
-            .sort((a, b) => a.dist - b.dist)
-            .slice(0, topN)
-            .map(obj => obj.idx);
+        // Calculate similarity scores for all properties
+        const userPrefs = {
+            beds: safeBeds,
+            price: safePrice,
+            sqft: safeSqft,
+            propertyType: safePropertyType,
+            city: safeCity,
+            availability: req.body.availability
+        };
+
+        const scoredProperties = preFilteredProperties.map((property, index) => ({
+            property,
+            index,
+            score: calculateSimilarity(property, userPrefs)
+        }));
+
+        // Sort by score and get top N
+        const sortedProperties = scoredProperties
+            .sort((a, b) => b.score - a.score)
+            .slice(0, topN);
 
         // Return the top N properties, ensuring all required fields are present
         const backendUrl = process.env.BACKEND_URL || '';
-        const recommended = sortedIndices.map(idx => {
-            const p = preFilteredProperties[idx];
+        const recommended = sortedProperties.map(({ property: p, score }) => {
             let imageUrl = '';
             if (p.image && p.image.length > 0) {
                 imageUrl = p.image[0];
@@ -258,6 +259,7 @@ export const recommendProperties = async (req, res) => {
                 availability: p.availability || '',
                 description: p.description || '',
                 status: p.status || '',
+                similarityScore: Math.round(score), // Add similarity score for debugging
                 // Add more fields as needed
             };
         });

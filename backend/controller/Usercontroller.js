@@ -655,6 +655,7 @@ const getLastSearch = async (req, res) => {
   try {
     const userId = req.user._id;
     const user = await userModel.findById(userId);
+    console.log('User last searches:', user?.lastSearches);
     res.json({ success: true, lastSearches: user?.lastSearches || [] });
   } catch (error) {
     console.error('Error getting last search:', error);
