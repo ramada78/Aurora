@@ -182,7 +182,7 @@ const Cities = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-32 flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-6"></div>
@@ -196,8 +196,7 @@ const Cities = () => {
   }
 
   return (
-    <div className="min-h-screen pt-32 px-4 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-      <div className="max-w-7xl mx-auto">
+    <div>
         {/* Header and Search Section */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -310,7 +309,6 @@ const Cities = () => {
             </div>
           )}
         </motion.div>
-      </div>
 
       {/* Add/Edit Modal */}
       {(showAddModal || editingCity) && (

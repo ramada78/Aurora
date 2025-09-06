@@ -444,7 +444,7 @@ const Dashboard = () => {
 
     if (stats.loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-6"></div>
@@ -459,7 +459,7 @@ const Dashboard = () => {
 
   if (stats.error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-white/20">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="w-8 h-8 text-red-500" />
@@ -485,9 +485,7 @@ const Dashboard = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="min-h-screen pt-32 px-4 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50"
     >
-      <div className="max-w-7xl mx-auto">
         {/* Enhanced Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -621,7 +619,6 @@ const Dashboard = () => {
             </div>
           </motion.div>
         </div>
-      </div>
     </motion.div>
   );
 };

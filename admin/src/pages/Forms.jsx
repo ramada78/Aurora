@@ -301,23 +301,18 @@ const Forms = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-32 px-4 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-center py-32">
-            <div className="text-center">
-              <Loader className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">{t('formsManagement.loading')}</h3>
-              <p className="text-gray-600">{t('formsManagement.loadingSubtitle')}</p>
-            </div>
-          </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <Loader className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">{t('formsManagement.loading')}</h3>
+          <p className="text-gray-600">{t('formsManagement.loadingSubtitle')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pt-32 px-4 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-      <div className="max-w-7xl mx-auto">
+    <div>
         {/* Header Section */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -639,7 +634,6 @@ const Forms = () => {
             </button>
           </motion.div>
         )}
-      </div>
 
       {/* Form Detail Modal */}
       {showDetailModal && selectedForm && (

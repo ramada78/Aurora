@@ -237,7 +237,7 @@ const Update = () => {
   // Only render the form if data is loaded
   if (!formData.titleEn) {
     return (
-      <div className="min-h-screen pt-32 flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-6"></div>
@@ -251,8 +251,7 @@ const Update = () => {
   }
 
   return (
-    <div className="min-h-screen pt-32 px-4 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-      <div className="max-w-2xl mx-auto rounded-2xl shadow-2xl bg-white/90 backdrop-blur-sm p-8 border border-white/20">
+    <div className="max-w-2xl mx-auto rounded-2xl shadow-2xl bg-white/90 backdrop-blur-sm p-8 border border-white/20">
         <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">{t('forms.updateProperty.title')}</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
@@ -591,7 +590,6 @@ const Update = () => {
             </button>
           </div>
         </form>
-      </div>
     </div>
   );
 };

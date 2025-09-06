@@ -105,7 +105,7 @@ const Reviews = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-32 flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
@@ -120,23 +120,21 @@ const Reviews = () => {
   }
 
   return (
-    <div className="min-h-screen pt-32 px-4 bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="max-w-7xl mx-auto">
+    <div>
         {/* Header and Search Section */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-8"
+          className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg"
         >
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {t('reviews.title')}
-              </h1>
-              <p className="text-gray-600 text-lg">
-                {t('reviews.subtitle')}
-              </p>
-            </div>
+          <div className="mb-4 lg:mb-0">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+              {t('reviews.title')}
+            </h1>
+            <p className="text-gray-600">
+              {t('reviews.subtitle')}
+            </p>
+          </div>
 
             <div className="flex items-center gap-4">
               <div className="relative">
@@ -150,8 +148,7 @@ const Reviews = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
 
         {/* Table */}
         <motion.div 
@@ -260,7 +257,6 @@ const Reviews = () => {
             </div>
           )}
         </motion.div>
-      </div>
     </div>
   );
 };

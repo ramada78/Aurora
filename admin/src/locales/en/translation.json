@@ -796,5 +796,30 @@
         "replyError": "Failed to send reply",
         "replyRequired": "Please enter a reply message"
       }
+    },
+    "footer": {
+      "company": {
+        "title": "Aurora Admin",
+        "description": "Professional real estate management platform for modern property administration.",
+        "madeWith": "Made with love for property professionals"
+      },
+      "links": {
+        "title": "Quick Links"
+      },
+      "contact": {
+        "title": "Admin Contact Info",
+        "address": "Aleppo, Syria"
+      },
+      "status": {
+        "title": "System Status",
+        "system": "System",
+        "database": "Database",
+        "api": "API",
+        "online": "Online",
+        "connected": "Connected",
+        "operational": "Operational"
+      },
+      "copyright": "Aurora Real Estate. All rights reserved.",
+      "version": "Version"
     }
 } 

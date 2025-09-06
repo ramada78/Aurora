@@ -208,7 +208,7 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-32 flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <div className="relative">
             <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-6"></div>
@@ -222,8 +222,7 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
   }
 
   return (
-    <div className="min-h-screen pt-32 px-4 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-      <div className="max-w-7xl mx-auto">
+    <div>
         {/* Header and Search Section - Keep existing code */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -486,7 +485,6 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
             </div>
           )}
         </motion.div>
-      </div>
       {editingAppointment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20">

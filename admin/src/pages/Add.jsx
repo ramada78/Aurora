@@ -210,8 +210,7 @@ const Add = () => {
   };
 
   return (
-    <div className="min-h-screen pt-32 px-4 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-      <div className="max-w-2xl mx-auto rounded-2xl shadow-2xl bg-white/90 backdrop-blur-sm p-8 border border-white/20">
+    <div className="max-w-2xl mx-auto rounded-2xl shadow-2xl bg-white/90 backdrop-blur-sm p-8 border border-white/20">
         <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">{t('forms.addProperty.title')}</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
@@ -553,7 +552,6 @@ const Add = () => {
             </button>
           </div>
         </form>
-      </div>
     </div>
   );
 };

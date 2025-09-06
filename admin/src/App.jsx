@@ -7,6 +7,7 @@ import { useEffect } from "react";
 
 // Components
 import Navbar from "./components/Navbar";
+import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorFallback from "./components/ErrorFallback";
 
@@ -61,7 +62,6 @@ const App = () => {
             exit="exit"
             variants={pageVariants}
             transition={{ duration: 0.3 }}
-            className="pt-16"
           >
             <Routes>
               {/* Public Routes */}
@@ -70,20 +70,20 @@ const App = () => {
 
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/list" element={<List />} />
-                <Route path="/add" element={<Add />} />
-                <Route path="/update/:id" element={<Update />} />
-                <Route path="/appointments" element={<Appointments />} />
+                <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+                <Route path="/list" element={<Layout><List /></Layout>} />
+                <Route path="/add" element={<Layout><Add /></Layout>} />
+                <Route path="/update/:id" element={<Layout><Update /></Layout>} />
+                <Route path="/appointments" element={<Layout><Appointments /></Layout>} />
         
-                <Route path="/amenities" element={<Amenities />} />
-                <Route path="/cities" element={<Cities />} />
-                <Route path="/property-types" element={<PropertyTypes />} />
-                <Route path="/reviews" element={<Reviews />} />
-                <Route path="/transactions" element={<Transactions />} />
-                <Route path="/users" element={<UsersPage />} />
-                <Route path="/news" element={<News />} />
-                <Route path="/forms" element={<Forms />} />
+                <Route path="/amenities" element={<Layout><Amenities /></Layout>} />
+                <Route path="/cities" element={<Layout><Cities /></Layout>} />
+                <Route path="/property-types" element={<Layout><PropertyTypes /></Layout>} />
+                <Route path="/reviews" element={<Layout><Reviews /></Layout>} />
+                <Route path="/transactions" element={<Layout><Transactions /></Layout>} />
+                <Route path="/users" element={<Layout><UsersPage /></Layout>} />
+                <Route path="/news" element={<Layout><News /></Layout>} />
+                <Route path="/forms" element={<Layout><Forms /></Layout>} />
               </Route>
 
               {/* 404 Route */}
