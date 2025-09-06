@@ -23,6 +23,17 @@ All API endpoints follow this pattern:
 - `GET /api/users/roles` - Get user roles
 - `GET /api/users/wishlist` - Get user wishlist
 - `GET /api/users/notifications` - Get notifications
+- `PUT /api/users/notifications/read` - Mark notifications as read
+- `DELETE /api/users/notifications` - Clear all notifications
+- `POST /api/users/last-search` - Save last search
+- `GET /api/users/last-search` - Get last searches
+- `POST /api/users/wishlist/add` - Add to wishlist
+- `POST /api/users/wishlist/remove` - Remove from wishlist
+- `PUT /api/users/profile` - Update user profile
+- `GET /api/users/all-with-roles` - Get all users with roles (agent/admin only)
+- `POST /api/users/create-with-role` - Create user with role (admin only)
+- `PUT /api/users/update-with-role` - Update user with role (admin only)
+- `DELETE /api/users/:id` - Delete user (admin only)
 
 #### **Properties** (`/api/properties`)
 - `POST /api/properties/search` - Search properties
@@ -30,12 +41,13 @@ All API endpoints follow this pattern:
 - `GET /api/locations/:city/trends` - Location trends
 
 #### **Products** (`/api/products`)
-- `POST /api/products/add` - Add property
+- `POST /api/products/add` - Add property (agent/seller only)
 - `GET /api/products/list` - List properties
 - `GET /api/products/single/:id` - Get single property
-- `POST /api/products/remove` - Remove property
-- `POST /api/products/update` - Update property
+- `POST /api/products/remove` - Remove property (agent/seller only)
+- `POST /api/products/update` - Update property (agent/seller only)
 - `GET /api/products/amenities` - List amenities
+- `POST /api/products/amenities/seed` - Seed amenities data
 - `GET /api/products/total-views` - Property views stats
 - `GET /api/products/views-over-time` - Views over time
 - `GET /api/products/status-distribution` - Status distribution
@@ -53,7 +65,8 @@ All API endpoints follow this pattern:
 - `PUT /api/appointments/update-details` - Update details
 
 #### **Reviews** (`/api/reviews`)
-- `GET /api/reviews` - List reviews
+- `GET /api/reviews` - List all reviews
+- `GET /api/reviews/property/:propertyId` - Get reviews by property ID
 - `POST /api/reviews` - Add review
 - `PUT /api/reviews/:id` - Update review
 - `DELETE /api/reviews/:id` - Delete review
@@ -125,8 +138,15 @@ All API endpoints follow this pattern:
 - `GET /api/admin/stats` - Admin statistics
 - `GET /api/admin/appointments` - All appointments
 - `PUT /api/admin/appointments/status` - Update appointment status
+- `PUT /api/admin/appointments/update-meeting` - Update meeting link
+- `PUT /api/admin/appointments/update-details` - Update appointment details
+- `GET /api/admin/users` - Get all users with roles
+- `POST /api/admin/users` - Create user with role
+- `PUT /api/admin/users/:id` - Update user with role
+- `DELETE /api/admin/users/:id` - Delete user
 
 #### **System Endpoints**
+- `GET /api/stats/public` - Public statistics (no auth required)
 - `GET /status` - Health check
 - `GET /` - API status page
 
@@ -172,8 +192,20 @@ Uploaded files are served from:
 Test if the API is running:
 - `GET http://localhost:4000/status`
 
-## Notes
+## Important Notes
 
+### **Authentication Requirements**
+- Most endpoints require JWT authentication via `Authorization: Bearer <token>` header
+- Admin-only endpoints are marked with "(admin only)"
+- Role-based access is indicated where applicable (agent/seller only)
+
+### **File Uploads**
+- Property images are uploaded via multipart/form-data
+- Supported image fields: `image1`, `image2`, `image3`, `image4`
+- Files are served from `/uploads/[filename]`
+
+### **Development Setup**
 - No production deployment required
 - All URLs use localhost for simplicity
 - Database runs locally (MongoDB)
+- Rate limiting: 500 requests per 15 minutes per IP

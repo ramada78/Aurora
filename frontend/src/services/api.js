@@ -62,7 +62,7 @@ export const getCities = async () => {
 
 export const getReviewsByPropertyId = async (propertyId) => {
   try {
-    const response = await api.get(`/api/reviews?property_id=${propertyId}`);
+    const response = await api.get(`/api/reviews/property/${propertyId}`);
     return response.data.reviews || [];
   } catch (error) {
     console.error('Error fetching reviews:', error);

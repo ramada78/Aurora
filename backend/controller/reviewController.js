@@ -7,7 +7,9 @@ export const listReviews = async (req, res) => {
         path: 'property_id',
         populate: { path: 'city', select: 'city_name' }
       })
-      .populate('user_id');
+      .populate('user_id')
+      .sort({ createdAt: -1 }); // Sort by newest first
+    
     res.json({ success: true, reviews });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -45,5 +47,19 @@ export const deleteReview = async (req, res) => {
     res.json({ success: true, message: 'Deleted' });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getReviewsByProperty = async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    
+    const reviews = await Review.find({ property_id: propertyId })
+      .populate('user_id', 'name email')
+      .sort({ createdAt: -1 }); // Sort by newest first
+    
+    res.json({ success: true, reviews });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 }; 
