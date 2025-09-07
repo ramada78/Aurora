@@ -27,7 +27,11 @@ const login = async (req, res) => {
     const { email, password } = req.body;
     const Registeruser = await userModel.findOne({ email });
     if (!Registeruser) {
-      return res.json({ message: "users.errors.emailNotFound", success: false });
+      return res.json({ 
+        message: "Email not found", 
+        messageAr: "البريد الإلكتروني غير موجود",
+        success: false 
+      });
     }
     const isMatch = await bcrypt.compare(password, Registeruser.password);
     if (isMatch) {
@@ -50,7 +54,8 @@ const login = async (req, res) => {
         
         if (!isVerified) {
           return res.status(403).json({ 
-            message: "users.errors.accountPendingVerification", 
+            message: "Your account is pending verification. Please contact an administrator.",
+            messageAr: "حسابك في انتظار التحقق. يرجى الاتصال بالمدير.",
             success: false 
           });
         }
@@ -59,11 +64,19 @@ const login = async (req, res) => {
       const token = createtoken(Registeruser._id);
       return res.json({ token, user: { _id: Registeruser._id, name: Registeruser.name, email: Registeruser.email, roles: Registeruser.roles }, success: true });
     } else {
-      return res.json({ message: "users.errors.invalidPassword", success: false });
+      return res.json({ 
+        message: "Invalid password", 
+        messageAr: "كلمة مرور غير صحيحة",
+        success: false 
+      });
     }
   } catch (error) {
     console.error(error);
-    res.json({ message: "users.errors.serverError", success: false });
+    res.json({ 
+      message: "Server error", 
+      messageAr: "خطأ في الخادم",
+      success: false 
+    });
   }
 };
 
@@ -88,15 +101,27 @@ const register = async (req, res) => {
     } = req.body;
     
     if (!validator.isEmail(email)) {
-      return res.json({ message: "users.errors.invalidEmail", success: false });
+      return res.json({ 
+        message: "Invalid email format", 
+        messageAr: "تنسيق البريد الإلكتروني غير صحيح",
+        success: false 
+      });
     }
 
     // Validate required fields for Agent and Seller roles
     if (roles.includes('agent') && (!agencyName || !licenseNumber)) {
-      return res.json({ message: "users.errors.agencyNameLicenseRequired", success: false });
+      return res.json({ 
+        message: "Agency Name and License Number are required for Agent role", 
+        messageAr: "اسم الوكالة ورقم الترخيص مطلوبان لدور الوكيل",
+        success: false 
+      });
     }
     if (roles.includes('seller') && !idNumber) {
-      return res.json({ message: "users.errors.idNumberRequired", success: false });
+      return res.json({ 
+        message: "ID Number is required for Seller role", 
+        messageAr: "رقم الهوية مطلوب لدور البائع",
+        success: false 
+      });
     }
 
     // Validate roles
@@ -321,13 +346,15 @@ const createUserWithRole = async (req, res) => {
     // Validate required fields for Agent and Seller roles
     if (roles.includes('agent') && (!agencyName || !licenseNumber)) {
       return res.status(400).json({ 
-        message: "users.errors.agencyNameLicenseRequired", 
+        message: "Agency Name and License Number are required for Agent role",
+        messageAr: "اسم الوكالة ورقم الترخيص مطلوبان لدور الوكيل", 
         success: false 
       });
     }
     if (roles.includes('seller') && !idNumber) {
       return res.status(400).json({ 
-        message: "users.errors.idNumberRequired", 
+        message: "ID Number is required for Seller role",
+        messageAr: "رقم الهوية مطلوب لدور البائع", 
         success: false 
       });
     }
@@ -697,13 +724,15 @@ const updateUserWithRole = async (req, res) => {
     // Validate required fields for Agent and Seller roles
     if (roles.includes('agent') && (!agencyName || !licenseNumber)) {
       return res.status(400).json({ 
-        message: "users.errors.agencyNameLicenseRequired", 
+        message: "Agency Name and License Number are required for Agent role",
+        messageAr: "اسم الوكالة ورقم الترخيص مطلوبان لدور الوكيل", 
         success: false 
       });
     }
     if (roles.includes('seller') && !idNumber) {
       return res.status(400).json({ 
-        message: "users.errors.idNumberRequired", 
+        message: "ID Number is required for Seller role",
+        messageAr: "رقم الهوية مطلوب لدور البائع", 
         success: false 
       });
     }

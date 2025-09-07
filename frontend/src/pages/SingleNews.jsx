@@ -217,7 +217,7 @@ const SingleNews = () => {
             {/* Hero Image */}
             <div className="relative h-96 md:h-[500px] overflow-hidden">
               <img
-                src={newsItem.image}
+                src={newsItem.image?.startsWith('/uploads/') ? `${Backendurl}${encodeURI(newsItem.image)}` : newsItem.image}
                 alt={getLocalizedTitle(newsItem)}
                 className="w-full h-full object-cover"
                 onError={(e) => {
@@ -363,7 +363,7 @@ const SingleNews = () => {
                   >
                     <div className="h-48 overflow-hidden">
                       <img
-                        src={item.image}
+                        src={item.image?.startsWith('/uploads/') ? `${Backendurl}${encodeURI(item.image)}` : item.image}
                         alt={getLocalizedTitle(item)}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                       />

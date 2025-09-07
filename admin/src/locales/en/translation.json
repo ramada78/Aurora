@@ -402,7 +402,10 @@
       "meetingLinkSuccess": "Meeting link updated successfully",
       "meetingLinkUpdateError": "Failed to update meeting link",
       "editSuccess": "Appointment updated successfully",
-      "editError": "Failed to update appointment"
+      "editError": "Failed to update appointment",
+      "sellerViewInfo": "You are viewing appointments for your properties only.",
+      "agentViewInfo": "You are viewing appointments for properties you are assigned to only.",
+      "userViewInfo": "You are viewing appointments based on your role permissions."
     }
   },
   "transactions": {
@@ -699,7 +702,7 @@
         "contentAr": "Arabic Content",
         "excerptEn": "English Excerpt",
         "excerptAr": "Arabic Excerpt",
-        "imageUrl": "Image URL",
+        "image": "Image",
         "author": "Author",
         "category": "Category",
         "tags": "Tags",

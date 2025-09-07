@@ -152,7 +152,6 @@ export const createNews = async (req, res) => {
       content_ar,
       excerpt_en,
       excerpt_ar,
-      image,
       category,
       author,
       tags,
@@ -160,11 +159,23 @@ export const createNews = async (req, res) => {
       featured
     } = req.body;
     
+    // Handle image upload
+    let imagePath = '';
+    if (req.file) {
+      imagePath = `/uploads/${req.file.filename}`;
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "Image is required",
+        messageAr: "الصورة مطلوبة"
+      });
+    }
+    
     const news = new News({
       title: { en: title_en, ar: title_ar },
       content: { en: content_en, ar: content_ar },
       excerpt: { en: excerpt_en, ar: excerpt_ar },
-      image,
+      image: imagePath,
       category,
       author,
       tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
@@ -190,6 +201,11 @@ export const updateNews = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    
+    // Handle image upload
+    if (req.file) {
+      updateData.image = `/uploads/${req.file.filename}`;
+    }
     
     // Handle multilingual fields
     if (updateData.title_en || updateData.title_ar) {

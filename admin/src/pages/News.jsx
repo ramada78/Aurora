@@ -36,13 +36,16 @@ const News = () => {
     content_ar: "",
     excerpt_en: "",
     excerpt_ar: "",
-    image: "",
+    image: null,
     category: "real_estate",
     author: "",
     tags: "",
     status: "draft",
     featured: false,
   });
+  
+  // Image preview state
+  const [imagePreview, setImagePreview] = useState(null);
 
   const categories = [
     { value: "buying", label: t('news.categories.buying') },
@@ -95,7 +98,7 @@ const News = () => {
     if (!formData.title_en.trim() || !formData.title_ar.trim() || 
         !formData.content_en.trim() || !formData.content_ar.trim() ||
         !formData.excerpt_en.trim() || !formData.excerpt_ar.trim() ||
-        !formData.image.trim() || !formData.author.trim()) {
+        !formData.image || !formData.author.trim()) {
       toast.error(t('news.messages.fillAllFields'));
       return;
     }
@@ -103,8 +106,26 @@ const News = () => {
     setActionLoading(true);
 
     try {
-      const response = await axios.post(`${backendurl}/api/news/news`, formData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      // Create FormData for file upload
+      const formDataToSend = new FormData();
+      formDataToSend.append('title_en', formData.title_en);
+      formDataToSend.append('title_ar', formData.title_ar);
+      formDataToSend.append('content_en', formData.content_en);
+      formDataToSend.append('content_ar', formData.content_ar);
+      formDataToSend.append('excerpt_en', formData.excerpt_en);
+      formDataToSend.append('excerpt_ar', formData.excerpt_ar);
+      formDataToSend.append('image', formData.image);
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('author', formData.author);
+      formDataToSend.append('tags', formData.tags);
+      formDataToSend.append('status', formData.status);
+      formDataToSend.append('featured', formData.featured);
+
+      const response = await axios.post(`${backendurl}/api/news/news`, formDataToSend, {
+        headers: { 
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'multipart/form-data'
+        }
       });
 
       if (response.data.success) {
@@ -129,7 +150,7 @@ const News = () => {
     if (!formData.title_en.trim() || !formData.title_ar.trim() || 
         !formData.content_en.trim() || !formData.content_ar.trim() ||
         !formData.excerpt_en.trim() || !formData.excerpt_ar.trim() ||
-        !formData.image.trim() || !formData.author.trim()) {
+        !formData.author.trim()) {
       toast.error(t('news.messages.fillAllFields'));
       return;
     }
@@ -137,11 +158,31 @@ const News = () => {
     setActionLoading(true);
 
     try {
+      // Create FormData for file upload
+      const formDataToSend = new FormData();
+      formDataToSend.append('title_en', formData.title_en);
+      formDataToSend.append('title_ar', formData.title_ar);
+      formDataToSend.append('content_en', formData.content_en);
+      formDataToSend.append('content_ar', formData.content_ar);
+      formDataToSend.append('excerpt_en', formData.excerpt_en);
+      formDataToSend.append('excerpt_ar', formData.excerpt_ar);
+      if (formData.image) {
+        formDataToSend.append('image', formData.image);
+      }
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('author', formData.author);
+      formDataToSend.append('tags', formData.tags);
+      formDataToSend.append('status', formData.status);
+      formDataToSend.append('featured', formData.featured);
+
       const response = await axios.put(
         `${backendurl}/api/news/news/${editingNews._id}`,
-        formData,
+        formDataToSend,
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          headers: { 
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'multipart/form-data'
+          }
         }
       );
 
@@ -192,7 +233,7 @@ const News = () => {
       content_ar: newsItem.content?.ar || "",
       excerpt_en: newsItem.excerpt?.en || "",
       excerpt_ar: newsItem.excerpt?.ar || "",
-      image: newsItem.image || "",
+      image: null, // Reset image file
       category: newsItem.category || "real_estate",
       author: newsItem.author || "",
       tags: Array.isArray(newsItem.tags) ? newsItem.tags.join(", ") : (newsItem.tags || ""),
@@ -201,6 +242,7 @@ const News = () => {
     };
     
     setFormData(formDataToSet);
+    setImagePreview(newsItem.image ? `${backendurl}${newsItem.image}` : null);
   };
 
   const resetForm = () => {
@@ -211,19 +253,34 @@ const News = () => {
       content_ar: "",
       excerpt_en: "",
       excerpt_ar: "",
-      image: "",
+      image: null,
       category: "real_estate",
       author: "",
       tags: "",
       status: "draft",
       featured: false,
     });
+    setImagePreview(null);
   };
 
   const closeModal = () => {
     setShowAddModal(false);
     setEditingNews(null);
     resetForm();
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData({ ...formData, image: file });
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const filteredNews = news.filter((item) => {
@@ -526,19 +583,27 @@ const News = () => {
                   />
                 </div>
 
-                {/* Image URL */}
+                {/* Image Upload */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('news.modal.imageUrl')} <span className="text-red-500">*</span>
+                    {t('news.modal.image')} <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="url"
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
-                    placeholder={t('news.modal.enterImageUrl')}
-                    required
+                    required={!editingNews}
                   />
+                  {imagePreview && (
+                    <div className="mt-3">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Author */}

@@ -50,11 +50,11 @@ const Login = () => {
           localStorage.removeItem('user');
         }
       } else {
-        toast.error(response.data.message || t('login.loginFailed'));
+        toast.error(response.data.messageAr || response.data.message || t('login.loginFailed'));
       }
     } catch (error) {
       console.error('Error logging in:', error);
-      toast.error(error.response?.data?.message || t('login.invalidCredentials'));
+      toast.error(error.response?.data?.messageAr || error.response?.data?.message || t('login.invalidCredentials'));
     } finally {
       setLoading(false);
     }

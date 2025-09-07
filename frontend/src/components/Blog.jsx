@@ -144,7 +144,7 @@ const BlogCard = ({ post }) => {
     >
       <div className="relative overflow-hidden aspect-w-16 aspect-h-9 bg-gradient-to-br from-blue-50 to-indigo-100">
         <img
-          src={post.image}
+          src={post.image?.startsWith('/uploads/') ? `${Backendurl}${encodeURI(post.image)}` : post.image}
           alt={isRTL ? (post.title_ar || post.title) : post.title}
           className="w-full h-64 object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110"
           onError={(e) => {

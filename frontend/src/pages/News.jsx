@@ -150,7 +150,7 @@ const NewsCard = ({ newsItem, index }) => {
     >
       <div className="relative overflow-hidden aspect-w-16 aspect-h-9 bg-gradient-to-br from-blue-50 to-indigo-100">
         <img
-          src={newsItem.image}
+          src={newsItem.image?.startsWith('/uploads/') ? `${Backendurl}${encodeURI(newsItem.image)}` : newsItem.image}
           alt={getLocalizedTitle(newsItem)}
           className="w-full h-64 object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-110"
           onError={(e) => {

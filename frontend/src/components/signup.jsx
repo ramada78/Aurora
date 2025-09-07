@@ -230,11 +230,11 @@ const Signup = () => {
         toast.success(t('signup.success'));
         navigate('/login');
       } else {
-        toast.error(response.data.message);
+        toast.error(response.data.messageAr || response.data.message);
       }
     } catch (error) {
       console.error('Error signing up:', error);
-      toast.error(t('signup.error'));
+      toast.error(error.response?.data?.messageAr || error.response?.data?.message || t('signup.error'));
     } finally {
       setLoading(false);
     }
