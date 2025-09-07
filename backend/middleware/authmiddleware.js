@@ -152,7 +152,11 @@ export const rolesOrAdmin = (allowedRoles = []) => async (req, res, next) => {
       // Otherwise, check user roles
       const hasRole = user.roles.some(role => allowedRoles.includes(role));
       if (!hasRole) {
-        return res.status(403).json({ success: false, message: "You do not have permission to access this resource" });
+        return res.status(403).json({ 
+          success: false, 
+          message: "You do not have permission to access this resource",
+          messageAr: "ليس لديك صلاحية للوصول إلى هذا المورد"
+        });
       }
       req.user = user;
       next();

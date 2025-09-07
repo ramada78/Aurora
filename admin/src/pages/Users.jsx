@@ -34,7 +34,18 @@ const UsersPage = () => {
     email: "",
     phone: "",
     roles: [],
-    password: ""
+    password: "",
+    // Client attributes
+    budgetRange: "",
+    // Agent attributes
+    agencyName: "",
+    yearsOfExperience: "",
+    specialization: "",
+    licenseNumber: "",
+    agentVerifiedIdentity: false,
+    // Seller attributes
+    idNumber: "",
+    sellerVerifiedIdentity: false
   });
 
   const roles = [
@@ -77,6 +88,14 @@ const UsersPage = () => {
       return;
     }
 
+    // Validate required Agent fields
+    if (formData.roles.includes('agent')) {
+      if (!formData.agencyName || !formData.licenseNumber) {
+        toast.error('Agency Name and License Number are required for Agent role');
+        return;
+      }
+    }
+
     try {
       setActionLoading(true);
       
@@ -88,7 +107,18 @@ const UsersPage = () => {
           email: formData.email,
           phone: formData.phone,
           roles: formData.roles, // array
-          password: formData.password
+          password: formData.password,
+          // Client attributes
+          budgetRange: formData.budgetRange || undefined,
+          // Agent attributes
+          agencyName: formData.agencyName || undefined,
+          yearsOfExperience: formData.yearsOfExperience || undefined,
+          specialization: formData.specialization || undefined,
+          licenseNumber: formData.licenseNumber || undefined,
+          agentVerifiedIdentity: formData.agentVerifiedIdentity || false,
+          // Seller attributes
+          idNumber: formData.idNumber || undefined,
+          sellerVerifiedIdentity: formData.sellerVerifiedIdentity || false
         },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -106,7 +136,8 @@ const UsersPage = () => {
     } catch (error) {
       console.error("Error adding user:", error);
       if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
+        const errorMessage = error.response.data.messageAr || error.response.data.message;
+        toast.error(errorMessage);
       } else {
         toast.error(t('users.form.error'));
       }
@@ -122,10 +153,19 @@ const UsersPage = () => {
       return;
     }
 
+    // Validate required Agent fields
+    if (formData.roles.includes('agent')) {
+      if (!formData.agencyName || !formData.licenseNumber) {
+        toast.error('Agency Name and License Number are required for Agent role');
+        return;
+      }
+    }
+
     try {
       setActionLoading(true);
       
       // Use the new unified API endpoint for updating users
+      // Note: Password is not included when editing users - only users can change their own passwords
               const response = await axios.put(
           `${backendurl}/api/admin/users/${editingUser._id}`,
         {
@@ -134,7 +174,17 @@ const UsersPage = () => {
           email: formData.email,
           phone: formData.phone,
           roles: formData.roles,
-          ...(formData.password ? { password: formData.password } : {})
+          // Client attributes
+          budgetRange: formData.budgetRange || undefined,
+          // Agent attributes
+          agencyName: formData.agencyName || undefined,
+          yearsOfExperience: formData.yearsOfExperience || undefined,
+          specialization: formData.specialization || undefined,
+          licenseNumber: formData.licenseNumber || undefined,
+          agentVerifiedIdentity: formData.agentVerifiedIdentity || false,
+          // Seller attributes
+          idNumber: formData.idNumber || undefined,
+          sellerVerifiedIdentity: formData.sellerVerifiedIdentity || false
         },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -152,7 +202,8 @@ const UsersPage = () => {
     } catch (error) {
       console.error("Error updating user:", error);
       if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
+        const errorMessage = error.response.data.messageAr || error.response.data.message;
+        toast.error(errorMessage);
       } else {
         toast.error(t('users.form.updateError'));
       }
@@ -223,7 +274,18 @@ const UsersPage = () => {
       email: user.email || user.user_id?.email || "",
       phone: user.phone || "",
       roles: user.roles || [],
-      password: ""
+      password: "",
+      // Client attributes
+      budgetRange: user.budgetRange || "",
+      // Agent attributes
+      agencyName: user.agencyName || "",
+      yearsOfExperience: user.yearsOfExperience || "",
+      specialization: user.specialization || "",
+      licenseNumber: user.licenseNumber || "",
+      agentVerifiedIdentity: user.agentVerifiedIdentity || false,
+      // Seller attributes
+      idNumber: user.idNumber || "",
+      sellerVerifiedIdentity: user.sellerVerifiedIdentity || false
     });
   };
 
@@ -233,7 +295,18 @@ const UsersPage = () => {
       email: "",
       phone: "",
       roles: [],
-      password: ""
+      password: "",
+      // Client attributes
+      budgetRange: "",
+      // Agent attributes
+      agencyName: "",
+      yearsOfExperience: "",
+      specialization: "",
+      licenseNumber: "",
+      agentVerifiedIdentity: false,
+      // Seller attributes
+      idNumber: "",
+      sellerVerifiedIdentity: false
     });
   };
 
@@ -479,8 +552,8 @@ const UsersPage = () => {
 
       {/* Add/Edit Modal */}
       {(showAddModal || editingUser) && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] shadow-2xl overflow-y-auto">
             <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               {editingUser ? t('users.modal.editTitle') : t('users.modal.addTitle')}
             </h2>
@@ -530,22 +603,23 @@ const UsersPage = () => {
                     placeholder={t('users.modal.enterPhone')}
                   />
                 </div>
-                {/* Password Field */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('users.modal.password')}
-                    {!editingUser && <span className="text-red-500">*</span>}
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleFormChange}
-                    required={!editingUser}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
-                    placeholder={editingUser ? t('users.modal.keepPassword') : t('users.modal.enterPassword')}
-                  />
-                </div>
+                {/* Password Field - Only show when adding new user */}
+                {!editingUser && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('users.modal.password')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleFormChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                      placeholder={t('users.modal.enterPassword')}
+                    />
+                  </div>
+                )}
 
                 {/* Roles Field */}
                 <div className="mb-6">
@@ -567,6 +641,138 @@ const UsersPage = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* Client-specific fields */}
+                {formData.roles.includes('client') && (
+                  <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h3 className="text-lg font-semibold text-blue-800 mb-4">{t('users.modal.clientInfo')}</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('users.modal.budgetRange')}
+                        </label>
+                        <input
+                          type="text"
+                          name="budgetRange"
+                          value={formData.budgetRange}
+                          onChange={handleFormChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                          placeholder={t('users.modal.budgetRangePlaceholder')}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Agent-specific fields */}
+                {formData.roles.includes('agent') && (
+                  <div className="mb-6 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <h3 className="text-lg font-semibold text-green-800 mb-4">{t('users.modal.agentInfo')}</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('users.modal.agencyName')} <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="agencyName"
+                          value={formData.agencyName}
+                          onChange={handleFormChange}
+                          required={formData.roles.includes('agent')}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                          placeholder={t('users.modal.agencyNamePlaceholder')}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('users.modal.licenseNumber')} <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="licenseNumber"
+                          value={formData.licenseNumber}
+                          onChange={handleFormChange}
+                          required={formData.roles.includes('agent')}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                          placeholder={t('users.modal.licenseNumberPlaceholder')}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('users.modal.yearsOfExperience')}
+                        </label>
+                        <input
+                          type="number"
+                          name="yearsOfExperience"
+                          value={formData.yearsOfExperience}
+                          onChange={handleFormChange}
+                          min="0"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                          placeholder={t('users.modal.yearsOfExperiencePlaceholder')}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('users.modal.specialization')}
+                        </label>
+                        <input
+                          type="text"
+                          name="specialization"
+                          value={formData.specialization}
+                          onChange={handleFormChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                          placeholder={t('users.modal.specializationPlaceholder')}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 mt-4">
+                      <input
+                        type="checkbox"
+                        name="agentVerifiedIdentity"
+                        checked={formData.agentVerifiedIdentity}
+                        onChange={(e) => setFormData(prev => ({ ...prev, agentVerifiedIdentity: e.target.checked }))}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <label className="text-sm font-medium text-gray-700">
+                        {t('users.modal.verifiedIdentity')}
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* Seller-specific fields */}
+                {formData.roles.includes('seller') && (
+                  <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <h3 className="text-lg font-semibold text-purple-800 mb-4">{t('users.modal.sellerInfo')}</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('users.modal.idNumber')}
+                        </label>
+                        <input
+                          type="text"
+                          name="idNumber"
+                          value={formData.idNumber}
+                          onChange={handleFormChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-gray-900 placeholder-gray-500"
+                          placeholder={t('users.modal.idNumberPlaceholder')}
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          name="sellerVerifiedIdentity"
+                          checked={formData.sellerVerifiedIdentity}
+                          onChange={(e) => setFormData(prev => ({ ...prev, sellerVerifiedIdentity: e.target.checked }))}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <label className="text-sm font-medium text-gray-700">
+                          {t('users.modal.verifiedIdentity')}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-3 mt-6">

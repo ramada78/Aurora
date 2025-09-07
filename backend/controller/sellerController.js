@@ -11,8 +11,12 @@ export const listSellers = async (req, res) => {
 
 export const addSeller = async (req, res) => {
   try {
-    const { user_id } = req.body;
-    const seller = new Seller({ user_id });
+    const { user_id, idNumber, verifiedIdentity } = req.body;
+    const seller = new Seller({ 
+      user_id, 
+      idNumber, 
+      verifiedIdentity 
+    });
     await seller.save();
     res.status(201).json({ success: true, seller });
   } catch (error) {
@@ -23,8 +27,13 @@ export const addSeller = async (req, res) => {
 export const updateSeller = async (req, res) => {
   try {
     const { id } = req.params;
-    const { user_id } = req.body;
-    const seller = await Seller.findByIdAndUpdate(id, { user_id }, { new: true });
+    const { user_id, idNumber, verifiedIdentity } = req.body;
+    const updateData = { user_id };
+    
+    if (idNumber !== undefined) updateData.idNumber = idNumber;
+    if (verifiedIdentity !== undefined) updateData.verifiedIdentity = verifiedIdentity;
+    
+    const seller = await Seller.findByIdAndUpdate(id, updateData, { new: true });
     if (!seller) return res.status(404).json({ success: false, message: 'Not found' });
     res.json({ success: true, seller });
   } catch (error) {

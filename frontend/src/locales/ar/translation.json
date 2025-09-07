@@ -495,7 +495,38 @@
       "passwordRequired": "كلمة المرور مطلوبة.",
       "passwordLength": "يجب أن لا تقل كلمة المرور عن 8 أحرف.",
       "passwordsMismatch": "كلمات المرور غير متطابقة.",
-      "roleRequired": "الرجاء تحديد دور واحد على الأقل."
+      "roleRequired": "الرجاء تحديد دور واحد على الأقل.",
+      "agentFieldsRequired": "اسم الوكالة ورقم الترخيص مطلوبان لدور الوكيل"
+    },
+    "errors": {
+      "accountPendingVerification": "حسابك في انتظار التحقق. يرجى الاتصال بالمدير.",
+      "idNumberRequired": "رقم الهوية مطلوب لدور البائع",
+      "agencyNameLicenseRequired": "اسم الوكالة ورقم الترخيص مطلوبان لدور الوكيل",
+      "invalidCredentials": "بيانات اعتماد غير صحيحة",
+      "emailNotFound": "البريد الإلكتروني غير موجود",
+      "invalidPassword": "كلمة مرور غير صحيحة",
+      "serverError": "خطأ في الخادم",
+      "invalidEmail": "بريد إلكتروني غير صحيح",
+      "nameEmailRolesRequired": "الاسم والبريد الإلكتروني ودور واحد على الأقل مطلوبة",
+      "userIdNameEmailRolesRequired": "معرف المستخدم والاسم والبريد الإلكتروني والأدوار مطلوبة"
+    },
+    "roleFields": {
+      "clientInfo": "معلومات العميل",
+      "agentInfo": "معلومات الوكيل",
+      "sellerInfo": "معلومات البائع",
+      "budgetRange": "نطاق الميزانية",
+      "budgetRangePlaceholder": "مثال: $500,000 - $1,000,000",
+      "agencyName": "اسم الوكالة",
+      "agencyNamePlaceholder": "أدخل اسم الوكالة",
+      "licenseNumber": "رقم الترخيص",
+      "licenseNumberPlaceholder": "أدخل رقم الترخيص",
+      "yearsOfExperience": "سنوات الخبرة",
+      "yearsOfExperiencePlaceholder": "أدخل سنوات الخبرة",
+      "specialization": "التخصص",
+      "specializationPlaceholder": "مثال: سكني، تجاري، فاخر",
+      "idNumber": "رقم الهوية",
+      "idNumberPlaceholder": "أدخل رقم الهوية",
+      "verifiedIdentity": "الهوية موثقة"
     },
     "passwordStrength": {
       "label": "قوة كلمة المرور",

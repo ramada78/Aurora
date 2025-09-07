@@ -60,7 +60,11 @@ export const addTransaction = async (req, res) => {
     console.log('property.agent:', property.agent);
     // Authorization
     if (!isAllowedTransaction({ req, property, action: 'add' })) {
-      return res.status(403).json({ success: false, message: 'You do not have permission to add a transaction for this property.' });
+      return res.status(403).json({ 
+        success: false, 
+        message: 'You do not have permission to add a transaction for this property.',
+        messageAr: 'ليس لديك صلاحية لإضافة معاملة لهذا العقار.'
+      });
     }
     // Use getId to support both populated and unpopulated refs
     const finalSellerId = seller_id || getId(property.seller);
@@ -125,7 +129,11 @@ export const updateTransaction = async (req, res) => {
     if (!property) return res.status(404).json({ success: false, message: 'Property not found' });
     // Authorization
     if (!isAllowedTransaction({ req, property, action: 'edit' })) {
-      return res.status(403).json({ success: false, message: 'You do not have permission to update this transaction.' });
+      return res.status(403).json({ 
+        success: false, 
+        message: 'You do not have permission to update this transaction.',
+        messageAr: 'ليس لديك صلاحية لتحديث هذه المعاملة.'
+      });
     }
     transaction.transaction_date = transaction_date;
     transaction.sale_price = sale_price;
@@ -159,7 +167,11 @@ export const deleteTransaction = async (req, res) => {
     if (!property) return res.status(404).json({ success: false, message: 'Property not found' });
     // Authorization
     if (!isAllowedTransaction({ req, property, action: 'delete' })) {
-      return res.status(403).json({ success: false, message: 'You do not have permission to delete this transaction.' });
+      return res.status(403).json({ 
+        success: false, 
+        message: 'You do not have permission to delete this transaction.',
+        messageAr: 'ليس لديك صلاحية لحذف هذه المعاملة.'
+      });
     }
     await transaction.deleteOne();
     res.json({ success: true, message: 'Deleted' });

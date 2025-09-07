@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 
 const clientSchema = new mongoose.Schema({
-  user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true }
+  user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+  budgetRange: { type: String, required: false }
 });
 
 const Client = mongoose.model("Client", clientSchema);

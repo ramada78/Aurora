@@ -102,6 +102,15 @@ const Signup = () => {
     confirmPassword: '',
     phone: '',
     roles: ['client'], // Default to client
+    // Client attributes
+    budgetRange: '',
+    // Agent attributes
+    agencyName: '',
+    yearsOfExperience: '',
+    specialization: '',
+    licenseNumber: '',
+    // Seller attributes
+    idNumber: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -201,6 +210,14 @@ const Signup = () => {
     if (!isNameValid || !isEmailValid || !isPasswordValid || !isConfirmPasswordValid || formData.roles.length === 0) {
       if(formData.roles.length === 0) toast.error(t('signup.validation.roleRequired'));
       return;
+    }
+
+    // Validate required Agent fields
+    if (formData.roles.includes('agent')) {
+      if (!formData.agencyName || !formData.licenseNumber) {
+        toast.error(t('signup.validation.agentFieldsRequired'));
+        return;
+      }
     }
     
     setLoading(true);
@@ -631,6 +648,130 @@ const Signup = () => {
                   ))}
                 </div>
               </motion.div>
+
+              {/* Client-specific fields */}
+              {formData.roles.includes('client') && (
+                <motion.div 
+                  variants={inputVariants} 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="p-4 bg-blue-50 rounded-xl border border-blue-200 space-y-4"
+                >
+                  <h3 className="text-lg font-semibold text-blue-800">{t('signup.roleFields.clientInfo')}</h3>
+                  <div>
+                    <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'text-right font-[Tajawal]' : ''}`}>
+                      {t('signup.roleFields.budgetRange')}
+                    </label>
+                    <input
+                      type="text"
+                      name="budgetRange"
+                      value={formData.budgetRange}
+                      onChange={handleChange}
+                      className={`w-full ${isRTL ? 'text-right font-[Tajawal]' : ''} px-3 py-2 rounded-xl bg-white border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300`}
+                      placeholder={t('signup.roleFields.budgetRangePlaceholder')}
+                    />
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Agent-specific fields */}
+              {formData.roles.includes('agent') && (
+                <motion.div 
+                  variants={inputVariants} 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="p-4 bg-green-50 rounded-xl border border-green-200 space-y-4"
+                >
+                  <h3 className="text-lg font-semibold text-green-800">{t('signup.roleFields.agentInfo')}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'text-right font-[Tajawal]' : ''}`}>
+                        {t('signup.roleFields.agencyName')} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="agencyName"
+                        value={formData.agencyName}
+                        onChange={handleChange}
+                        required={formData.roles.includes('agent')}
+                        className={`w-full ${isRTL ? 'text-right font-[Tajawal]' : ''} px-3 py-2 rounded-xl bg-white border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300`}
+                        placeholder={t('signup.roleFields.agencyNamePlaceholder')}
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'text-right font-[Tajawal]' : ''}`}>
+                        {t('signup.roleFields.licenseNumber')} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="licenseNumber"
+                        value={formData.licenseNumber}
+                        onChange={handleChange}
+                        required={formData.roles.includes('agent')}
+                        className={`w-full ${isRTL ? 'text-right font-[Tajawal]' : ''} px-3 py-2 rounded-xl bg-white border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300`}
+                        placeholder={t('signup.roleFields.licenseNumberPlaceholder')}
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'text-right font-[Tajawal]' : ''}`}>
+                        {t('signup.roleFields.yearsOfExperience')}
+                      </label>
+                      <input
+                        type="number"
+                        name="yearsOfExperience"
+                        value={formData.yearsOfExperience}
+                        onChange={handleChange}
+                        min="0"
+                        className={`w-full ${isRTL ? 'text-right font-[Tajawal]' : ''} px-3 py-2 rounded-xl bg-white border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300`}
+                        placeholder={t('signup.roleFields.yearsOfExperiencePlaceholder')}
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'text-right font-[Tajawal]' : ''}`}>
+                        {t('signup.roleFields.specialization')}
+                      </label>
+                      <input
+                        type="text"
+                        name="specialization"
+                        value={formData.specialization}
+                        onChange={handleChange}
+                        className={`w-full ${isRTL ? 'text-right font-[Tajawal]' : ''} px-3 py-2 rounded-xl bg-white border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300`}
+                        placeholder={t('signup.roleFields.specializationPlaceholder')}
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Seller-specific fields */}
+              {formData.roles.includes('seller') && (
+                <motion.div 
+                  variants={inputVariants} 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="p-4 bg-purple-50 rounded-xl border border-purple-200 space-y-4"
+                >
+                  <h3 className="text-lg font-semibold text-purple-800">{t('signup.roleFields.sellerInfo')}</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className={`block text-sm font-medium text-gray-700 mb-2 ${isRTL ? 'text-right font-[Tajawal]' : ''}`}>
+                        {t('signup.roleFields.idNumber')}
+                      </label>
+                      <input
+                        type="text"
+                        name="idNumber"
+                        value={formData.idNumber}
+                        onChange={handleChange}
+                        className={`w-full ${isRTL ? 'text-right font-[Tajawal]' : ''} px-3 py-2 rounded-xl bg-white border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300`}
+                        placeholder={t('signup.roleFields.idNumberPlaceholder')}
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
               <motion.button
                 type="submit"

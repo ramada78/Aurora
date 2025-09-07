@@ -157,7 +157,8 @@ const Transactions = () => {
         toast.error(response.data.message || t('transactions.messages.failedToAdd'));
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || t('transactions.messages.failedToAdd'));
+      const errorMessage = error.response?.data?.messageAr || error.response?.data?.message || t('transactions.messages.failedToAdd');
+      toast.error(errorMessage);
     } finally {
       setAddLoading(false);
     }
@@ -172,7 +173,8 @@ const Transactions = () => {
       toast.success(t('transactions.messages.transactionDeleted'));
       fetchTransactions();
     } catch (error) {
-      toast.error(error.response?.data?.message || t('transactions.messages.failedToDelete'));
+      const errorMessage = error.response?.data?.messageAr || error.response?.data?.message || t('transactions.messages.failedToDelete');
+      toast.error(errorMessage);
     }
   };
 
@@ -214,7 +216,8 @@ const Transactions = () => {
       setEditForm(null);
       fetchTransactions();
     } catch (error) {
-      toast.error(error.response?.data?.message || t('transactions.messages.failedToUpdate'));
+      const errorMessage = error.response?.data?.messageAr || error.response?.data?.message || t('transactions.messages.failedToUpdate');
+      toast.error(errorMessage);
     } finally {
       setEditLoading(false);
     }

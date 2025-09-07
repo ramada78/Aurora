@@ -96,7 +96,11 @@ const removeproperty = async (req, res) => {
         const isSeller = property.seller && property.seller.toString() === req.user._id.toString();
         const isAdmin = req.user && req.user.isAdmin;
         if (!(isAgent || isSeller || isAdmin)) {
-          return res.status(403).json({ message: "You do not have permission to delete this property", success: false });
+          return res.status(403).json({ 
+            message: "You do not have permission to delete this property", 
+            messageAr: "ليس لديك صلاحية لحذف هذا العقار",
+            success: false 
+          });
         }
         await property.deleteOne();
         return res.json({ message: "Property removed successfully", success: true });
@@ -126,7 +130,11 @@ const updateproperty = async (req, res) => {
         const isSeller = property.seller && property.seller.toString() === req.user._id.toString();
         const isAdmin = req.user && req.user.isAdmin;
         if (!(isAgent || isSeller || isAdmin)) {
-          return res.status(403).json({ message: "You do not have permission to update this property", success: false });
+          return res.status(403).json({ 
+            message: "You do not have permission to update this property", 
+            messageAr: "ليس لديك صلاحية لتحديث هذا العقار",
+            success: false 
+          });
         }
         // Handle images: merge existing image URLs and new uploads
         let mergedImages = [];

@@ -100,8 +100,9 @@ const PropertyListings = () => {
         toast.error(deleteResponse.data.message || t('properties.property.deleteError'));
       }
     } catch (error) {
-      if (error.response && error.response.data && error.response.data.message) {
-        toast.error(error.response.data.message);
+      if (error.response && error.response.data) {
+        const errorMessage = error.response.data.messageAr || error.response.data.message || t('properties.property.deleteErrorGeneric');
+        toast.error(errorMessage);
       } else {
         toast.error(t('properties.property.deleteErrorGeneric'));
       }

@@ -45,9 +45,23 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendurl}/api/admin/appointments`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
+      
+      // Check if user is admin by trying admin endpoint first
+      let response;
+      try {
+        response = await axios.get(`${backendurl}/api/admin/appointments`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+      } catch (adminError) {
+        // If admin endpoint fails (401), try regular endpoint
+        if (adminError.response?.status === 401) {
+          response = await axios.get(`${backendurl}/api/appointments/all`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          });
+        } else {
+          throw adminError;
+        }
+      }
 
       if (response.data.success) {
         // Filter out appointments with missing user data
@@ -68,16 +82,35 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
 
   const handleStatusChange = async (appointmentId, newStatus) => {
     try {
-      const response = await axios.put(
-        `${backendurl}/api/admin/appointments/status`,
-        {
-          appointmentId,
-          status: newStatus,
-        },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      // Try admin endpoint first, fallback to regular endpoint
+      let response;
+      try {
+        response = await axios.put(
+          `${backendurl}/api/admin/appointments/status`,
+          {
+            appointmentId,
+            status: newStatus,
+          },
+          {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          }
+        );
+      } catch (adminError) {
+        if (adminError.response?.status === 401) {
+          response = await axios.put(
+            `${backendurl}/api/appointments/status`,
+            {
+              appointmentId,
+              status: newStatus,
+            },
+            {
+              headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            }
+          );
+        } else {
+          throw adminError;
         }
-      );
+      }
 
       if (response.data.success) {
         // Use the backend message if available, otherwise fall back to translation
@@ -101,16 +134,35 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
         return;
       }
 
-      const response = await axios.put(
-        `${backendurl}/api/admin/appointments/update-meeting`,
-        {
-          appointmentId,
-          meetingLink,
-        },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      // Try admin endpoint first, fallback to regular endpoint
+      let response;
+      try {
+        response = await axios.put(
+          `${backendurl}/api/admin/appointments/update-meeting`,
+          {
+            appointmentId,
+            meetingLink,
+          },
+          {
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          }
+        );
+      } catch (adminError) {
+        if (adminError.response?.status === 401) {
+          response = await axios.put(
+            `${backendurl}/api/appointments/update-meeting`,
+            {
+              appointmentId,
+              meetingLink,
+            },
+            {
+              headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            }
+          );
+        } else {
+          throw adminError;
         }
-      );
+      }
 
       if (response.data.success) {
         toast.success(t('appointments.messages.meetingLinkSuccess'));
@@ -153,11 +205,25 @@ const MEETING_PLATFORMS = ["zoom", "google-meet", "teams", "other"];
     e.preventDefault();
     setEditLoading(true);
     try {
-      const response = await axios.put(
-        `${backendurl}/api/admin/appointments/update-details`,
-        editForm,
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
-      );
+      // Try admin endpoint first, fallback to regular endpoint
+      let response;
+      try {
+        response = await axios.put(
+          `${backendurl}/api/admin/appointments/update-details`,
+          editForm,
+          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        );
+      } catch (adminError) {
+        if (adminError.response?.status === 401) {
+          response = await axios.put(
+            `${backendurl}/api/appointments/update-details`,
+            editForm,
+            { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+          );
+        } else {
+          throw adminError;
+        }
+      }
       if (response.data.success) {
         // Use the backend message if available, otherwise fall back to translation
         const successMessage = response.data.messageAr || response.data.message || t('appointments.messages.editSuccess');

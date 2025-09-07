@@ -27,27 +27,76 @@ const login = async (req, res) => {
     const { email, password } = req.body;
     const Registeruser = await userModel.findOne({ email });
     if (!Registeruser) {
-      return res.json({ message: "Email not found", success: false });
+      return res.json({ message: "users.errors.emailNotFound", success: false });
     }
     const isMatch = await bcrypt.compare(password, Registeruser.password);
     if (isMatch) {
+      // Check if user has Agent or Seller role and if they are verified
+      const hasAgentRole = Registeruser.roles && Registeruser.roles.includes('agent');
+      const hasSellerRole = Registeruser.roles && Registeruser.roles.includes('seller');
+      
+      if (hasAgentRole || hasSellerRole) {
+        let isVerified = false;
+        
+        if (hasAgentRole) {
+          const agentData = await Agent.findOne({ user_id: Registeruser._id });
+          isVerified = agentData && agentData.verifiedIdentity;
+        }
+        
+        if (hasSellerRole) {
+          const sellerData = await Seller.findOne({ user_id: Registeruser._id });
+          isVerified = sellerData && sellerData.verifiedIdentity;
+        }
+        
+        if (!isVerified) {
+          return res.status(403).json({ 
+            message: "users.errors.accountPendingVerification", 
+            success: false 
+          });
+        }
+      }
+      
       const token = createtoken(Registeruser._id);
       return res.json({ token, user: { _id: Registeruser._id, name: Registeruser.name, email: Registeruser.email, roles: Registeruser.roles }, success: true });
     } else {
-      return res.json({ message: "Invalid password", success: false });
+      return res.json({ message: "users.errors.invalidPassword", success: false });
     }
   } catch (error) {
     console.error(error);
-    res.json({ message: "Server error", success: false });
+    res.json({ message: "users.errors.serverError", success: false });
   }
 };
 
 const register = async (req, res) => {
   try {
-    const { name, email, password, phone, roles = ['client'], primaryRole = 'client' } = req.body;
+    const { 
+      name, 
+      email, 
+      password, 
+      phone, 
+      roles = ['client'], 
+      primaryRole = 'client',
+      // Client attributes
+      budgetRange,
+      // Agent attributes
+      agencyName,
+      yearsOfExperience,
+      specialization,
+      licenseNumber,
+      // Seller attributes
+      idNumber
+    } = req.body;
     
     if (!validator.isEmail(email)) {
-      return res.json({ message: "Invalid email", success: false });
+      return res.json({ message: "users.errors.invalidEmail", success: false });
+    }
+
+    // Validate required fields for Agent and Seller roles
+    if (roles.includes('agent') && (!agencyName || !licenseNumber)) {
+      return res.json({ message: "users.errors.agencyNameLicenseRequired", success: false });
+    }
+    if (roles.includes('seller') && !idNumber) {
+      return res.json({ message: "users.errors.idNumberRequired", success: false });
     }
 
     // Validate roles
@@ -78,13 +127,27 @@ const register = async (req, res) => {
     try {
       for (const role of selectedRoles) {
         if (role === 'client') {
-          const clientRecord = new Client({ user_id: newUser._id });
+          const clientRecord = new Client({ 
+            user_id: newUser._id,
+            budgetRange: budgetRange || undefined
+          });
           await clientRecord.save();
         } else if (role === 'agent') {
-          const agentRecord = new Agent({ user_id: newUser._id });
+          const agentRecord = new Agent({ 
+            user_id: newUser._id,
+            agencyName: agencyName || undefined,
+            yearsOfExperience: yearsOfExperience || undefined,
+            specialization: specialization || undefined,
+            licenseNumber: licenseNumber || undefined,
+            verifiedIdentity: false // Default to false, only admin can verify
+          });
           await agentRecord.save();
         } else if (role === 'seller') {
-          const sellerRecord = new Seller({ user_id: newUser._id });
+          const sellerRecord = new Seller({ 
+            user_id: newUser._id,
+            idNumber: idNumber || undefined,
+            verifiedIdentity: false // Default to false, only admin can verify
+          });
           await sellerRecord.save();
         }
       }
@@ -228,12 +291,43 @@ const adminlogin = async (req, res) => {
 // New function for admin to create users with roles
 const createUserWithRole = async (req, res) => {
   try {
-    const { name, email, phone, roles, password } = req.body;
+    const { 
+      name, 
+      email, 
+      phone, 
+      roles, 
+      password,
+      // Client attributes
+      budgetRange,
+      // Agent attributes
+      agencyName,
+      yearsOfExperience,
+      specialization,
+      licenseNumber,
+      agentVerifiedIdentity,
+      // Seller attributes
+      idNumber,
+      sellerVerifiedIdentity
+    } = req.body;
 
     // Validate required fields
     if (!name || !email || !roles || !Array.isArray(roles) || roles.length === 0) {
       return res.status(400).json({ 
         message: "Name, email, and at least one role are required", 
+        success: false 
+      });
+    }
+
+    // Validate required fields for Agent and Seller roles
+    if (roles.includes('agent') && (!agencyName || !licenseNumber)) {
+      return res.status(400).json({ 
+        message: "users.errors.agencyNameLicenseRequired", 
+        success: false 
+      });
+    }
+    if (roles.includes('seller') && !idNumber) {
+      return res.status(400).json({ 
+        message: "users.errors.idNumberRequired", 
         success: false 
       });
     }
@@ -248,6 +342,16 @@ const createUserWithRole = async (req, res) => {
       if (!validRoles.includes(r)) {
         return res.status(400).json({ 
           message: `Invalid role: ${r}`, 
+          success: false 
+        });
+      }
+    }
+
+    // Validate required Agent fields
+    if (selectedRoles.includes('agent')) {
+      if (!agencyName || !licenseNumber) {
+        return res.status(400).json({ 
+          message: "Agency Name and License Number are required for Agent role", 
           success: false 
         });
       }
@@ -283,13 +387,27 @@ const createUserWithRole = async (req, res) => {
     // Create role-specific records for all selected roles
     for (const roleType of selectedRoles) {
       if (roleType === 'client') {
-        const clientRecord = new Client({ user_id: newUser._id });
+        const clientRecord = new Client({ 
+          user_id: newUser._id,
+          budgetRange: budgetRange || undefined
+        });
         await clientRecord.save();
       } else if (roleType === 'agent') {
-        const agentRecord = new Agent({ user_id: newUser._id });
+        const agentRecord = new Agent({ 
+          user_id: newUser._id,
+          agencyName: agencyName || undefined,
+          yearsOfExperience: yearsOfExperience || undefined,
+          specialization: specialization || undefined,
+          licenseNumber: licenseNumber || undefined,
+          verifiedIdentity: agentVerifiedIdentity || false
+        });
         await agentRecord.save();
       } else if (roleType === 'seller') {
-        const sellerRecord = new Seller({ user_id: newUser._id });
+        const sellerRecord = new Seller({ 
+          user_id: newUser._id,
+          idNumber: idNumber || undefined,
+          verifiedIdentity: sellerVerifiedIdentity || false
+        });
         await sellerRecord.save();
       }
     }
@@ -490,7 +608,32 @@ const getAllUsersWithRoles = async (req, res) => {
 
     // Get role-specific data for each user and merge into one object per user
     const usersWithRoleData = await Promise.all(users.map(async (user) => {
-      // No need to fetch role-specific phone numbers for display
+      // Fetch role-specific data
+      let roleData = {};
+      
+      // Get Client data
+      const clientData = await Client.findOne({ user_id: user._id });
+      if (clientData) {
+        roleData.budgetRange = clientData.budgetRange;
+      }
+      
+      // Get Agent data
+      const agentData = await Agent.findOne({ user_id: user._id });
+      if (agentData) {
+        roleData.agencyName = agentData.agencyName;
+        roleData.yearsOfExperience = agentData.yearsOfExperience;
+        roleData.specialization = agentData.specialization;
+        roleData.licenseNumber = agentData.licenseNumber;
+        roleData.agentVerifiedIdentity = agentData.verifiedIdentity;
+      }
+      
+      // Get Seller data
+      const sellerData = await Seller.findOne({ user_id: user._id });
+      if (sellerData) {
+        roleData.idNumber = sellerData.idNumber;
+        roleData.sellerVerifiedIdentity = sellerData.verifiedIdentity;
+      }
+      
       return {
         _id: user._id,
         name: user.name,
@@ -500,7 +643,9 @@ const getAllUsersWithRoles = async (req, res) => {
         phone: user.phone || user.phone_number || '',
         status: user.status || 'active',
         createdAt: user.createdAt,
-        updatedAt: user.updatedAt
+        updatedAt: user.updatedAt,
+        // Include role-specific data
+        ...roleData
       };
     }));
 
@@ -521,12 +666,44 @@ const getAllUsersWithRoles = async (req, res) => {
 // Function to update user with roles for admin panel
 const updateUserWithRole = async (req, res) => {
   try {
-    const { userId, name, email, phone, roles, password } = req.body;
+    const { 
+      userId, 
+      name, 
+      email, 
+      phone, 
+      roles, 
+      password,
+      // Client attributes
+      budgetRange,
+      // Agent attributes
+      agencyName,
+      yearsOfExperience,
+      specialization,
+      licenseNumber,
+      agentVerifiedIdentity,
+      // Seller attributes
+      idNumber,
+      sellerVerifiedIdentity
+    } = req.body;
 
     // Validate required fields
     if (!userId || !name || !email || !roles) {
       return res.status(400).json({ 
         message: "User ID, name, email, and roles are required", 
+        success: false 
+      });
+    }
+
+    // Validate required fields for Agent and Seller roles
+    if (roles.includes('agent') && (!agencyName || !licenseNumber)) {
+      return res.status(400).json({ 
+        message: "users.errors.agencyNameLicenseRequired", 
+        success: false 
+      });
+    }
+    if (roles.includes('seller') && !idNumber) {
+      return res.status(400).json({ 
+        message: "users.errors.idNumberRequired", 
         success: false 
       });
     }
@@ -538,6 +715,16 @@ const updateUserWithRole = async (req, res) => {
       if (!validRoles.includes(role)) {
         return res.status(400).json({ 
           message: `Invalid role: ${role}`, 
+          success: false 
+        });
+      }
+    }
+
+    // Validate required Agent fields
+    if (selectedRoles.includes('agent')) {
+      if (!agencyName || !licenseNumber) {
+        return res.status(400).json({ 
+          message: "Agency Name and License Number are required for Agent role", 
           success: false 
         });
       }
@@ -565,22 +752,36 @@ const updateUserWithRole = async (req, res) => {
     // Update or create role-specific records
     for (const role of selectedRoles) {
       if (role === 'client') {
+        const clientUpdateData = {};
+        if (budgetRange !== undefined) clientUpdateData.budgetRange = budgetRange;
+        
         await Client.findOneAndUpdate(
           { user_id: userId },
-          {},
-          { upsert: true }
+          clientUpdateData,
+          { upsert: true, new: true }
         );
       } else if (role === 'agent') {
+        const agentUpdateData = {};
+        if (agencyName !== undefined) agentUpdateData.agencyName = agencyName;
+        if (yearsOfExperience !== undefined) agentUpdateData.yearsOfExperience = yearsOfExperience;
+        if (specialization !== undefined) agentUpdateData.specialization = specialization;
+        if (licenseNumber !== undefined) agentUpdateData.licenseNumber = licenseNumber;
+        if (agentVerifiedIdentity !== undefined) agentUpdateData.verifiedIdentity = agentVerifiedIdentity;
+        
         await Agent.findOneAndUpdate(
           { user_id: userId },
-          {},
-          { upsert: true }
+          agentUpdateData,
+          { upsert: true, new: true }
         );
       } else if (role === 'seller') {
+        const sellerUpdateData = {};
+        if (idNumber !== undefined) sellerUpdateData.idNumber = idNumber;
+        if (sellerVerifiedIdentity !== undefined) sellerUpdateData.verifiedIdentity = sellerVerifiedIdentity;
+        
         await Seller.findOneAndUpdate(
           { user_id: userId },
-          {},
-          { upsert: true }
+          sellerUpdateData,
+          { upsert: true, new: true }
         );
       }
     }

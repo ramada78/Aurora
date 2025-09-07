@@ -281,6 +281,18 @@
       "noUsersFound": "No users found",
       "noUsersFiltered": "No users found matching your criteria"
     },
+    "errors": {
+      "accountPendingVerification": "Your account is pending verification. Please contact an administrator.",
+      "idNumberRequired": "ID Number is required for Seller role",
+      "agencyNameLicenseRequired": "Agency Name and License Number are required for Agent role",
+      "invalidCredentials": "Invalid credentials",
+      "emailNotFound": "Email not found",
+      "invalidPassword": "Invalid password",
+      "serverError": "Server error",
+      "invalidEmail": "Invalid email",
+      "nameEmailRolesRequired": "Name, email, and at least one role are required",
+      "userIdNameEmailRolesRequired": "User ID, name, email, and roles are required"
+    },
     "modal": {
       "addTitle": "Add New User",
       "editTitle": "Edit User",
@@ -294,7 +306,25 @@
       "enterPhone": "Enter phone number (optional)",
       "enterPassword": "Enter password",
       "keepPassword": "Leave blank to keep current password",
-      "selectRoles": "Select roles"
+      "selectRoles": "Select roles",
+      "clientInfo": "Client Information",
+      "agentInfo": "Agent Information",
+      "sellerInfo": "Seller Information",
+      "budgetRange": "Budget Range",
+      "budgetRangePlaceholder": "e.g., $500,000 - $1,000,000",
+      "agencyName": "Agency Name",
+      "agencyNamePlaceholder": "Enter agency name",
+      "licenseNumber": "License Number",
+      "licenseNumberPlaceholder": "Enter license number",
+      "yearsOfExperience": "Years of Experience",
+      "yearsOfExperiencePlaceholder": "Enter years of experience",
+      "specialization": "Specialization",
+      "specializationPlaceholder": "e.g., Residential, Commercial, Luxury",
+      "idNumber": "ID Number",
+      "idNumberPlaceholder": "Enter ID number",
+      "verifiedIdentity": "Verified Identity",
+      "agentVerifiedIdentity": "Agent Verified Identity",
+      "sellerVerifiedIdentity": "Seller Verified Identity"
     },
     "actions": {
       "edit": "Edit",
