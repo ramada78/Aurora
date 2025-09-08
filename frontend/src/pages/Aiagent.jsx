@@ -18,15 +18,25 @@ const AIPropertyHub = () => {
   useEffect(() => {
     const fetchRecommendations = async () => {
       setRecLoading(true);
-      const lastSearches = await getLastSearches();
-      const preferences = aggregatePreferences(lastSearches);
-      if (Object.keys(preferences).length > 0) {
-        const recs = await recommendProperties(preferences);
-        setRecommendations(recs);
-      } else {
+      try {
+        const lastSearches = await getLastSearches();
+        console.log('Last searches:', lastSearches);
+        const preferences = aggregatePreferences(lastSearches);
+        console.log('Aggregated preferences:', preferences);
+        if (Object.keys(preferences).length > 0) {
+          const recs = await recommendProperties(preferences);
+          console.log('Recommendations received:', recs);
+          setRecommendations(recs);
+        } else {
+          console.log('No preferences found, setting empty recommendations');
+          setRecommendations([]);
+        }
+      } catch (error) {
+        console.error('Error fetching recommendations:', error);
         setRecommendations([]);
+      } finally {
+        setRecLoading(false);
       }
-      setRecLoading(false);
     };
     fetchRecommendations();
   }, [isLoggedIn]);
@@ -89,7 +99,17 @@ const AIPropertyHub = () => {
               ))}
             </div>
           ) : (
-            <div className="text-gray-500">{t('aiAgent.noRecommendations')}</div>
+            <div className="text-center py-12">
+              <div className="text-gray-500 mb-4">
+                {t('aiAgent.noRecommendations')}
+              </div>
+              <div className="text-sm text-gray-400">
+                {isLoggedIn ? 
+                  t('aiAgent.searchToGetRecommendations') : 
+                  t('aiAgent.loginToGetRecommendations')
+                }
+              </div>
+            </div>
           )}
         </div>
         {/* Decorative Aurora Pattern at Bottom */}

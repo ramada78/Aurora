@@ -239,6 +239,8 @@
     "recommendedForYou": "Recommended For You",
     "loadingRecommendations": "Loading recommendations...",
     "noRecommendations": "No recommendations found. Try searching for properties to get personalized suggestions!",
+    "searchToGetRecommendations": "Search for properties to get personalized recommendations for you",
+    "loginToGetRecommendations": "Login to get personalized recommendations based on your previous searches",
     "analysis": {
       "title": "Expert Analysis",
       "collapse": "Collapse analysis",

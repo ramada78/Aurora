@@ -160,17 +160,23 @@ export const getLastSearches = async () => {
       });
       return response.data.lastSearches || [];
     } else {
-      return JSON.parse(localStorage.getItem('lastSearches') || '[]');
+      const localSearches = JSON.parse(localStorage.getItem('lastSearches') || '[]');
+      console.log('Local searches from localStorage:', localSearches);
+      return localSearches;
     }
   } catch (error) {
     console.error('Error getting last searches:', error);
-    return [];
+    // Fallback to localStorage if API fails
+    const localSearches = JSON.parse(localStorage.getItem('lastSearches') || '[]');
+    console.log('Fallback to localStorage:', localSearches);
+    return localSearches;
   }
 };
 
 // Aggregate an array of search/filter objects into a single preference object
 export const aggregatePreferences = (searches) => {
   if (!searches.length) return {};
+  console.log('Aggregating preferences from searches:', searches);
   // For categorical: use most frequent; for numeric: use average (ignore 0, '0', '')
   const fields = ['price','propertyType','city','minPrice','maxPrice','bedrooms','bathrooms','area','availability','status'];
   const counts = {};
@@ -179,16 +185,17 @@ export const aggregatePreferences = (searches) => {
   searches.forEach(s => {
     fields.forEach(f => {
       const val = s[f];
-      if (val !== undefined && val !== '' && val !== 0 && val !== '0') {
-        if (typeof val === 'number' || (!isNaN(val) && val !== '' && val !== '0')) {
+      // More lenient check - include values that might be meaningful
+      if (val !== undefined && val !== '' && val !== null) {
+        if (typeof val === 'number' || (!isNaN(val) && val !== '')) {
           // Numeric
           const numVal = typeof val === 'number' ? val : Number(val);
-          if (!isNaN(numVal) && numVal !== 0) {
+          if (!isNaN(numVal)) {
             sums[f] = (sums[f] || 0) + numVal;
             nums[f] = (nums[f] || 0) + 1;
           }
         } else {
-          // Categorical
+          // Categorical - include all non-empty string values
           counts[f] = counts[f] || {};
           counts[f][val] = (counts[f][val] || 0) + 1;
         }
@@ -204,10 +211,10 @@ export const aggregatePreferences = (searches) => {
       result[f] = Object.entries(counts[f]).sort((a,b) => b[1]-a[1])[0][0];
     }
     // Fallback: use most recent non-empty value
-    if ((result[f] === undefined || result[f] === '' || result[f] === 0 || result[f] === '0') && searches) {
+    if ((result[f] === undefined || result[f] === '' || result[f] === null) && searches) {
       for (let i = 0; i < searches.length; i++) {
         const val = searches[i][f];
-        if (val !== undefined && val !== '' && val !== 0 && val !== '0') {
+        if (val !== undefined && val !== '' && val !== null) {
           result[f] = val;
           break;
         }
@@ -233,6 +240,7 @@ export const aggregatePreferences = (searches) => {
       }
     }
   }
+  console.log('Final aggregated preferences:', result);
   return result;
 };
 
@@ -264,6 +272,7 @@ const translateToBackendFormat = (preferences) => {
     'أرض': 'Land',
     'مكتب': 'Office',
     'محل تجاري': 'Shop',
+    'متجر': 'Shop',
     'مستودع': 'Warehouse',
     
     // Availability

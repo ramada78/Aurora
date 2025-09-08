@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import heroimage from "../assets/images/hero_bg.png";
 import { RadialGradient } from "react-text-gradients";
-import { getPropertyTypeCounts, getPublicStats, getTotalPropertyViews, getCompletedTransactions } from "../services/api";
+import { getPropertyTypeCounts, getPublicStats, getTotalPropertyViews, getCompletedTransactions, saveLastSearch } from "../services/api";
 import { useRef } from "react";
 import { useTranslation } from 'react-i18next';
 
@@ -130,6 +130,22 @@ const Hero = () => {
 
   const handleSubmit = (city = searchQuery) => {
     if (city.trim()) {
+      // Save search to preferences
+      const searchData = {
+        city: city,
+        searchQuery: city,
+        minPrice: '',
+        maxPrice: '',
+        bedrooms: 0,
+        bathrooms: 0,
+        area: 0,
+        availability: '',
+        propertyType: '',
+        sortBy: '',
+        status: '',
+        amenities: []
+      };
+      saveLastSearch(searchData);
       navigate(`/properties?city=${encodeURIComponent(city)}`);
     }
   };
@@ -138,6 +154,26 @@ const Hero = () => {
     setSearchQuery(city);
     setShowSuggestions(false);
     handleSubmit(city);
+  };
+
+  const handleQuickFilterClick = (propertyType) => {
+    // Save search to preferences
+    const searchData = {
+      city: '',
+      searchQuery: '',
+      minPrice: '',
+      maxPrice: '',
+      bedrooms: 0,
+      bathrooms: 0,
+      area: 0,
+      availability: '',
+      propertyType: propertyType,
+      sortBy: '',
+      status: '',
+      amenities: []
+    };
+    saveLastSearch(searchData);
+    navigate(`/properties?propertyType=${encodeURIComponent(propertyType)}`);
   };
 
   return (
@@ -274,7 +310,7 @@ const Hero = () => {
                         key={filter.label}
                         whileHover={{ scale: 1.05, y: -2 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => navigate(`/properties?propertyType=${encodeURIComponent(filter.label)}`)}
+                        onClick={() => handleQuickFilterClick(filter.label)}
                         className={`px-6 py-3 rounded-2xl font-semibold text-sm transition-all duration-300 flex items-center gap-2 ${
                           propertyType === filter.label
                             ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'

@@ -251,6 +251,8 @@
     "recommendedForYou": "موصى به لك",
     "loadingRecommendations": "جاري تحميل التوصيات ...",
     "noRecommendations": "لم يتم العثور على توصيات. حاول البحث عن عقارات للحصول على اقتراحات مخصصة!",
+    "searchToGetRecommendations": "ابحث عن عقارات للحصول على توصيات مخصصة لك",
+    "loginToGetRecommendations": "سجل الدخول للحصول على توصيات مخصصة بناءً على عمليات البحث السابقة",
     "analysis": {
       "title": "تحليل الخبراء",
       "collapse": "طي التحليل",
