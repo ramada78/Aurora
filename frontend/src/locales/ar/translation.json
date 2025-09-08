@@ -316,6 +316,8 @@
     "imageCounter": "{{current}} / {{total}}",
     "closeVrTour": "إغلاق الجولة الافتراضية",
     "viewExactLocation": "عرض الموقع الدقيق",
+    "enterFullscreen": "عرض ملء الشاشة",
+    "exitFullscreen": "الخروج من ملء الشاشة",
     "availability": {
       "for_buy": "للبيع",
       "for_rent": "للإيجار",
@@ -716,10 +718,12 @@
       "weekendsNotAvailable": "الزيارات غير متاحة في عطلة نهاية الأسبوع",
       "selectFutureTime": "يرجى اختيار موعد مستقبلي",
       "loginRequired": "يرجى تسجيل الدخول لجدولة زيارة",
-              "schedulingFailed": "خطأ في جدولة الزيارة",
-        "incompleteForm": "يرجى إكمال جميع الحقول المطلوبة",
-        "vrCityRequired": "يرجى اختيار مدينة الواقع الافتراضي للجولة الافتراضية في المكتب"
+      "schedulingFailed": "خطأ في جدولة الزيارة",
+      "incompleteForm": "يرجى إكمال جميع الحقول المطلوبة",
+      "vrCityRequired": "يرجى اختيار مدينة الواقع الافتراضي للجولة الافتراضية في المكتب"
     },
+    "loginRequired": "تسجيل الدخول مطلوب",
+    "loginMessage": "تحتاج إلى تسجيل الدخول لجدولة زيارة العقار. يرجى تسجيل الدخول إلى حسابك للمتابعة.",
     "info": {
       "agentGuide": "سيرشدك وكيل مؤهل خلال الزيارة"
     }

@@ -304,6 +304,8 @@
     "imageCounter": "{{current}} / {{total}}",
     "closeVrTour": "Close VR Tour",
     "viewExactLocation": "View Exact Location",
+    "enterFullscreen": "Enter Fullscreen",
+    "exitFullscreen": "Exit Fullscreen",
     "availability": {
       "for_buy": "For Sale",
       "for_rent": "For Rent",
@@ -707,6 +709,8 @@
       "incompleteForm": "Please complete all required fields",
       "vrCityRequired": "Please select a VR city for office VR tour"
     },
+    "loginRequired": "Login Required",
+    "loginMessage": "You need to be logged in to schedule a property viewing. Please sign in to your account to continue.",
     "info": {
       "agentGuide": "A qualified agent will guide you through the viewing"
     }

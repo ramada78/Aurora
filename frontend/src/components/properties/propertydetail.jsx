@@ -22,7 +22,11 @@ import {
   DollarSign,
   MoveRight,
   ArrowRight,
-  X
+  X,
+  LogIn,
+  User,
+  Maximize2,
+  Minimize2
 } from "lucide-react";
 import { Backendurl } from "../../App.jsx";
 import ScheduleViewing from "./ScheduleViewing";
@@ -31,10 +35,12 @@ import PropertyReviews from './PropertyReviews';
 import VR360Embed from "../VR360Embed.jsx";
 import { useTranslation } from 'react-i18next';
 import { getLocalizedText } from '../../utils/i18nHelpers';
+import { useAuth } from '../../context/AuthContext';
 
 const PropertyDetails = () => {
   const { t, i18n } = useTranslation();
   const { id } = useParams();
+  const { isLoggedIn } = useAuth();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -45,6 +51,7 @@ const PropertyDetails = () => {
   const [cityName, setCityName] = useState("");
   const navigate = useNavigate();
   const [showVR, setShowVR] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -133,6 +140,37 @@ const PropertyDetails = () => {
       console.error('Error sharing:', error);
     }
   };
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      const vrContainer = document.getElementById('vr-container');
+      if (vrContainer) {
+        vrContainer.requestFullscreen().then(() => {
+          setIsFullscreen(true);
+        }).catch((err) => {
+          console.error('Error attempting to enable fullscreen:', err);
+        });
+      }
+    } else {
+      document.exitFullscreen().then(() => {
+        setIsFullscreen(false);
+      }).catch((err) => {
+        console.error('Error attempting to exit fullscreen:', err);
+      });
+    }
+  };
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   if (loading || !property) {
     return (
@@ -314,15 +352,35 @@ const PropertyDetails = () => {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setShowSchedule(true)}
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg 
-                    hover:bg-blue-700 transition-colors flex items-center 
-                    justify-center gap-2"
-                >
-                  <Calendar className="w-5 h-5" />
-                  {t('scheduleViewing.title')}
-                </button>
+                {isLoggedIn ? (
+                  <button
+                    onClick={() => setShowSchedule(true)}
+                    className="w-full bg-blue-600 text-white py-3 rounded-lg 
+                      hover:bg-blue-700 transition-colors flex items-center 
+                      justify-center gap-2"
+                  >
+                    <Calendar className="w-5 h-5" />
+                    {t('scheduleViewing.title')}
+                  </button>
+                ) : (
+                  <div className="w-full bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <User className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                      {t('scheduleViewing.loginRequired')}
+                    </h3>
+                    <p className="text-gray-600 mb-4 text-sm">
+                      {t('scheduleViewing.loginMessage')}
+                    </p>
+                    <Link
+                      to="/login"
+                      className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg 
+                        hover:bg-blue-700 transition-colors"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      {t('login.signIn')}
+                    </Link>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -371,15 +429,28 @@ const PropertyDetails = () => {
                   animate={{ opacity: 1, height: 'auto', transition: { duration: 0.5 } }}
                   exit={{ opacity: 0, height: 0, transition: { duration: 0.5 } }}
                   className="relative"
+                  id="vr-container"
                 >
                   <VR360Embed tourUrl={property.vrTourLink || DEMO_VR_TOUR_URL} />
-                  <button
-                    onClick={() => setShowVR(false)}
-                    className="absolute top-4 right-4 z-10 bg-white/80 backdrop-blur-sm rounded-full p-2 text-gray-800 hover:bg-white transition"
-                    aria-label={t('property.closeVrTour')}
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
+                  
+                  {/* Control Buttons */}
+                  <div className="absolute top-4 right-4 z-10 flex gap-2">
+                    <button
+                      onClick={toggleFullscreen}
+                      className="bg-white/80 backdrop-blur-sm rounded-full p-2 text-gray-800 hover:bg-white transition"
+                      aria-label={isFullscreen ? t('property.exitFullscreen') : t('property.enterFullscreen')}
+                      title={isFullscreen ? t('property.exitFullscreen') : t('property.enterFullscreen')}
+                    >
+                      {isFullscreen ? <Minimize2 className="w-6 h-6" /> : <Maximize2 className="w-6 h-6" />}
+                    </button>
+                    <button
+                      onClick={() => setShowVR(false)}
+                      className="bg-white/80 backdrop-blur-sm rounded-full p-2 text-gray-800 hover:bg-white transition"
+                      aria-label={t('property.closeVrTour')}
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
                 </motion.div>
               ) : (
                 <motion.div

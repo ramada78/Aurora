@@ -351,13 +351,14 @@ const createUserWithRole = async (req, res) => {
         success: false 
       });
     }
-    if (roles.includes('seller') && !idNumber) {
-      return res.status(400).json({ 
-        message: "ID Number is required for Seller role",
-        messageAr: "رقم الهوية مطلوب لدور البائع", 
-        success: false 
-      });
-    }
+    // Note: ID Number is not required for seller creation, it can be added later
+    // if (roles.includes('seller') && !idNumber) {
+    //   return res.status(400).json({ 
+    //     message: "ID Number is required for Seller role",
+    //     messageAr: "رقم الهوية مطلوب لدور البائع", 
+    //     success: false 
+    //   });
+    // }
 
     // Use roles array, primaryRole is first role
     const selectedRoles = roles;
@@ -384,11 +385,15 @@ const createUserWithRole = async (req, res) => {
       }
     }
 
-    // Check if user already exists
-    const existingUser = await userModel.findOne({ email });
+    // Check if user already exists (case insensitive)
+    const existingUser = await userModel.findOne({ 
+      email: { $regex: new RegExp(`^${email}$`, 'i') } 
+    });
     if (existingUser) {
+      console.log(`User creation failed: Email ${email} already exists in database`);
       return res.status(400).json({ 
         message: "User with this email already exists", 
+        messageAr: "مستخدم بهذا البريد الإلكتروني موجود بالفعل",
         success: false 
       });
     }
@@ -409,34 +414,78 @@ const createUserWithRole = async (req, res) => {
       roles: selectedRoles,
       profileCompleted: true
     });
-    await newUser.save();
+    
+    try {
+      await newUser.save();
+      console.log(`User created successfully: ${email}`);
+    } catch (saveError) {
+      console.error('Error saving user:', saveError);
+      if (saveError.code === 11000) {
+        return res.status(400).json({ 
+          message: "User with this email already exists", 
+          messageAr: "مستخدم بهذا البريد الإلكتروني موجود بالفعل",
+          success: false 
+        });
+      }
+      throw saveError;
+    }
 
     // Create role-specific records for all selected roles
-    for (const roleType of selectedRoles) {
-      if (roleType === 'client') {
-        const clientRecord = new Client({ 
-          user_id: newUser._id,
-          budgetRange: budgetRange || undefined
-        });
-        await clientRecord.save();
-      } else if (roleType === 'agent') {
-        const agentRecord = new Agent({ 
-          user_id: newUser._id,
-          agencyName: agencyName || undefined,
-          yearsOfExperience: yearsOfExperience || undefined,
-          specialization: specialization || undefined,
-          licenseNumber: licenseNumber || undefined,
-          verifiedIdentity: agentVerifiedIdentity || false
-        });
-        await agentRecord.save();
-      } else if (roleType === 'seller') {
-        const sellerRecord = new Seller({ 
-          user_id: newUser._id,
-          idNumber: idNumber || undefined,
-          verifiedIdentity: sellerVerifiedIdentity || false
-        });
-        await sellerRecord.save();
+    console.log('About to create role-specific records for roles:', selectedRoles);
+    console.log('Available data:', { idNumber, sellerVerifiedIdentity, agencyName, licenseNumber });
+    
+    try {
+      for (const roleType of selectedRoles) {
+        console.log(`Processing role: ${roleType}`);
+        if (roleType === 'client') {
+          const clientRecord = new Client({ 
+            user_id: newUser._id,
+            budgetRange: budgetRange || undefined
+          });
+          await clientRecord.save();
+          console.log(`Client record created for user: ${email}`);
+        } else if (roleType === 'agent') {
+          const agentRecord = new Agent({ 
+            user_id: newUser._id,
+            agencyName: agencyName || undefined,
+            yearsOfExperience: yearsOfExperience || undefined,
+            specialization: specialization || undefined,
+            licenseNumber: licenseNumber || undefined,
+            verifiedIdentity: agentVerifiedIdentity || false
+          });
+          await agentRecord.save();
+          console.log(`Agent record created for user: ${email}`);
+        } else if (roleType === 'seller') {
+          console.log(`Creating seller record for user ${newUser._id} with data:`, {
+            user_id: newUser._id,
+            idNumber: idNumber,
+            verifiedIdentity: sellerVerifiedIdentity
+          });
+          
+          const sellerRecord = new Seller({ 
+            user_id: newUser._id,
+            idNumber: idNumber || '',
+            verifiedIdentity: sellerVerifiedIdentity || false
+          });
+          
+          try {
+            await sellerRecord.save();
+            console.log(`Seller record created successfully for user: ${email}`, sellerRecord);
+          } catch (saveError) {
+            console.error(`Error saving seller record for user ${email}:`, saveError);
+            throw saveError;
+          }
+        }
       }
+    } catch (roleError) {
+      console.error('Error creating role-specific records:', roleError);
+      // If role records fail, we should fail the entire user creation
+      return res.status(500).json({
+        message: "Failed to create user role records",
+        messageAr: "فشل في إنشاء سجلات أدوار المستخدم",
+        success: false,
+        error: roleError.message
+      });
     }
 
     // Try to send welcome email with credentials, but don't fail if email fails
@@ -486,6 +535,7 @@ const createUserWithRole = async (req, res) => {
     if (error.code === 11000) {
       return res.status(400).json({ 
         message: "User with this email already exists", 
+        messageAr: "مستخدم بهذا البريد الإلكتروني موجود بالفعل",
         success: false 
       });
     }
@@ -659,6 +709,10 @@ const getAllUsersWithRoles = async (req, res) => {
       if (sellerData) {
         roleData.idNumber = sellerData.idNumber;
         roleData.sellerVerifiedIdentity = sellerData.verifiedIdentity;
+        console.log(`Seller data for user ${user._id}:`, {
+          idNumber: sellerData.idNumber,
+          verifiedIdentity: sellerData.verifiedIdentity
+        });
       }
       
       return {
@@ -675,6 +729,16 @@ const getAllUsersWithRoles = async (req, res) => {
         ...roleData
       };
     }));
+
+    console.log('All users with role data:', usersWithRoleData.map(u => ({
+      id: u._id,
+      name: u.name,
+      roles: u.roles,
+      idNumber: u.idNumber,
+      sellerVerifiedIdentity: u.sellerVerifiedIdentity,
+      agencyName: u.agencyName,
+      agentVerifiedIdentity: u.agentVerifiedIdentity
+    })));
 
     res.json({ 
       success: true, 
@@ -729,13 +793,14 @@ const updateUserWithRole = async (req, res) => {
         success: false 
       });
     }
-    if (roles.includes('seller') && !idNumber) {
-      return res.status(400).json({ 
-        message: "ID Number is required for Seller role",
-        messageAr: "رقم الهوية مطلوب لدور البائع", 
-        success: false 
-      });
-    }
+    // Note: ID Number is not required for seller creation, it can be added later
+    // if (roles.includes('seller') && !idNumber) {
+    //   return res.status(400).json({ 
+    //     message: "ID Number is required for Seller role",
+    //     messageAr: "رقم الهوية مطلوب لدور البائع", 
+    //     success: false 
+    //   });
+    // }
 
     // Validate roles
     const validRoles = ['client', 'agent', 'seller'];
@@ -766,6 +831,21 @@ const updateUserWithRole = async (req, res) => {
         message: "User not found", 
         success: false 
       });
+    }
+
+    // Check if email is being changed and if it already exists
+    if (user.email !== email) {
+      const existingUser = await userModel.findOne({ 
+        email: { $regex: new RegExp(`^${email}$`, 'i') },
+        _id: { $ne: userId } // Exclude current user
+      });
+      if (existingUser) {
+        return res.status(400).json({ 
+          message: "User with this email already exists", 
+          messageAr: "مستخدم بهذا البريد الإلكتروني موجود بالفعل",
+          success: false 
+        });
+      }
     }
 
     // Update user basic info
@@ -807,11 +887,15 @@ const updateUserWithRole = async (req, res) => {
         if (idNumber !== undefined) sellerUpdateData.idNumber = idNumber;
         if (sellerVerifiedIdentity !== undefined) sellerUpdateData.verifiedIdentity = sellerVerifiedIdentity;
         
-        await Seller.findOneAndUpdate(
+        console.log(`Updating seller data for user ${userId}:`, sellerUpdateData);
+        
+        const updatedSeller = await Seller.findOneAndUpdate(
           { user_id: userId },
           sellerUpdateData,
           { upsert: true, new: true }
         );
+        
+        console.log(`Seller updated successfully:`, updatedSeller);
       }
     }
 

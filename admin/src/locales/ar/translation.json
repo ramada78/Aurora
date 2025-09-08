@@ -245,12 +245,16 @@
       "allRoles": "جميع الأدوار",
       "client": "عميل",
       "agent": "وكيل",
-      "seller": "بائع"
+      "seller": "بائع",
+      "allVerification": "جميع حالات التوثيق",
+      "verified": "موثق",
+      "unverified": "غير موثق"
     },
     "table": {
       "user": "المستخدم",
       "role": "الدور",
       "contact": "التواصل",
+      "verification": "التوثيق",
       "actions": "الإجراءات"
     },
     "status": {
@@ -331,7 +335,13 @@
       "delete": "حذف",
       "deleteConfirm": "هل أنت متأكد من حذف هذا المستخدم؟",
       "editUser": "تعديل المستخدم",
-      "deleteUser": "حذف المستخدم"
+      "deleteUser": "حذف المستخدم",
+      "verify": "توثيق المستخدم",
+      "unverify": "إلغاء توثيق المستخدم",
+      "verifyConfirm": "هل أنت متأكد من أنك تريد توثيق {{name}}؟",
+      "unverifyConfirm": "هل أنت متأكد من أنك تريد إلغاء توثيق {{name}}؟",
+      "verifySuccess": "تم توثيق المستخدم بنجاح",
+      "unverifySuccess": "تم إلغاء توثيق المستخدم بنجاح"
     }
   },
   "appointments": {

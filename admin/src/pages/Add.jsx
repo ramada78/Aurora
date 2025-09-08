@@ -51,10 +51,20 @@ const Add = () => {
       if (res.data.success) setCities(res.data.cities);
     });
     axios.get(`${backendurl}/api/sellers`).then(res => {
-      if (res.data.success) setSellers(res.data.sellers);
+      if (res.data.success) {
+        console.log('Sellers received:', res.data.sellers);
+        setSellers(res.data.sellers);
+      }
+    }).catch(error => {
+      console.error('Error fetching sellers:', error);
     });
     axios.get(`${backendurl}/api/agents`).then(res => {
-      if (res.data.success) setAgents(res.data.agents);
+      if (res.data.success) {
+        console.log('Agents received:', res.data.agents);
+        setAgents(res.data.agents);
+      }
+    }).catch(error => {
+      console.error('Error fetching agents:', error);
     });
   }, [i18n.language]);
 
@@ -65,7 +75,7 @@ const Add = () => {
     if (user && user._id && Array.isArray(roles) && roles.includes('agent')) {
       // Find the Agent document for this user
       const agentDoc = agents.find(a =>
-        String(a.user_id?._id) === String(user._id)
+        a.user_id && String(a.user_id._id) === String(user._id)
       );
       if (agentDoc) {
         setFormData(prev => ({ ...prev, agent: String(user._id) }));
@@ -80,7 +90,7 @@ const Add = () => {
     if (user && user._id && Array.isArray(roles) && roles.includes('seller')) {
       // Find the Seller document for this user
       const sellerDoc = sellers.find(s =>
-        String(s.user_id?._id) === String(user._id)
+        s.user_id && String(s.user_id._id) === String(user._id)
       );
       if (sellerDoc) {
         setFormData(prev => ({ ...prev, seller: String(user._id) }));
@@ -326,8 +336,8 @@ const Add = () => {
                   className="mt-1 block w-full rounded-xl border border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
                 >
                   <option value="">{t('forms.placeholders.selectSeller')}</option>
-                  {sellers.map(seller => (
-                    <option key={seller._id} value={seller.user_id?._id}>{seller.user_id?.name}</option>
+                  {sellers.filter(seller => seller.user_id && seller.user_id.name).map(seller => (
+                    <option key={seller._id} value={seller.user_id._id}>{seller.user_id.name}</option>
                   ))}
                 </select>
               </div>
@@ -343,8 +353,8 @@ const Add = () => {
                   className="mt-1 block w-full rounded-xl border border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm py-3 px-4 transition-all duration-300"
                 >
                   <option value="">{t('forms.placeholders.selectAgent')}</option>
-                  {agents.map(agent => (
-                    <option key={agent._id} value={agent.user_id?._id}>{agent.user_id?.name}</option>
+                  {agents.filter(agent => agent.user_id && agent.user_id.name).map(agent => (
+                    <option key={agent._id} value={agent.user_id._id}>{agent.user_id.name}</option>
                   ))}
                 </select>
               </div>

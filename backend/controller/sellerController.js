@@ -2,9 +2,19 @@ import Seller from '../models/Seller.js';
 
 export const listSellers = async (req, res) => {
   try {
-    const sellers = await Seller.find().populate('user_id');
+    const sellers = await Seller.find().populate({
+      path: 'user_id',
+      select: 'name email _id'
+    });
+    console.log('Sellers found:', sellers.length);
+    console.log('Sellers data:', sellers.map(s => ({ 
+      id: s._id, 
+      userId: s.user_id?._id, 
+      userName: s.user_id?.name 
+    })));
     res.json({ success: true, sellers });
   } catch (error) {
+    console.error('Error fetching sellers:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

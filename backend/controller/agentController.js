@@ -2,9 +2,19 @@ import Agent from '../models/Agent.js';
 
 export const listAgents = async (req, res) => {
   try {
-    const agents = await Agent.find().populate('user_id');
+    const agents = await Agent.find().populate({
+      path: 'user_id',
+      select: 'name email _id'
+    });
+    console.log('Agents found:', agents.length);
+    console.log('Agents data:', agents.map(a => ({ 
+      id: a._id, 
+      userId: a.user_id?._id, 
+      userName: a.user_id?.name 
+    })));
     res.json({ success: true, agents });
   } catch (error) {
+    console.error('Error fetching agents:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

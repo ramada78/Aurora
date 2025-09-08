@@ -245,12 +245,16 @@
       "allRoles": "All Roles",
       "client": "Client",
       "agent": "Agent",
-      "seller": "Seller"
+      "seller": "Seller",
+      "allVerification": "All Verification Status",
+      "verified": "Verified",
+      "unverified": "Unverified"
     },
     "table": {
       "user": "User",
       "role": "Role",
       "contact": "Contact",
+      "verification": "Verification",
       "actions": "Actions"
     },
     "status": {
@@ -331,7 +335,13 @@
       "delete": "Delete",
       "deleteConfirm": "Are you sure you want to delete this user?",
       "editUser": "Edit user",
-      "deleteUser": "Delete user"
+      "deleteUser": "Delete user",
+      "verify": "Verify User",
+      "unverify": "Unverify User",
+      "verifyConfirm": "Are you sure you want to verify {{name}}?",
+      "unverifyConfirm": "Are you sure you want to unverify {{name}}?",
+      "verifySuccess": "User verified successfully",
+      "unverifySuccess": "User unverified successfully"
     }
   },
   "appointments": {

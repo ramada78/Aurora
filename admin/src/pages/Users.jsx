@@ -24,6 +24,7 @@ const UsersPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [verificationFilter, setVerificationFilter] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -69,6 +70,7 @@ const UsersPage = () => {
       });
 
       if (response.data.success) {
+        console.log('Users received from server:', response.data.users);
         setUsers(response.data.users);
       } else {
         toast.error(t('users.form.error'));
@@ -117,7 +119,7 @@ const UsersPage = () => {
           licenseNumber: formData.licenseNumber || undefined,
           agentVerifiedIdentity: formData.agentVerifiedIdentity || false,
           // Seller attributes
-          idNumber: formData.idNumber || undefined,
+          idNumber: formData.idNumber || "",
           sellerVerifiedIdentity: formData.sellerVerifiedIdentity || false
         },
         {
@@ -164,28 +166,33 @@ const UsersPage = () => {
     try {
       setActionLoading(true);
       
+      const updateData = {
+        userId: editingUser.user_id || editingUser._id,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        roles: formData.roles,
+        // Client attributes
+        budgetRange: formData.budgetRange || undefined,
+        // Agent attributes
+        agencyName: formData.agencyName || undefined,
+        yearsOfExperience: formData.yearsOfExperience || undefined,
+        specialization: formData.specialization || undefined,
+        licenseNumber: formData.licenseNumber || undefined,
+        agentVerifiedIdentity: formData.agentVerifiedIdentity || false,
+        // Seller attributes
+        idNumber: formData.idNumber || "",
+        sellerVerifiedIdentity: formData.sellerVerifiedIdentity || false
+      };
+      
+      console.log('Sending update data:', updateData);
+      console.log('Current editing user:', editingUser);
+      
       // Use the new unified API endpoint for updating users
       // Note: Password is not included when editing users - only users can change their own passwords
-              const response = await axios.put(
-          `${backendurl}/api/admin/users/${editingUser._id}`,
-        {
-          userId: editingUser.user_id || editingUser._id,
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          roles: formData.roles,
-          // Client attributes
-          budgetRange: formData.budgetRange || undefined,
-          // Agent attributes
-          agencyName: formData.agencyName || undefined,
-          yearsOfExperience: formData.yearsOfExperience || undefined,
-          specialization: formData.specialization || undefined,
-          licenseNumber: formData.licenseNumber || undefined,
-          agentVerifiedIdentity: formData.agentVerifiedIdentity || false,
-          // Seller attributes
-          idNumber: formData.idNumber || undefined,
-          sellerVerifiedIdentity: formData.sellerVerifiedIdentity || false
-        },
+      const response = await axios.put(
+        `${backendurl}/api/admin/users/${editingUser._id}`,
+        updateData,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
@@ -201,6 +208,73 @@ const UsersPage = () => {
       }
     } catch (error) {
       console.error("Error updating user:", error);
+      if (error.response?.data?.message) {
+        const errorMessage = error.response.data.messageAr || error.response.data.message;
+        toast.error(errorMessage);
+      } else {
+        toast.error(t('users.form.updateError'));
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleToggleVerification = async (user) => {
+    const currentStatus = getUserVerificationStatus(user);
+    // Only allow toggling for users who need verification
+    if (currentStatus === null) {
+      return;
+    }
+    const newStatus = !currentStatus;
+    
+    if (!window.confirm(
+      newStatus 
+        ? t('users.actions.verifyConfirm', { name: user.name })
+        : t('users.actions.unverifyConfirm', { name: user.name })
+    )) {
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      
+      const response = await axios.put(
+        `${backendurl}/api/admin/users/${user._id}`,
+        {
+          userId: user._id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          roles: user.roles,
+          // Client attributes
+          budgetRange: user.budgetRange || undefined,
+          // Agent attributes
+          agencyName: user.agencyName || undefined,
+          yearsOfExperience: user.yearsOfExperience || undefined,
+          specialization: user.specialization || undefined,
+          licenseNumber: user.licenseNumber || undefined,
+          agentVerifiedIdentity: user.roles.includes('agent') ? newStatus : user.agentVerifiedIdentity,
+          // Seller attributes
+          idNumber: user.idNumber || undefined,
+          sellerVerifiedIdentity: user.roles.includes('seller') ? newStatus : user.sellerVerifiedIdentity
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success(
+          newStatus 
+            ? t('users.actions.verifySuccess')
+            : t('users.actions.unverifySuccess')
+        );
+        fetchUsers();
+      } else {
+        toast.error(response.data.message || t('users.form.updateError'));
+      }
+    } catch (error) {
+      console.error("Error toggling verification:", error);
       if (error.response?.data?.message) {
         const errorMessage = error.response.data.messageAr || error.response.data.message;
         toast.error(errorMessage);
@@ -268,6 +342,13 @@ const UsersPage = () => {
   };
 
   const openEditModal = (user) => {
+    console.log('Opening edit modal for user:', user);
+    console.log('User seller data:', {
+      idNumber: user.idNumber,
+      sellerVerifiedIdentity: user.sellerVerifiedIdentity,
+      roles: user.roles
+    });
+    
     setEditingUser(user);
     setFormData({
       name: user.full_name || user.name || user.user_id?.name || "",
@@ -284,6 +365,11 @@ const UsersPage = () => {
       licenseNumber: user.licenseNumber || "",
       agentVerifiedIdentity: user.agentVerifiedIdentity || false,
       // Seller attributes
+      idNumber: user.idNumber || "",
+      sellerVerifiedIdentity: user.sellerVerifiedIdentity || false
+    });
+    
+    console.log('Form data set to:', {
       idNumber: user.idNumber || "",
       sellerVerifiedIdentity: user.sellerVerifiedIdentity || false
     });
@@ -368,6 +454,30 @@ const UsersPage = () => {
     return user.email || user.user_id?.email || "No email";
   };
 
+  const getUserVerificationStatus = (user) => {
+    // Check if user has agent or seller roles that require verification
+    const hasAgentRole = user.roles && user.roles.includes('agent');
+    const hasSellerRole = user.roles && user.roles.includes('seller');
+    
+    if (hasAgentRole && hasSellerRole) {
+      // If user has both roles, both must be verified
+      return user.agentVerifiedIdentity && user.sellerVerifiedIdentity;
+    } else if (hasAgentRole) {
+      return user.agentVerifiedIdentity || false;
+    } else if (hasSellerRole) {
+      return user.sellerVerifiedIdentity || false;
+    } else {
+      // Clients don't need verification - return null to indicate no verification needed
+      return null;
+    }
+  };
+
+  const needsVerification = (user) => {
+    const hasAgentRole = user.roles && user.roles.includes('agent');
+    const hasSellerRole = user.roles && user.roles.includes('seller');
+    return hasAgentRole || hasSellerRole;
+  };
+
   useEffect(() => {
     fetchUsers();
   }, [i18n.language]); // Refetch when language changes
@@ -381,7 +491,11 @@ const UsersPage = () => {
 
     const matchesRole = roleFilter === "all" || (user.roles && user.roles.includes(roleFilter));
 
-    return matchesSearch && matchesRole;
+    const matchesVerification = verificationFilter === "all" || 
+      (verificationFilter === "verified" && getUserVerificationStatus(user) === true) ||
+      (verificationFilter === "unverified" && (getUserVerificationStatus(user) === false || getUserVerificationStatus(user) === null));
+
+    return matchesSearch && matchesRole && matchesVerification;
   });
 
   if (loading) {
@@ -444,6 +558,19 @@ const UsersPage = () => {
               </select>
             </div>
 
+            <div className="flex items-center gap-2">
+              <Shield className="text-gray-400" />
+              <select
+                value={verificationFilter}
+                onChange={(e) => setVerificationFilter(e.target.value)}
+                className="rounded-xl border border-gray-200 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+              >
+                <option value="all">{t('users.filters.allVerification')}</option>
+                <option value="verified">{t('users.filters.verified')}</option>
+                <option value="unverified">{t('users.filters.unverified')}</option>
+              </select>
+            </div>
+
             <button
               onClick={() => setShowAddModal(true)}
               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -468,6 +595,9 @@ const UsersPage = () => {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t('users.table.contact')}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {t('users.table.verification')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {t('users.table.actions')}
@@ -514,6 +644,27 @@ const UsersPage = () => {
                         {user.phone ? user.phone : t('users.messages.noPhone')}
                       </td>
 
+                      {/* Verification Status */}
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          {needsVerification(user) ? (
+                            getUserVerificationStatus(user) ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <Shield className="w-3 h-3 mr-1" />
+                                {t('users.filters.verified')}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <Shield className="w-3 h-3 mr-1" />
+                                {t('users.filters.unverified')}
+                              </span>
+                            )
+                          ) : (
+                            <span className="text-gray-400 text-xs">-</span>
+                          )}
+                        </div>
+                      </td>
+
                       {/* Actions */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
@@ -525,6 +676,23 @@ const UsersPage = () => {
                           >
                             <Edit className="w-4 h-4" />
                           </button>
+                          
+                          {/* Toggle verification status for agents and sellers */}
+                          {needsVerification(user) && (
+                            <button
+                              onClick={() => handleToggleVerification(user)}
+                              className={`p-1 rounded ${
+                                getUserVerificationStatus(user) 
+                                  ? 'text-red-600 hover:text-red-800 hover:bg-red-50' 
+                                  : 'text-green-600 hover:text-green-800 hover:bg-green-50'
+                              }`}
+                              disabled={actionLoading}
+                              title={getUserVerificationStatus(user) ? t('users.actions.unverify') : t('users.actions.verify')}
+                            >
+                              <Shield className="w-4 h-4" />
+                            </button>
+                          )}
+                          
                           {/* For delete, use the primary role or first role as default */}
                           <button
                             onClick={() => handleDeleteUser(user._id, user.primaryRole || (user.roles && user.roles[0]))}
